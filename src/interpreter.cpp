@@ -435,6 +435,10 @@ void Bonus::do_bonus_info(CHAR_DATA*, char*, int, int);
 void do_stun(CHAR_DATA*, char*, int, int);
 void do_showzonestats(CHAR_DATA*, char*, int, int);
 void do_overstuff(CHAR_DATA *ch, char*, int, int);
+
+void do_overstuff(CHAR_DATA *ch, char*, int, int)
+{
+}
 /* This is the Master Command List(tm).
 
  * You can put new commands in, take commands out, change the order

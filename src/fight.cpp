@@ -51,7 +51,7 @@ extern CHAR_DATA *mob_proto;
 // void do_assist(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
 void battle_affect_update(CHAR_DATA * ch);
 void go_throw(CHAR_DATA * ch, CHAR_DATA * vict);
-void go_bash(CHAR_DATA * ch, CHAR_DATA * vict);
+bool go_bash(CHAR_DATA * ch, CHAR_DATA * vict);
 void go_kick(CHAR_DATA * ch, CHAR_DATA * vict);
 void go_rescue(CHAR_DATA * ch, CHAR_DATA * vict, CHAR_DATA * tmp_ch);
 void go_parry(CHAR_DATA * ch);

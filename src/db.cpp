@@ -76,7 +76,6 @@
 #define RANDOMOBJ_FILE "randomobj.xml"
 #define SPEEDWALKS_FILE "speedwalks.xml"
 #define CLASS_LIMIT_FILE "class_limit.xml"
-#define DAILY_FILE "daily.xml"
 /**************************************************************************
 *  declarations of global containers and objects                          *
 **************************************************************************/
@@ -1105,26 +1104,7 @@ void do_reboot(CHAR_DATA *ch, char *argument, int/* cmd*/, int/* subcmd*/)
 	else if (!str_cmp(arg, "schedule"))
 		load_sheduled_reboot();
 	else if (!str_cmp(arg, "clan"))
-	{
-		skip_spaces(&argument);
-		if (!*argument)
-		{
-			Clan::ClanLoad();
-			return;
-		}
-		Clan::ClanListType::iterator clan;
-		std::string buffer(argument);
-		for (clan = Clan::ClanList.begin(); clan != Clan::ClanList.end(); ++clan)
-		{
-			if (CompareParam(buffer, (*clan)->get_abbrev()))
-			{
-				CreateFileName(buffer);
-				Clan::ClanReload(buffer);
-				send_to_char("Перезагрузка клана.\r\n", ch);
-				break;
-			}
-		}
-	}
+		Clan::ClanLoad();
 	else if (!str_cmp(arg, "proxy"))
 		LoadProxyList();
 	else if (!str_cmp(arg, "boards"))
@@ -6339,29 +6319,6 @@ void init()
 
 } // namespace OfftopSystem
 ////////////////////////////////////////////////////////////////////////////////
-std::map<int, std::string> daily_array;
-
-
-int dg_daily_quest(CHAR_DATA *ch, int id, int percent)
-{
-
-	return 0;
-}
-
-void load_daily_quest()
-{
-	pugi::xml_document doc_;
-	pugi::xml_node child_, object_, file_;
-	file_ = XMLLoad(LIB_MISC DAILY_FILE, "daily_root", "Error loading cases file: daily.xml", doc_);
-
-	for (child_ = file_.child("daily"); child_; child_ = child_.next_sibling("daily"))
-	{
-		int temp_id = child_.attribute("id").as_int();
-		std::string temp_desk = child_.attribute("desk").as_string();
-		daily_array.insert(std::pair<int, std::string>(temp_id, temp_desk));
-	}
-
-}
 
 void load_speedwalk()
 {

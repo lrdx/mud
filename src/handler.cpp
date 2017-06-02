@@ -3533,6 +3533,7 @@ OBJ_DATA *get_obj_vis(CHAR_DATA * ch, const char *name, bool locate_item)
 	{
 		return nullptr;
 	}
+
 	// ok.. no luck yet. scan the entire obj list   //
 	const WorldObjects::predicate_f locate_predicate = [&](const OBJ_DATA::shared_ptr& i) -> bool
 	{
@@ -3554,7 +3555,7 @@ OBJ_DATA *get_obj_vis(CHAR_DATA * ch, const char *name, bool locate_item)
 	OBJ_DATA::shared_ptr result;
 	if (!locate_item)
 	{
-		result = world_objects.find_if(predicate, number - 1);
+		result = world_objects.find_if(predicate, number);
 	}
 	else
 	{

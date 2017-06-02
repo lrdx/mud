@@ -32,7 +32,7 @@
 #include "structs.h"
 #include "sysdep.h"
 #include "conf.h"
-
+#include "logger.hpp"
 #include <cmath>
 
 // extern variables
@@ -46,7 +46,7 @@ int legal_dir(CHAR_DATA * ch, int dir, int need_specials_check, int show_msg);
 void alt_equip(CHAR_DATA * ch, int pos, int dam, int chance);
 void go_protect(CHAR_DATA * ch, CHAR_DATA * vict);
 void go_stun(CHAR_DATA * ch, CHAR_DATA * vict);
-
+bool go_bash(CHAR_DATA *ch, CHAR_DATA *victim);
 // local functions
 void do_assist(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
 void do_hit(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
@@ -479,11 +479,11 @@ void do_kill(CHAR_DATA *ch, char *argument, int cmd, int subcmd)
 {
 	CHAR_DATA *vict;
 
-	if (!IS_GRGOD(ch))
+	/*if (!IS_GRGOD(ch))
 	{
 		do_hit(ch, argument, cmd, subcmd);
 		return;
-	}
+	}*/
 	one_argument(argument, arg);
 
 	if (!*arg)
@@ -500,10 +500,31 @@ void do_kill(CHAR_DATA *ch, char *argument, int cmd, int subcmd)
 			send_to_char("А если он вас чайником долбанет? Думай, Господи, думай!\r\n", ch);
 		else
 		{
-			act("Вы обратили $N3 в прах! Взглядом! Одним!", FALSE, ch, 0, vict, TO_CHAR);
+			/*act("Вы обратили $N3 в прах! Взглядом! Одним!", FALSE, ch, 0, vict, TO_CHAR);
 			act("$N обратил$g вас в прах своим ненавидящим взором!", FALSE, vict, 0, ch, TO_CHAR);
 			act("$n просто испепелил$g взглядом $N3!", FALSE, ch, 0, vict, TO_NOTVICT | TO_ARENA_LISTEN);
-			raw_kill(vict, ch);
+			int count = 0;
+			for (auto i = 0; i < 1000; i++)
+			{
+				if (mag_affects(GET_LEVEL(ch), ch, vict, SPELL_HOLD, SAVING_WILL) == 1)
+					count += 1;
+			}
+			sprintf(buf, "Каст: %d, воля: %d, шанс прохождения: %d/%d=%f", GET_CAST_SUCCESS(ch), GET_SAVE(vict, -SAVING_WILL), count, 1000, float(count/1000));
+			send_to_char(buf, vict);*/
+			
+			int count = 0;
+			for (auto i = 0; i < 1000; i++)
+			{
+				if (go_bash(ch, vict))
+					count += 1;
+				GET_POS(ch) = POS_FIGHTING;
+				GET_POS(vict) = POS_FIGHTING;
+			}
+			sprintf(buf, "Вес щита: %d, воля: %d, шанс прохождения: %d/%d=%f", 34, -GET_REAL_SAVING_REFLEX(vict), count, 1000, float(count / 1000));
+			mudlog(buf, LGH, LVL_IMMORT, SYSLOG, TRUE);
+			
+
+			//raw_kill(vict, ch);
 		}
 	}
 }
@@ -955,7 +976,7 @@ void drop_from_horse(CHAR_DATA *victim)
 }
 
 // ************************* BASH PROCEDURES
-void go_bash(CHAR_DATA * ch, CHAR_DATA * vict)
+bool go_bash(CHAR_DATA * ch, CHAR_DATA * vict)
 {
 	int percent = 0, prob;
 
@@ -963,21 +984,21 @@ void go_bash(CHAR_DATA * ch, CHAR_DATA * vict)
 			|| AFF_FLAGGED(ch, EAffectFlag::AFF_MAGICSTOPFIGHT))
 	{
 		send_to_char("Вы временно не в состоянии сражаться.\r\n", ch);
-		return;
+		return false;
 	}
 
 	if (PRF_FLAGS(ch).get(PRF_IRON_WIND))
 	{
 		send_to_char("Вы не можете применять этот прием в таком состоянии!\r\n", ch);
-		return;
+		return false;
 	}
 
 	if (onhorse(ch))
-		return;
+		return false;
 
 	if (ch == vict)
 	{
-		return;
+		return false;
 	}
 
 	if (!(IS_NPC(ch) ||	// моб
@@ -988,13 +1009,13 @@ void go_bash(CHAR_DATA * ch, CHAR_DATA * vict)
 		 ))
 	{
 		send_to_char("Вы не можете сделать этого без щита.\r\n", ch);
-		return;
+		return false;
 	};
 
 	if (GET_POS(ch) < POS_FIGHTING)
 	{
 		send_to_char("Вам стоит встать на ноги.\r\n", ch);
-		return;
+		return false;
 	}
 
 	vict = try_protect(vict, ch);
@@ -1034,7 +1055,7 @@ void go_bash(CHAR_DATA * ch, CHAR_DATA * vict)
 		{
 			send_to_char("Ваша жертва и так слишком слаба, надо быть милосерднее.\r\n", ch);
 			set_wait(ch, 1, FALSE);
-			return;
+			return false;
 		}
 
 		int dam = str_bonus(GET_REAL_STR(ch), STR_TO_DAM) + GET_REAL_DR(ch) +
@@ -1045,49 +1066,7 @@ void go_bash(CHAR_DATA * ch, CHAR_DATA * vict)
 //         GET_NAME(vict), GET_LEVEL(vict), GET_REAL_DEX(vict),
 //         percent, prob, dam);
 //делаем блокирование баша
-		if ((GET_AF_BATTLE(vict, EAF_BLOCK) || (can_use_feat(vict, DEFENDER_FEAT) && GET_EQ(vict, WEAR_SHIELD) && PRF_FLAGGED(vict, PRF_AWAKE) && vict->get_skill(SKILL_AWAKE) && vict->get_skill(SKILL_BLOCK) && GET_POS(vict) > POS_SITTING))
-			&& !AFF_FLAGGED(vict, EAffectFlag::AFF_STOPFIGHT)
-			&& !AFF_FLAGGED(vict, EAffectFlag::AFF_MAGICSTOPFIGHT)
-			&& !AFF_FLAGGED(vict, EAffectFlag::AFF_STOPLEFT)
-			&& GET_WAIT(vict) <= 0
-			&& GET_MOB_HOLD(vict) == 0)
-		{
-			if (!(GET_EQ(vict, WEAR_SHIELD) ||
-					IS_NPC(vict) || IS_IMMORTAL(vict) || GET_GOD_FLAG(vict, GF_GODSLIKE)))
-				send_to_char("У вас нечем отразить атаку противника.\r\n", vict);
-			else
-			{
-				int range, prob2;
-				range = number(1, skill_info[SKILL_BLOCK].max_percent);
-				prob2 = train_skill(vict, SKILL_BLOCK, skill_info[SKILL_BLOCK].max_percent, ch);
-				if (prob2 < range)
-				{
-					act("Вы не смогли блокировать попытку $N1 сбить вас.",
-						FALSE, vict, 0, ch, TO_CHAR);
-					act("$N не смог$Q блокировать вашу попытку сбить $S.",
-						FALSE, ch, 0, vict, TO_CHAR);
-					act("$n не смог$q блокировать попытку $N1 сбить $s.",
-						TRUE, vict, 0, ch, TO_NOTVICT | TO_ARENA_LISTEN);
-				}
-				else
-				{
-					act("Вы блокировали попытку $N1 сбить вас с ног.",
-						FALSE, vict, 0, ch, TO_CHAR);
-					act("Вы хотели сбить $N1, но он$G блокировал$G Вашу попытку.",
-						FALSE, ch, 0, vict, TO_CHAR);
-					act("$n блокировал$g попытку $N1 сбить $s.",
-						TRUE, vict, 0, ch, TO_NOTVICT | TO_ARENA_LISTEN);
-					alt_equip(vict, WEAR_SHIELD, 30, 10);
-					//если атакуем с баша, то бой начинается
-					if (!ch->get_fighting())
-					{
-						set_fighting(ch, vict);
-						set_wait(ch, 1, TRUE);
-					}
-					return;
-				}
-			}
-		}
+		
 //делаем блокирование баша
 
 		prob = 0;
@@ -1104,11 +1083,14 @@ void go_bash(CHAR_DATA * ch, CHAR_DATA * vict)
 				GET_POS(vict) = POS_SITTING;
 				drop_from_horse(vict);
 			}
-			set_wait(vict, prob, FALSE);
-			prob = 2;
+			//set_wait(vict, prob, FALSE);
+			prob = 2;		
+			return true;
 		}
+		
 	}
-	set_wait(ch, prob, TRUE);
+	return false;
+	//set_wait(ch, prob, TRUE);
 }
 
 void do_bash(CHAR_DATA *ch, char *argument, int/* cmd*/, int/* subcmd*/)
