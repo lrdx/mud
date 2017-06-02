@@ -3588,17 +3588,10 @@ int mag_affects(int level, CHAR_DATA * ch, CHAR_DATA * victim, int spellnum, int
 			break;
 		}
 
-		af[0].duration = calculate_resistance_coeff(victim, get_resist_type(spellnum),
-						 spellnum == SPELL_POWER_HOLD ? pc_duration(victim, 2, level + 7, 8, 2, 5)
-						 : pc_duration(victim, 1, level + 9, 10, 1, 3)) * koef_duration;
-
-		af[0].bitvector = to_underlying(EAffectFlag::AFF_HOLD);
-		af[0].battleflag = AF_BATTLEDEC;
-		to_room = "$n0 замер$q на месте!";
-		to_vict = "Вы замерли на месте, не в силах пошевельнуться.";
-		spellnum = SPELL_HOLD;
+		af[0].location = APPLY_HIT;
+		af[0].duration = pc_duration(victim, 3, level, 10, 0, 0) * koef_duration;
+		af[0].modifier = GET_LEVEL(ch) * 2 + GET_REMORT(ch);
 		break;
-
 	case SPELL_WC_OF_RAGE:
 	case SPELL_SONICWAVE:
 	case SPELL_MASS_DEAFNESS:
@@ -4278,14 +4271,7 @@ int mag_affects(int level, CHAR_DATA * ch, CHAR_DATA * victim, int spellnum, int
 	{
 //    affect_from_char(victim,spellnum);
 		update_spell = TRUE;
-	}
-
-	if ((ch != victim) && affected_by_spell(victim, spellnum) && success && (!update_spell))
-	{
-		if (ch->in_room == IN_ROOM(victim))
-			send_to_char(NOEFFECT, ch);
-		success = FALSE;
-	}
+	}	
 
 	for (i = 0; success && i < MAX_SPELL_AFFECTS; i++)
 	{
