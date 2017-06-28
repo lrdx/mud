@@ -593,7 +593,7 @@ void Player::save_char()
 	}
 
 	// города
-	fprintf(saved, "Cits:%s\n", this->cities_to_str().c_str());
+	fprintf(saved, "Cits: %s\n", this->cities_to_str().c_str());
 
 	// Задержки на скилы
 	if (GET_LEVEL(this) < LVL_IMMORT)
@@ -1268,6 +1268,10 @@ int Player::load_char_ascii(const char *name, bool reboot)
 		}
 		catch (const std::invalid_argument &)
         {
+			llnum = 0;
+		}
+		catch (const std::out_of_range &)
+		{
 			llnum = 0;
 		}
 
