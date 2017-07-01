@@ -2619,9 +2619,13 @@ int Crash_calculate_rent(OBJ_DATA * obj)
 {
 	int cost = 0;
 	for (; obj; obj = obj->get_next_content())
-	{
+	{		
 		cost += Crash_calculate_rent(obj->get_contains());
-		cost += MAX(0, GET_OBJ_RENT(obj));
+		const int req_mort = obj->get_minimum_remorts();
+		if (req_mort >= 4)
+			cost += MAX(GET_OBJ_RENT(obj) * req_mort, 50000);
+		else
+			cost += MAX(0, GET_OBJ_RENT(obj));
 	}
 	return (cost);
 }

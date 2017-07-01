@@ -4992,7 +4992,11 @@ int Clan::ChestTax()
 			// перебираем шмот
 			for (temp = chest->get_contains(); temp; temp = temp->get_next_content())
 			{
-				cost += GET_OBJ_RENTEQ(temp);
+				const int req_mort = temp->get_minimum_remorts();
+				if (req_mort >= 4)
+					cost += MAX(GET_OBJ_RENTEQ(temp) * req_mort, 50000);
+				else
+					cost += GET_OBJ_RENTEQ(temp);
 				++count;
 			}
 			this->chest_weight = GET_OBJ_WEIGHT(chest);

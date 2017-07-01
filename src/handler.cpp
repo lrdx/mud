@@ -2792,7 +2792,10 @@ void update_object(OBJ_DATA * obj, int use)
 
 	if (!trig_timer && has_timer && tick_timer)
 	{
-		obj->dec_timer(use);
+		if (obj->get_minimum_remorts() >= 9 && obj->get_worn_by() && obj->get_timer() < (obj_proto[GET_OBJ_RNUM(obj)]->get_timer() * 0.8))
+			obj->dec_timer(use + 5);
+		else
+			obj->dec_timer(use);
 	}
 
 	if (obj->get_contains())

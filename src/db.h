@@ -68,6 +68,13 @@ int vnum_object(char *searchname, CHAR_DATA * ch);
 int vnum_flag(char *searchname, CHAR_DATA * ch);
 int vnum_room(char *searchname, CHAR_DATA * ch);
 
+struct object_criterion
+{
+	std::map<std::string, float> affects, param, extra;
+	float weight, miw, timer_value, timer_step;	
+};
+
+
 // structure for the reset commands
 struct reset_com
 {

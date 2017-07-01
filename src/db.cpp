@@ -72,6 +72,7 @@
 #include <cmath>
 
 #define CRITERION_FILE "criterion.xml"
+#define CRITERIONS_FILE "criterions.xml"
 #define CASES_FILE "cases.xml"
 #define RANDOMOBJ_FILE "randomobj.xml"
 #define SPEEDWALKS_FILE "speedwalks.xml"
@@ -681,8 +682,15 @@ float count_unlimited_timer(const CObjectPrototype *obj)
 	return result;
 }
 
+void load_criterion()
+{
 
+}
 
+int get_criterion_object(OBJ_DATA *obj)
+{
+
+}
 
 
 
@@ -822,9 +830,37 @@ void Load_Criterion(pugi::xml_node XMLCriterion, const EWearFlag type)
 	}	
 }
 
+std::map<int, object_criterion> object_criterions;
 std::vector<SpeedWalk>  speedwalks;
 
-
+void load_criterions()
+{
+	pugi::xml_document document;
+	pugi::xml_node object_, file_, child_;
+	file_ = XMLLoad(LIB_MISC CRITERION_FILE, "criterions_objects", "Error loading cases file: criterions.xml", document);
+	for (child_ = file_.child("object");  child_;  child_ = child_.next_sibling("object"))
+	{
+		object_criterion criterion_tmp;
+		const int ind_wear = child_.attribute("index_wear").as_int();
+		criterion_tmp.weight = child_.attribute("weight_value").as_float();
+		criterion_tmp.timer_step = child_.attribute("timer_step").as_float();
+		criterion_tmp.timer_value = child_.attribute("timer_vslue").as_float();
+		criterion_tmp.miw = child_.attribute("miw_value").as_float();
+		for (object_ = child_.child("param"); object_; object_ = object_.next_sibling("param"))
+		{
+			criterion_tmp.param[object_.attribute("name").as_string()] = object_.attribute("value").as_float();
+		}
+		for (object_ = child_.child("extra"); object_; object_ = object_.next_sibling("extra"))
+		{
+			criterion_tmp.affects[object_.attribute("name").as_string()] = object_.attribute("value").as_float();
+		}
+		for (object_ = child_.child("affect"); object_; object_ = object_.next_sibling("affect"))
+		{
+			criterion_tmp.affects[object_.attribute("name").as_string()] = object_.attribute("value").as_float();
+		}
+		object_criterions[ind_wear] = criterion_tmp;
+	}
+}
 
 
 // Separate a 4-character id tag from the data it precedes
