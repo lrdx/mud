@@ -71,7 +71,7 @@ int vnum_room(char *searchname, CHAR_DATA * ch);
 struct object_criterion
 {
 	std::map<std::string, float> affects, param, extra;
-	float weight, miw, timer_value, timer_step;	
+	float weight, weight_value, miw, timer_value, timer_step;
 };
 
 

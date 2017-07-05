@@ -682,18 +682,6 @@ float count_unlimited_timer(const CObjectPrototype *obj)
 	return result;
 }
 
-void load_criterion()
-{
-
-}
-
-int get_criterion_object(OBJ_DATA *obj)
-{
-
-}
-
-
-
 float count_mort_requred(const CObjectPrototype *obj)
 {
     
@@ -837,7 +825,7 @@ void load_criterions()
 {
 	pugi::xml_document document;
 	pugi::xml_node object_, file_, child_;
-	file_ = XMLLoad(LIB_MISC CRITERION_FILE, "criterions_objects", "Error loading cases file: criterions.xml", document);
+	file_ = XMLLoad(LIB_MISC CRITERIONS_FILE, "criterions_objects", "Error loading cases file: criterions.xml", document);
 	for (child_ = file_.child("object");  child_;  child_ = child_.next_sibling("object"))
 	{
 		object_criterion criterion_tmp;
@@ -862,6 +850,138 @@ void load_criterions()
 	}
 }
 
+
+float get_criterion_object(OBJ_DATA *obj)
+{
+	// пока только для одежды
+	if (GET_OBJ_TYPE(obj) != OBJ_DATA::ITEM_ARMOR)
+		return -1000;
+	float sum = 0.0;
+	float sum_temp = 0.0;
+	char buf_temp[MAX_STRING_LENGTH], buf_temp1[MAX_STRING_LENGTH], buf_temp3[MAX_STRING_LENGTH];
+	std::vector<int> can_wear;
+	
+	// по другому никак :(
+	if (CAN_WEAR(obj, EWearFlag::ITEM_WEAR_FINGER))
+	{
+		can_wear.push_back(to_underlying(EWearFlag::ITEM_WEAR_FINGER));
+	}
+
+	if (CAN_WEAR(obj, EWearFlag::ITEM_WEAR_NECK))
+	{
+		can_wear.push_back(to_underlying(EWearFlag::ITEM_WEAR_NECK));
+	}
+
+	if (CAN_WEAR(obj, EWearFlag::ITEM_WEAR_BODY))
+	{
+		can_wear.push_back(to_underlying(EWearFlag::ITEM_WEAR_BODY));
+	}
+
+	if (CAN_WEAR(obj, EWearFlag::ITEM_WEAR_HEAD))
+	{
+		can_wear.push_back(to_underlying(EWearFlag::ITEM_WEAR_HEAD));
+	}
+
+	if (CAN_WEAR(obj, EWearFlag::ITEM_WEAR_LEGS))
+	{
+		can_wear.push_back(to_underlying(EWearFlag::ITEM_WEAR_LEGS));
+	}
+
+	if (CAN_WEAR(obj, EWearFlag::ITEM_WEAR_FEET))
+	{
+		can_wear.push_back(to_underlying(EWearFlag::ITEM_WEAR_FEET));
+	}
+
+	if (CAN_WEAR(obj, EWearFlag::ITEM_WEAR_HANDS))
+	{
+		can_wear.push_back(to_underlying(EWearFlag::ITEM_WEAR_HANDS));
+	}
+
+	if (CAN_WEAR(obj, EWearFlag::ITEM_WEAR_ARMS))
+	{
+		can_wear.push_back(to_underlying(EWearFlag::ITEM_WEAR_ARMS));
+	}
+
+	if (CAN_WEAR(obj, EWearFlag::ITEM_WEAR_SHIELD))
+	{
+		can_wear.push_back(to_underlying(EWearFlag::ITEM_WEAR_SHIELD));
+	}
+
+	if (CAN_WEAR(obj, EWearFlag::ITEM_WEAR_ABOUT))
+	{
+		can_wear.push_back(to_underlying(EWearFlag::ITEM_WEAR_ABOUT));
+	}
+
+	if (CAN_WEAR(obj, EWearFlag::ITEM_WEAR_WAIST))
+	{
+		can_wear.push_back(to_underlying(EWearFlag::ITEM_WEAR_WAIST));
+	}
+
+	if (CAN_WEAR(obj, EWearFlag::ITEM_WEAR_WRIST))
+	{
+		can_wear.push_back(to_underlying(EWearFlag::ITEM_WEAR_WRIST));
+	}
+
+	if (CAN_WEAR(obj, EWearFlag::ITEM_WEAR_WIELD))
+	{
+		can_wear.push_back(to_underlying(EWearFlag::ITEM_WEAR_WIELD));
+
+	if (CAN_WEAR(obj, EWearFlag::ITEM_WEAR_HOLD))
+	{
+		can_wear.push_back(to_underlying(EWearFlag::ITEM_WEAR_HOLD));
+	}
+
+	if (CAN_WEAR(obj, EWearFlag::ITEM_WEAR_BOTHS))
+	{
+		can_wear.push_back(to_underlying(EWearFlag::ITEM_WEAR_BOTHS));
+	}
+	
+	// это параметры предмета, а не аффекты! Будьте бдительны.
+	for (auto i : can_wear)
+	{
+		if (object_criterions.count(i) > 0)
+		{
+			sum_temp = 0.0;
+			for (int i = 0; i < MAX_OBJ_AFFECT; i++)
+			{
+				if (obj->get_affected(i).modifier)
+				{
+					sprinttype(obj->get_affected(i).location, apply_types, buf_temp);
+					sum_temp += object_criterions[i].param[buf_temp] * obj->get_affected(i).modifier;
+				}
+			}
+			obj->get_affect_flags().sprintbits(weapon_affects, buf_temp1, ",");
+			// а вот уже сами аффекты
+			for (auto it : object_criterions[i].affects)
+			{
+				// проверяем, есть ли наш аффект на предмете
+				if (strstr(buf_temp1, it.first.c_str()) != NULL)
+				{
+					sum_temp += it.second;
+				}
+			}
+			GET_OBJ_EXTRA(obj).sprintbits(extra_bits, buf_temp3, ",");
+			for (auto it : object_criterions[i].extra)
+			{
+				// проверяем, есть ли наш аффект на предмете
+				if (strstr(buf_temp3, it.first.c_str()) != NULL)
+				{
+					sum_temp += it.second;
+				}
+			}
+			// если таймер объекта больше, чем timer_value, то прибавляем к сумме разницу между таймером и value умноженным 
+			// коэф.
+			if (obj_proto[GET_OBJ_RNUM(obj)]->get_timer() > object_criterions[i].timer_value)
+				sum_temp += object_criterions[i].timer_step * GET_OBJ_RNUM(obj)]->get_timer() - object_criterions[i].timer_value;
+			if (object_criterions[i].weight > GET_OBJ_WEIGHT(obj))
+				sum_temp += object_criterions[i].weight_value;
+			if (sum_temp > sum)
+				sum = sum_temp;
+		}
+
+	}	
+	return sum;
+}
 
 // Separate a 4-character id tag from the data it precedes
 void tag_argument(char *argument, char *tag)
