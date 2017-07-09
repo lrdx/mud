@@ -80,10 +80,13 @@
 
 #include <algorithm>
 #include <stdexcept>
-
+#ifdef _WIN32
+#else
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
+#endif
+
 
 
 extern room_rnum r_mortal_start_room;

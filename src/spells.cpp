@@ -1962,7 +1962,12 @@ void mort_show_obj_values(const OBJ_DATA * obj, CHAR_DATA * ch, int fullness)
 	{
 		return;
 	}
-
+	
+	if (GET_LEVEL(ch) > 33)
+	{
+		sprintf(buf, "Имеет силу: %f.\r\n", get_criterion_object(obj));
+		send_to_char(buf, ch);
+	}
 	send_to_char("Накладывает на вас аффекты: ", ch);
 	send_to_char(CCCYN(ch, C_NRM), ch);
 	obj->get_affect_flags().sprintbits(weapon_affects, buf, ",");

@@ -56,7 +56,7 @@ int vnum_mobile(char *searchname, CHAR_DATA * ch);
 void clear_char_skills(CHAR_DATA * ch);
 int correct_unique(int unique);
 bool check_unlimited_timer(const CObjectPrototype* obj);
-
+float get_criterion_object(const OBJ_DATA *obj);
 #define REAL          0
 #define VIRTUAL       (1 << 0)
 #define OBJ_NO_CALC   (1 << 1)

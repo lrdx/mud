@@ -821,37 +821,9 @@ void Load_Criterion(pugi::xml_node XMLCriterion, const EWearFlag type)
 std::map<int, object_criterion> object_criterions;
 std::vector<SpeedWalk>  speedwalks;
 
-void load_criterions()
-{
-	pugi::xml_document document;
-	pugi::xml_node object_, file_, child_;
-	file_ = XMLLoad(LIB_MISC CRITERIONS_FILE, "criterions_objects", "Error loading cases file: criterions.xml", document);
-	for (child_ = file_.child("object");  child_;  child_ = child_.next_sibling("object"))
-	{
-		object_criterion criterion_tmp;
-		const int ind_wear = child_.attribute("index_wear").as_int();
-		criterion_tmp.weight = child_.attribute("weight_value").as_float();
-		criterion_tmp.timer_step = child_.attribute("timer_step").as_float();
-		criterion_tmp.timer_value = child_.attribute("timer_vslue").as_float();
-		criterion_tmp.miw = child_.attribute("miw_value").as_float();
-		for (object_ = child_.child("param"); object_; object_ = object_.next_sibling("param"))
-		{
-			criterion_tmp.param[object_.attribute("name").as_string()] = object_.attribute("value").as_float();
-		}
-		for (object_ = child_.child("extra"); object_; object_ = object_.next_sibling("extra"))
-		{
-			criterion_tmp.affects[object_.attribute("name").as_string()] = object_.attribute("value").as_float();
-		}
-		for (object_ = child_.child("affect"); object_; object_ = object_.next_sibling("affect"))
-		{
-			criterion_tmp.affects[object_.attribute("name").as_string()] = object_.attribute("value").as_float();
-		}
-		object_criterions[ind_wear] = criterion_tmp;
-	}
-}
 
 
-float get_criterion_object(OBJ_DATA *obj)
+float get_criterion_object(const OBJ_DATA *obj)
 {
 	// пока только для одежды
 	if (GET_OBJ_TYPE(obj) != OBJ_DATA::ITEM_ARMOR)
@@ -925,6 +897,7 @@ float get_criterion_object(OBJ_DATA *obj)
 	if (CAN_WEAR(obj, EWearFlag::ITEM_WEAR_WIELD))
 	{
 		can_wear.push_back(to_underlying(EWearFlag::ITEM_WEAR_WIELD));
+	}
 
 	if (CAN_WEAR(obj, EWearFlag::ITEM_WEAR_HOLD))
 	{
@@ -972,7 +945,7 @@ float get_criterion_object(OBJ_DATA *obj)
 			// если таймер объекта больше, чем timer_value, то прибавляем к сумме разницу между таймером и value умноженным 
 			// коэф.
 			if (obj_proto[GET_OBJ_RNUM(obj)]->get_timer() > object_criterions[i].timer_value)
-				sum_temp += object_criterions[i].timer_step * GET_OBJ_RNUM(obj)]->get_timer() - object_criterions[i].timer_value;
+				sum_temp += object_criterions[i].timer_step * obj_proto[GET_OBJ_RNUM(obj)]->get_timer() - object_criterions[i].timer_value;
 			if (object_criterions[i].weight > GET_OBJ_WEIGHT(obj))
 				sum_temp += object_criterions[i].weight_value;
 			if (sum_temp > sum)
@@ -1547,6 +1520,36 @@ int convert_drinkcon_skill(CObjectPrototype *obj, bool proto)
 	}
 	return 0;
 }
+
+void load_criterions()
+{
+	pugi::xml_document document;
+	pugi::xml_node object_, file_, child_;
+	file_ = XMLLoad(LIB_MISC CRITERIONS_FILE, "criterions_objects", "Error loading cases file: criterions.xml", document);
+	for (child_ = file_.child("object"); child_; child_ = child_.next_sibling("object"))
+	{
+		object_criterion criterion_tmp;
+		const int ind_wear = child_.attribute("index_wear").as_int();
+		criterion_tmp.weight = child_.attribute("weight_value").as_float();
+		criterion_tmp.timer_step = child_.attribute("timer_step").as_float();
+		criterion_tmp.timer_value = child_.attribute("timer_vslue").as_float();
+		criterion_tmp.miw = child_.attribute("miw_value").as_float();
+		for (object_ = child_.child("param"); object_; object_ = object_.next_sibling("param"))
+		{
+			criterion_tmp.param[object_.attribute("name").as_string()] = object_.attribute("value").as_float();
+		}
+		for (object_ = child_.child("extra"); object_; object_ = object_.next_sibling("extra"))
+		{
+			criterion_tmp.affects[object_.attribute("name").as_string()] = object_.attribute("value").as_float();
+		}
+		for (object_ = child_.child("affect"); object_; object_ = object_.next_sibling("affect"))
+		{
+			criterion_tmp.affects[object_.attribute("name").as_string()] = object_.attribute("value").as_float();
+		}
+		object_criterions[ind_wear] = criterion_tmp;
+	}
+}
+
 
 /// конверт параметров прототипов ПОСЛЕ лоада всех файлов с прототипами
 void convert_obj_values()
@@ -2588,6 +2591,7 @@ void boot_db(void)
 	
 	boot_profiler.next_step("Loading criterion");
 	log("Loading Criterion...");
+	load_criterions();
 	pugi::xml_document doc1;
 	Load_Criterion(XMLLoad(LIB_MISC CRITERION_FILE, "finger", "Error Loading Criterion.xml: <finger>", doc1), EWearFlag::ITEM_WEAR_FINGER);
 	Load_Criterion(XMLLoad(LIB_MISC CRITERION_FILE, "neck", "Error Loading Criterion.xml: <neck>", doc1), EWearFlag::ITEM_WEAR_NECK);
