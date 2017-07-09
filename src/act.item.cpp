@@ -742,7 +742,7 @@ void get_check_money(CHAR_DATA *ch, OBJ_DATA *obj, OBJ_DATA *cont)
 		sprintf(local_buf, "%d", value);
 		do_split(ch, local_buf, 0, 0);
 	}
-	else if ((cont && IS_MOB_CORPSE(cont)) || GET_OBJ_VNUM(obj) != -1)
+	else if (cont && IS_MOB_CORPSE(cont))
 	{
 		// лут из трупа моба или из предметов-денег с внумом
 		// (предметы-награды в зонах) - снимаем клан-налог
