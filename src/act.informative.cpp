@@ -738,9 +738,16 @@ const char *show_obj_to_char(OBJ_DATA * object, CHAR_DATA * ch, int mode, int sh
 void do_cities(CHAR_DATA *ch, char*, int, int)
 {
 	send_to_char("Города на Руси:\r\n", ch);
-	for (unsigned int i = 0; i < cities.size(); i++)
+	for (unsigned int i = 1; i < cities.size(); i++)
 	{
-		sprintf(buf, "%d. %s: %s\r\n", i, cities[i].name.c_str(), (ch->check_city(i) ? "&gВы были там.&n" : "&rВы еще не были там.&n"));
+		sprintf(buf, "%3d.", i);
+		if (IS_IMMORTAL(ch))
+		{
+			sprintf(buf1, " [VNUM: %d]", cities[i-1].rent_vnum);
+			strcat(buf, buf1);
+		}
+		sprintf(buf1, " %s: %s\r\n", cities[i-1].name.c_str(), (ch->check_city(i) ? "&gВы были там.&n" : "&rВы еще не были там.&n"));
+		strcat(buf, buf1);
 		send_to_char(buf, ch);
 	}
 }
@@ -1600,6 +1607,14 @@ void list_one_char(CHAR_DATA * i, CHAR_DATA * ch, int skill_mode)
 		strcat(aura_txt, " щитами ");
 	if (n > 0)
 		act(aura_txt, FALSE, i, 0, ch, TO_VICT);
+	if (AFF_FLAGGED(ch, EAffectFlag::AFF_DETECT_ALIGN))
+	{
+	*aura_txt = '\0';
+	if (AFF_FLAGGED(i, EAffectFlag::AFF_COMMANDER))
+		strcat(aura_txt, "... реет стяг над головой ");
+	if (*aura_txt)
+		act(aura_txt, FALSE, i, 0, ch, TO_VICT);
+	}
 
 	if (AFF_FLAGGED(ch, EAffectFlag::AFF_DETECT_MAGIC))
 	{
