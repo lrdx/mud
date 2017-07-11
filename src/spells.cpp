@@ -2122,7 +2122,11 @@ void imm_show_obj_values(OBJ_DATA * obj, CHAR_DATA * ch)
 	strcat(buf, "\r\n");
 	send_to_char(buf, ch);
 	send_to_char(CCNRM(ch, C_NRM), ch);
-
+	if (GET_LEVEL(ch) > 33)
+	{
+		sprintf(buf, "Имеет силу: %f.\r\n", get_criterion_object(obj));
+		send_to_char(buf, ch);
+	}
 	if (obj->get_auto_mort_req() > 0)
 	{
 		send_to_char(ch, "Требует перевоплощений : %s%d%s\r\n",
