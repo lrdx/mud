@@ -2688,7 +2688,6 @@ void boot_db(void)
 		log("   Rooms.");
 		assign_rooms();
 	}
-
 	boot_profiler.next_step("Assigning spells and skills levels");
 	log("Assigning spell and skill levels.");
 	init_spell_levels();
