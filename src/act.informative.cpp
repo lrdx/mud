@@ -743,7 +743,7 @@ void do_cities(CHAR_DATA *ch, char*, int, int)
 		sprintf(buf, "%3d.", i + 1);
 		if (IS_IMMORTAL(ch))
 		{
-			sprintf(buf1, " [VNUM: %d]", cities[i].rent_vnum);
+			sprintf(buf1, " [VNUM: %d]", cities[i].rent_vnum); 
 			strcat(buf, buf1);
 		}
 		sprintf(buf1, " %s: %s\r\n", cities[i].name.c_str(), (ch->check_city(i) ? "&gВы были там.&n" : "&rВы еще не были там.&n"));
