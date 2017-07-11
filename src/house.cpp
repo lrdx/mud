@@ -4993,7 +4993,7 @@ int Clan::ChestTax()
 			for (temp = chest->get_contains(); temp; temp = temp->get_next_content())
 			{
 				const int req_mort = temp->get_minimum_remorts();
-				if (req_mort >= 4)
+				if (req_mort >= 9)
 					cost += MAX(GET_OBJ_RENTEQ(temp) * req_mort, 50000);
 				else
 					cost += GET_OBJ_RENTEQ(temp);
