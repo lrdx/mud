@@ -2163,7 +2163,7 @@ void do_stat_object(CHAR_DATA * ch, OBJ_DATA * j, const int virt)
 	case OBJ_DATA::ITEM_MAGIC_CONTAINER:
 	case OBJ_DATA::ITEM_MAGIC_ARROW:
 		sprintf(buf, "Заклинание: [%s]. Объем [%d]. Осталось стрел[%d].",
-			spell_name(GET_OBJ_VAL(j, 0)), GET_OBJ_VAL(j, 1), GET_OBJ_VAL(j, 2));
+			spell_name(GET_OBJ_VAL(j, 0)), GET_SIZE_SHOOT(GET_OBJ_VAL(j, 1), 100), GET_SHOOT_VAL(GET_OBJ_VAL(j, 1), 100));
 		break;
 
 	default:

@@ -841,7 +841,7 @@ void oedit_disp_val2_menu(DESCRIPTOR_DATA * d)
 		break;
 	
 	case OBJ_DATA::ITEM_MAGIC_CONTAINER:
-		send_to_char("Объем колчана: ", d->character.get());
+		send_to_char("Объем колчана и количество стрел (объем * 100 + количество): ", d->character.get());
 		break;
 
 	case OBJ_DATA::ITEM_MAGIC_ARROW:
@@ -910,6 +910,8 @@ void oedit_disp_val3_menu(DESCRIPTOR_DATA * d)
 		break;
 
 	case OBJ_DATA::ITEM_MAGIC_CONTAINER:
+		send_to_char("Сила колчана: ", d->character.get());
+		break;
         case OBJ_DATA::ITEM_MAGIC_ARROW:
 		send_to_char("Количество стрел: ", d->character.get());
 		break;

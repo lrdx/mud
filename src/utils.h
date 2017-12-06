@@ -1009,6 +1009,9 @@ inline T VPOSI(const T val, const T min, const T max)
                GET_OBJ_VAL((obj), 3) == 1)
 #define IS_MOB_CORPSE(obj) (IS_CORPSE(obj) &&  GET_OBJ_VAL((obj), 2) != -1)
 
+//Polel для определения стрел
+#define GET_SHOOT_VAL(stat, val)  (stat % val)
+#define GET_SIZE_SHOOT(stat, val) (static_cast<int>(stat / val))
 // compound utilities and other macros *********************************
 
 /*

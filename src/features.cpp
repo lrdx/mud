@@ -598,6 +598,9 @@ void assign_feats(void)
 	*/
 //140
     feato(SHOT_FINESSE_FEAT, "ловкий выстрел", NORMAL_FTYPE, TRUE, feat_app);
+//141
+	// ускороный выстрел зачарованными стрелами
+	feato(DEFT_SHOOTER_FEAT, "ловкий стрелок", NORMAL_FTYPE, TRUE, feat_app);
 }
 
 // Может ли персонаж использовать способность? Проверка по уровню, ремортам, параметрам персонажа, требованиям.
