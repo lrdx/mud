@@ -2093,6 +2093,12 @@ void process_player_attack(CHAR_DATA *ch, int min_init)
 		return;
 	}
 
+        //чтобы крависо выглядело. перед началом каждего раунда вставляю
+        //магическую атаку
+        //Полель
+        if (ch->WeaponMagic->set_count_atack(ch))
+            ch->WeaponMagic->set_atack(ch, ch->get_fighting());
+
 	//**** удар основным оружием или рукой
 	if (GET_AF_BATTLE(ch, EAF_FIRST))
 	{

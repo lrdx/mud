@@ -14,6 +14,7 @@
 #include "skills.h"
 #include "structs.h"
 #include "conf.h"
+#include "fight.extra.atack.hpp"
 
 #include <boost/shared_ptr.hpp>
 #include <boost/array.hpp>
@@ -637,6 +638,9 @@ public:
 
 	void set_purged(const bool _ = true) { purged_ = _; }
 
+        //Polel колчан
+        WeaponMagicalAtack * WeaponMagic;
+        
 private:
 	const auto& get_player_specials() const { return player_specials; }
 	auto& get_player_specials() { return player_specials; }
