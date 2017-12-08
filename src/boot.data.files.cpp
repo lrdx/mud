@@ -892,8 +892,12 @@ void ObjectFile::parse_object(const int nr)
 			tobj->set_weight(tobj->get_val(1) + 5);
 		}
                 //полель правка всех емкостей
-               if (tobj->get_type() == OBJ_DATA::ITEM_DRINKCON)
+               if ((tobj->get_type() == OBJ_DATA::ITEM_DRINKCON)&&(!CAN_WEAR(tobj, EWearFlag::ITEM_WEAR_HOLD)))
+               {
                    tobj->set_wear_flag(EWearFlag::ITEM_WEAR_HOLD);
+                   //для отслеживания и правок
+                   log("ITEM_DRINKCON  проставлен wear флаг в объекте %d", GET_OBJ_VNUM(tobj));
+               }   
 	}
 
 	// *** extra descriptions and affect fields ***
