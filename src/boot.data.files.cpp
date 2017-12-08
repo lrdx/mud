@@ -898,7 +898,7 @@ void ObjectFile::parse_object(const int nr)
              */
             //понизил требование к силе для емкостей
             vnum = GET_OBJ_VNUM(tobj) / 100;		   
-            if (GET_OBJ_WEIGHT(tobj) - 5 - GET_OBJ_VAL(tobj, 1)/10)
+            if ((GET_OBJ_WEIGHT(tobj) - 5 - GET_OBJ_VAL(tobj, 1)/10)>0)
             {
                 weight_change_object(tobj,0);
 		if (vnum != GET_OBJ_VNUM(tobj) / 100) 
