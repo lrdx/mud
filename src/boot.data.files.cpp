@@ -891,6 +891,9 @@ void ObjectFile::parse_object(const int nr)
 		{
 			tobj->set_weight(tobj->get_val(1) + 5);
 		}
+                //полель правка всех емкостей
+               if (tobj->get_type() == OBJ_DATA::ITEM_DRINKCON)
+                   tobj->set_wear_flag(EWearFlag::ITEM_WEAR_HOLD);
 	}
 
 	// *** extra descriptions and affect fields ***
