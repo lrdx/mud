@@ -333,7 +333,7 @@ int cast_potion(CHAR_DATA *ch, OBJ_DATA *jar)
             { 
                 //мы пъем не из фонтано но не держим в руках
 		send_to_char(ch, "Без ручек и выпить никак.\r\n");
-                return 0;
+                return 1;
             }
             
 		act("$n выпил$g зелья из $o1.", TRUE, ch, jar, 0, TO_ROOM);
