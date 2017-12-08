@@ -706,7 +706,7 @@ void ObjectFile::read_entry(const int nr)
 
 void ObjectFile::parse_object(const int nr)
 {
-	int t[10], j = 0;
+	int t[10], j = 0, vnum;
 	char *tmpptr;
 	char f0[256], f1[256], f2[256];
 
@@ -894,9 +894,14 @@ void ObjectFile::parse_object(const int nr)
                 //полель правка всех емкостей
                if ((tobj->get_type() == OBJ_DATA::ITEM_DRINKCON)&&(!CAN_WEAR(tobj, EWearFlag::ITEM_WEAR_HOLD)))
                {
-                   tobj->set_wear_flag(EWearFlag::ITEM_WEAR_HOLD);
-                   //для отслеживания и правок
-                   log("ITEM_DRINKCON  проставлен wear флаг в объекте %d", GET_OBJ_VNUM(tobj));
+
+			tobj->set_wear_flag(EWearFlag::ITEM_WEAR_HOLD);
+			//для отслеживания и правок
+			if (vnum != GET_OBJ_VNUM(tobj) / 100)
+			{
+				vnum = GET_OBJ_VNUM(tobj) / 100;		   
+				log("ITEM_DRINKCON  проставлен wear флаг в зоне %d", vnum);
+			}
                }   
 	}
 
