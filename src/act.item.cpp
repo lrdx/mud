@@ -1781,6 +1781,11 @@ void weight_change_object(OBJ_DATA * obj, int weight)
 	OBJ_DATA *tmp_obj;
 	CHAR_DATA *tmp_ch;
 
+        if (GET_OBJ_TYPE(obj) == OBJ_DATA::ITEM_DRINKCON)
+        {
+           weight = 0 - GET_OBJ_WEIGHT(obj) + 5 + GET_OBJ_VAL(obj, 1)/10;
+        }
+
 	if (obj->get_in_room() != NOWHERE)
 	{
 		obj->set_weight(MAX(1, GET_OBJ_WEIGHT(obj) + weight));

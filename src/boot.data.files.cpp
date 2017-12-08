@@ -20,6 +20,9 @@
 
 extern int scheck;						// TODO: get rid of this line
 extern const char *unused_spellname;	// TODO: get rid of this line
+
+extern void weight_change_object(OBJ_DATA * obj, int weight);
+
 CHAR_DATA *mob_proto;					// TODO: get rid of this global variable
 
 class DataFile : public BaseDataFile
@@ -887,22 +890,27 @@ void ObjectFile::parse_object(const int nr)
 	if (tobj->get_type() == OBJ_DATA::ITEM_DRINKCON
 		|| tobj->get_type() == OBJ_DATA::ITEM_FOUNTAIN)
 	{
-		if (tobj->get_weight() < tobj->get_val(1))
+		
+            /*if (tobj->get_weight() < tobj->get_val(1))
 		{
-                    //понизил требование к силе для емкостей
                     tobj->set_weight(tobj->get_val(1)/10 + 5);
 		}
+             */
+            //понизил требование к силе для емкостей
+            vnum = GET_OBJ_VNUM(tobj) / 100;		   
+            if (GET_OBJ_WEIGHT(tobj) - 5 - GET_OBJ_VAL(tobj, 1)/10)
+            {
+                weight_change_object(tobj,0);
+		if (vnum != GET_OBJ_VNUM(tobj) / 100) 
+                    log("ITEM_DRINKCON  проставлен вес зоне %d", vnum);
+            }
                 //полель правка всех емкостей
                if ((tobj->get_type() == OBJ_DATA::ITEM_DRINKCON)&&(!CAN_WEAR(tobj, EWearFlag::ITEM_WEAR_HOLD)))
                {
-
-			tobj->set_wear_flag(EWearFlag::ITEM_WEAR_HOLD);
-			//для отслеживания и правок
-			if (vnum != GET_OBJ_VNUM(tobj) / 100)
-			{
-				vnum = GET_OBJ_VNUM(tobj) / 100;		   
-				log("ITEM_DRINKCON  проставлен wear флаг в зоне %d", vnum);
-			}
+                    tobj->set_wear_flag(EWearFlag::ITEM_WEAR_HOLD);
+                    //для отслеживания и правок
+                    if (vnum != GET_OBJ_VNUM(tobj) / 100)
+                       log("ITEM_DRINKCON  проставлен wear флаг в зоне %d", vnum);
                }   
 	}
 
