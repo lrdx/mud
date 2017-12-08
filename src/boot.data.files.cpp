@@ -889,7 +889,8 @@ void ObjectFile::parse_object(const int nr)
 	{
 		if (tobj->get_weight() < tobj->get_val(1))
 		{
-			tobj->set_weight(tobj->get_val(1) + 5);
+                    //понизил требование к силе для емкостей
+                    tobj->set_weight(tobj->get_val(1)/10 + 5);
 		}
                 //полель правка всех емкостей
                if ((tobj->get_type() == OBJ_DATA::ITEM_DRINKCON)&&(!CAN_WEAR(tobj, EWearFlag::ITEM_WEAR_HOLD)))
