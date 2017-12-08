@@ -407,19 +407,10 @@ int do_drink_check(CHAR_DATA *ch, OBJ_DATA *jar)
 OBJ_DATA* do_drink_get_jar (CHAR_DATA *ch, char *jar_name)
 {
 	OBJ_DATA* jar = NULL;
-	if (!(jar = get_obj_in_list_vis(ch, jar_name, ch->carrying)))
+	if (!(jar =  get_obj_vis(ch, jar_name)))
 	{
-		if (!(jar = get_obj_in_list_vis(ch, arg, world[ch->in_room]->contents)))
-		{
-			send_to_char("Вы не смогли это найти!\r\n", ch);
-			return jar;
-		}
-
-		if (GET_OBJ_TYPE(jar) == OBJ_DATA::ITEM_DRINKCON)
-		{
-			send_to_char("Прежде это стоит поднять.\r\n", ch);
-			return jar;
-		}
+            send_to_char("Вы не смогли это найти!\r\n", ch);
+            return jar;
 	}
 	return jar;
 }
