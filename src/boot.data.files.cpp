@@ -19,7 +19,7 @@
 #include <iostream>
 
 extern int scheck;						// TODO: get rid of this line
-int tempnumzone;
+int tempnumzone = 0;
 
 extern const char *unused_spellname;	// TODO: get rid of this line
 
@@ -898,8 +898,9 @@ void ObjectFile::parse_object(const int nr)
 			//для отслеживания и правок
 			if (tempnumzone != GET_OBJ_VNUM(tobj) / 100)
 			{
-				log("ITEM_DRINKCON  проставлен wear флаг в зоне %d", tempnumzone);
 				tempnumzone = GET_OBJ_VNUM(tobj) / 100;
+				log("ITEM_DRINKCON  проставлен wear флаг в зоне %d", tempnumzone);
+
 			}
 		}
 	}
