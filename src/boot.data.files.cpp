@@ -19,6 +19,8 @@
 #include <iostream>
 
 extern int scheck;						// TODO: get rid of this line
+int tempnumzone;
+
 extern const char *unused_spellname;	// TODO: get rid of this line
 
 extern void weight_change_object(OBJ_DATA * obj, int weight);
@@ -709,7 +711,7 @@ void ObjectFile::read_entry(const int nr)
 
 void ObjectFile::parse_object(const int nr)
 {
-	int t[10], j = 0, vnum;
+	int t[10], j = 0;
 	char *tmpptr;
 	char f0[256], f1[256], f2[256];
 
@@ -887,31 +889,19 @@ void ObjectFile::parse_object(const int nr)
 	tobj->set_rent_on(t[3]);
 
 	// check to make sure that weight of containers exceeds curr. quantity
-	if (tobj->get_type() == OBJ_DATA::ITEM_DRINKCON
-		|| tobj->get_type() == OBJ_DATA::ITEM_FOUNTAIN)
+	if (tobj->get_type() == OBJ_DATA::ITEM_DRINKCON)
 	{
-		
-            /*if (tobj->get_weight() < tobj->get_val(1))
+		tobj->set_weight(tobj->get_val(1) / 10 + 5);  //правка веса всех емкостей зависит от количества глотков
+		if (!CAN_WEAR(tobj, EWearFlag::ITEM_WEAR_HOLD))
 		{
-                    tobj->set_weight(tobj->get_val(1)/10 + 5);
+			tobj->set_wear_flag(EWearFlag::ITEM_WEAR_HOLD);
+			//для отслеживания и правок
+			if (tempnumzone != GET_OBJ_VNUM(tobj) / 100)
+			{
+				log("ITEM_DRINKCON  проставлен wear флаг в зоне %d", tempnumzone);
+				tempnumzone = GET_OBJ_VNUM(tobj) / 100;
+			}
 		}
-             */
-            //понизил требование к силе для емкостей
-            vnum = GET_OBJ_VNUM(tobj) / 100;		   
-            if ((GET_OBJ_WEIGHT(tobj) - 5 - GET_OBJ_VAL(tobj, 1)/10)>0)
-            {
-                weight_change_object(tobj,0);
-		if (vnum != GET_OBJ_VNUM(tobj) / 100) 
-                    log("ITEM_DRINKCON  проставлен вес зоне %d", vnum);
-            }
-                //полель правка всех емкостей
-               if ((tobj->get_type() == OBJ_DATA::ITEM_DRINKCON)&&(!CAN_WEAR(tobj, EWearFlag::ITEM_WEAR_HOLD)))
-               {
-                    tobj->set_wear_flag(EWearFlag::ITEM_WEAR_HOLD);
-                    //для отслеживания и правок
-                    if (vnum != GET_OBJ_VNUM(tobj) / 100)
-                       log("ITEM_DRINKCON  проставлен wear флаг в зоне %d", vnum);
-               }   
 	}
 
 	// *** extra descriptions and affect fields ***
