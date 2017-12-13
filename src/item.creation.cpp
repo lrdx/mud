@@ -77,7 +77,7 @@ const char *create_item_name[] = { "шелепуга",
 								 };
 const struct make_skill_type make_skills[] =
 {
-        {"смастерить предмет","посохи",     SKILL_MAKE_STAFF },
+	{"смастерить предмет","предмет",  SKILL_MAKE_STAFF },
 	{"смастерить лук",  "луки",       SKILL_MAKE_BOW},
 	{"выковать оружие", "оружие",     SKILL_MAKE_WEAPON},
 	{"выковать доспех", "доспех",     SKILL_MAKE_ARMOR},
@@ -1452,13 +1452,13 @@ int MakeRecept::can_make(CHAR_DATA * ch)
 	// Делаем проверку может ли чар сделать предмет такого типа
 	if (skill == SKILL_MAKE_STAFF)
 	{
-            /*
             auto tobj = get_object_prototype(obj_proto);
 		if (!tobj)
 		{
 			return 0;
 		}
-		spellnum = GET_OBJ_VAL(tobj, 3);
+		spellnum = GET_OBJ_VAL(tobj, 1);
+            /*
                 //   if (!((GET_OBJ_TYPE(tobj) == ITEM_WAND )||(GET_OBJ_TYPE(tobj) == ITEM_WAND )))
 		// Хотим делать посох проверяем есть ли заряжаемый закл у игрока.
 		if (!IS_SET(GET_SPELL_TYPE(ch, spellnum), SPELL_TEMP | SPELL_KNOW) && !IS_IMMORTAL(ch))
@@ -1919,12 +1919,16 @@ int MakeRecept::make(CHAR_DATA * ch)
 	{
 		return 0;
 	}
-	// Проверяем замемлены ли заклы у чара на предмет
-	if (!IS_IMMORTAL(ch) && (skill == SKILL_MAKE_STAFF) && (GET_SPELL_MEM(ch, GET_OBJ_VAL(tobj, 3)) == 0))
+	// Проверки для колчана
+	if (!IS_IMMORTAL(ch) && (skill == SKILL_MAKE_STAFF))
 	{
-		const OBJ_DATA obj(*tobj);
-		act("Вы не готовы к тому чтобы сделать $o3.", FALSE, ch, &obj, 0, TO_CHAR);
-		return (FALSE);
+            // для стрел в оф должна быть настойка
+            if (IS_RANGER(ch)&&!((GET_EQ(ch, WEAR_HOLD))&&((GET_OBJ_TYPE(GET_EQ(ch, WEAR_HOLD)) == OBJ_DATA::ITEM_POTION))))
+            {     
+                const OBJ_DATA obj(*tobj);
+                send_to_char("Без зелья стрелы не зачаруешь.\r\n", ch);
+                return (FALSE);
+            }
 	}
 	// Прогружаем в массив реальные ингры
 	// 3. Проверить уровни ингров и чара
