@@ -77,13 +77,13 @@ const char *create_item_name[] = { "шелепуга",
 								 };
 const struct make_skill_type make_skills[] =
 {
-//  { "смастерить посох","посохи", SKILL_MAKE_STAFF },
-	{"смастерить лук", "луки", SKILL_MAKE_BOW},
-	{"выковать оружие", "оружие", SKILL_MAKE_WEAPON},
-	{"выковать доспех", "доспех", SKILL_MAKE_ARMOR},
-	{"сшить одежду", "одежда", SKILL_MAKE_WEAR},
+        {"смастерить предмет","посохи",     SKILL_MAKE_STAFF },
+	{"смастерить лук",  "луки",       SKILL_MAKE_BOW},
+	{"выковать оружие", "оружие",     SKILL_MAKE_WEAPON},
+	{"выковать доспех", "доспех",     SKILL_MAKE_ARMOR},
+	{"сшить одежду",    "одежда",     SKILL_MAKE_WEAR},
 	{"смастерить диковину", "артеф.", SKILL_MAKE_JEWEL},
-	{"смастерить оберег", "оберег", SKILL_MAKE_AMULET},
+	{"смастерить оберег",   "оберег", SKILL_MAKE_AMULET},
 //  { "сварить отвар","варево", SKILL_MAKE_POTION },
 	{"\n", 0, SKILL_INVALID}		// Терминатор
 };
@@ -663,7 +663,7 @@ void do_make_item(CHAR_DATA *ch, char *argument, int/* cmd*/, int subcmd)
 	// Тут творим предмет.
 	// Если прислали без параметра то выводим список всех рецептов
 	// доступных для изготовления персонажу из его ингров
-	// Мастерить можно лук, посох , и диковину(аналог артефакта)
+	// Мастерить можно лук, предметы , и диковину(аналог артефакта)
 	// суб команда make
 	// Выковать можно клинок и доспех (щит) умения разные. название одно
 	// Сварить отвар
@@ -1449,16 +1449,17 @@ int MakeRecept::can_make(CHAR_DATA * ch)
 	{
 		return (FALSE);
 	}
-	// Делаем проверку может ли чар сделать посох такого типа
+	// Делаем проверку может ли чар сделать предмет такого типа
 	if (skill == SKILL_MAKE_STAFF)
 	{
-		auto tobj = get_object_prototype(obj_proto);
+            /*
+            auto tobj = get_object_prototype(obj_proto);
 		if (!tobj)
 		{
 			return 0;
 		}
 		spellnum = GET_OBJ_VAL(tobj, 3);
-//   if (!((GET_OBJ_TYPE(tobj) == ITEM_WAND )||(GET_OBJ_TYPE(tobj) == ITEM_WAND )))
+                //   if (!((GET_OBJ_TYPE(tobj) == ITEM_WAND )||(GET_OBJ_TYPE(tobj) == ITEM_WAND )))
 		// Хотим делать посох проверяем есть ли заряжаемый закл у игрока.
 		if (!IS_SET(GET_SPELL_TYPE(ch, spellnum), SPELL_TEMP | SPELL_KNOW) && !IS_IMMORTAL(ch))
 		{
@@ -1474,6 +1475,7 @@ int MakeRecept::can_make(CHAR_DATA * ch)
 				return (FALSE);
 			}
 		}
+            */  ;  
 	}
 	for (i = 0; i < MAX_PARTS; i++)
 	{
@@ -1917,7 +1919,7 @@ int MakeRecept::make(CHAR_DATA * ch)
 	{
 		return 0;
 	}
-	// Проверяем замемлены ли заклы у чара на посох
+	// Проверяем замемлены ли заклы у чара на предмет
 	if (!IS_IMMORTAL(ch) && (skill == SKILL_MAKE_STAFF) && (GET_SPELL_MEM(ch, GET_OBJ_VAL(tobj, 3)) == 0))
 	{
 		const OBJ_DATA obj(*tobj);
