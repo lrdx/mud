@@ -659,13 +659,11 @@ OBJ_DATA::shared_ptr read_one_object_new(char **data, int *error)
 	*error = 0;
 
 	// Проверить вес фляг и т.п.
-	if (GET_OBJ_TYPE(object) == OBJ_DATA::ITEM_DRINKCON
-		|| GET_OBJ_TYPE(object) == OBJ_DATA::ITEM_FOUNTAIN)
+        //убрал фонтаны в текущей коректировке веса. 
+	if (GET_OBJ_TYPE(object) == OBJ_DATA::ITEM_DRINKCON)
 	{
-		if (GET_OBJ_WEIGHT(object) < GET_OBJ_VAL(object, 1))
-		{
-			object->set_weight(GET_OBJ_VAL(object, 1) + 5);
-		}
+            
+            weight_change_object(object, 0);
 	}
 	// проставляем имя жидкости
 	if (GET_OBJ_TYPE(object) == OBJ_DATA::ITEM_DRINKCON)
@@ -867,13 +865,15 @@ OBJ_DATA::shared_ptr read_one_object(char **data, int *error)
 	object->set_owner(t[1]);
 
 	// Проверить вес фляг и т.п.
-	if (GET_OBJ_TYPE(object) == OBJ_DATA::ITEM_DRINKCON
-		|| GET_OBJ_TYPE(object) == OBJ_DATA::ITEM_FOUNTAIN)
+        //для фонтанов убрал
+	if (GET_OBJ_TYPE(object) == OBJ_DATA::ITEM_DRINKCON)
 	{
-		if (GET_OBJ_WEIGHT(object) < GET_OBJ_VAL(object, 1))
+            weight_change_object(object,0);
+	/*	
+            if (GET_OBJ_WEIGHT(object) < GET_OBJ_VAL(object, 1))
 		{
 			object->set_weight(GET_OBJ_VAL(object, 1) + 5);
-		}
+		} */
 	}
 
 	object->set_ex_description(nullptr);	// Exclude doubling ex_description !!!
