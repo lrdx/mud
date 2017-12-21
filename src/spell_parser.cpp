@@ -5447,7 +5447,7 @@ void mag_assign_spells(void)
 	skillo(SKILL_HORSE, "сражение верхом", 100);
 	skillo(SKILL_HIDETRACK, "замести следы", 120);
 	skillo(SKILL_RELIGION, "!молитва или жертва!", 100);
-	skillo(SKILL_MAKEFOOD, "освежевать", 120);
+	skillo(SKILL_MAKEFOOD, "освежевать", 200);
 	skillo(SKILL_MULTYPARRY, "веерная защита", 140);
 	skillo(SKILL_TRANSFORMWEAPON, "перековать", 140);
 	skillo(SKILL_THROW, "метнуть", 150);

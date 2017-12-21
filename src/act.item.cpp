@@ -441,6 +441,32 @@ OBJ_DATA *create_skin(CHAR_DATA *mob, CHAR_DATA *ch)
 	return skin.get();
 }
 
+OBJ_DATA *create_material(CHAR_DATA *mob, CHAR_DATA *ch)
+{
+    int vnum = 972;
+     	if ((GET_RACE(mob) == NPC_RACE_ANIMAL)) 
+	{
+            vnum = 3047;
+	}
+ 	if ((GET_RACE(mob) == NPC_RACE_PLANT)) 
+	{
+            vnum = 3043;
+	}
+ 	if ((GET_RACE(mob) == NPC_RACE_BIRD)) 
+	{
+            vnum = 3044;
+	}
+ 	if ((GET_RACE(mob) == NPC_RACE_FISH)) 
+	{
+            vnum = 3045;
+	}
+        
+    const auto material = world_objects.create_from_prototype_by_vnum(vnum);
+    act("$n нашел$g что-то среди остатков $o3.", FALSE, ch, material.get(), 0, TO_ROOM | TO_ARENA_LISTEN);
+    act("Вы нашли что-то среди остатков $o3.", FALSE, ch, material.get(), 0, TO_CHAR);
+
+    return material.get();
+}
 /* The following put modes are supported by the code below:
 
    1) put <object> <container>
@@ -3702,6 +3728,30 @@ void do_makefood(CHAR_DATA *ch, char *argument, int/* cmd*/, int/* subcmd*/)
 				entrails.push_back(create_skin(mob, ch));
 			}
 		}
+                /*Полель + 
+                 грузим ингридиенты для крафта луков. не глобал дроп. а тупо в коде
+                диапазон 200-400 есть всегда и самый оптимальный 
+                */
+                percent = number(GET_SKILL(ch, SKILL_MAKEFOOD),((skill_info[SKILL_MAKEFOOD].max_percent - MIN(200,GET_SKILL(ch, SKILL_MAKEFOOD)))*2+400));
+ 		if ((GET_RACE(mob) == NPC_RACE_ANIMAL)&&((percent<250)&&(200<percent))) // жгут и жилы
+		{
+                    entrails.push_back(create_material(mob, ch));
+		}
+ 		if ((GET_RACE(mob) == NPC_RACE_PLANT)&&((percent<300)&&(250<percent))) // древко для стрел
+		{
+                    entrails.push_back(create_material(mob, ch));
+		}
+ 		if ((GET_RACE(mob) == NPC_RACE_BIRD)&&((percent<350)&&(300<percent))) // перья для стрел
+		{
+                    entrails.push_back(create_material(mob, ch));
+		}
+ 		if ((GET_RACE(mob) == NPC_RACE_FISH)&&((percent<400)&&(350<percent))) // наконечник для стрел
+		{
+                    entrails.push_back(create_material(mob, ch));
+		}
+               
+                
+                
 		entrails.push_back(try_make_ingr(mob, 1000 - ch->get_skill(SKILL_MAKEFOOD) * 2, 100));  // ингры со всех
 		for (std::vector<OBJ_DATA*>::iterator it = entrails.begin(); it != entrails.end(); ++it)
 		{
