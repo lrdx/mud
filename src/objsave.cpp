@@ -59,6 +59,8 @@ extern room_rnum r_helled_start_room;
 extern room_rnum r_named_start_room;
 extern room_rnum r_unreg_start_room;
 
+extern void weight_change_object(OBJ_DATA * obj, int weight);
+
 #define RENTCODE(number) (player_table[(number)].timer->rent.rentcode)
 #define GET_INDEX(ch) (get_ptable_by_name(GET_NAME(ch)))
 
@@ -663,16 +665,12 @@ OBJ_DATA::shared_ptr read_one_object_new(char **data, int *error)
 	if (GET_OBJ_TYPE(object) == OBJ_DATA::ITEM_DRINKCON)
 	{
             
-            weight_change_object(object, 0);
-	}
-	// проставляем имя жидкости
-	if (GET_OBJ_TYPE(object) == OBJ_DATA::ITEM_DRINKCON)
-	{
-		name_from_drinkcon(object.get());
-		if (GET_OBJ_VAL(object, 1) && GET_OBJ_VAL(object, 2))
-		{
-			name_to_drinkcon(object.get(), GET_OBJ_VAL(object, 2));
-		}
+            weight_change_object(object.get(), 0);
+            name_from_drinkcon(object.get());
+            if (GET_OBJ_VAL(object, 1) && GET_OBJ_VAL(object, 2))
+            {
+		name_to_drinkcon(object.get(), GET_OBJ_VAL(object, 2));
+            }
 	}
 	// Проверка на ингры
 	if (GET_OBJ_TYPE(object) == OBJ_DATA::ITEM_MING)
@@ -868,7 +866,7 @@ OBJ_DATA::shared_ptr read_one_object(char **data, int *error)
         //для фонтанов убрал
 	if (GET_OBJ_TYPE(object) == OBJ_DATA::ITEM_DRINKCON)
 	{
-            weight_change_object(object,0);
+            weight_change_object(object.get(),0);
 	/*	
             if (GET_OBJ_WEIGHT(object) < GET_OBJ_VAL(object, 1))
 		{
