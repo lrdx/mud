@@ -1766,7 +1766,19 @@ void do_split(CHAR_DATA *ch, char *argument, int/* cmd*/, int/* subcmd*/,int cur
 		if (AFF_FLAGGED(k, EAffectFlag::AFF_GROUP) && IN_ROOM(k) == ch->in_room && !IS_NPC(k) && k != ch)
 		{
 			send_to_char(buf, k);
-			k->add_gold(share, true, true);
+			switch (currency) 
+			{
+				case currency::ICE :
+				{
+					k->add_ice_currency(share);
+					break;
+				}
+				case currency::GOLD :
+				{
+					k->add_gold(share, true, true);
+					break;
+				}
+			}
 		}
 		for (f = k->followers; f; f = f->next)
 		{
