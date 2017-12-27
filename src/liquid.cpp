@@ -345,7 +345,8 @@ int cast_potion(CHAR_DATA *ch, OBJ_DATA *jar)
 				break;
 		
 		WAIT_STATE(ch, PULSE_VIOLENCE);
-		jar->dec_weight();
+		weight_change_object(jar,1);
+                //jar->dec_weight();
 		// все выпито
 		jar->dec_val(1);
 

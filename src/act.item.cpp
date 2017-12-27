@@ -856,13 +856,13 @@ void get_check_money(CHAR_DATA *ch, OBJ_DATA *obj, OBJ_DATA *cont)
 		return;
 	}
 
-// Все что неизвестно - куны (для совместимости)
+	//Все что ниже должно быть золотом (кунами)
 /*	if (curr_type != currency::GOLD) {
 		//Вот тут неопознанная валюта
 		return;
 	}
 */
-	sprintf(buf, "Это составило %d %s.\r\n", value, desc_count(value, WHAT_MONEYu));
+ 	sprintf(buf, "Это составило %d %s.\r\n", value, desc_count(value, WHAT_MONEYu));
 	send_to_char(buf, ch);
 
 	// все, что делится на группу - идет через налог (из кошельков не делится)
@@ -1831,7 +1831,8 @@ void weight_change_object(OBJ_DATA * obj, int weight)
 
         if (GET_OBJ_TYPE(obj) == OBJ_DATA::ITEM_DRINKCON)
         {
-           weight = 0 - GET_OBJ_WEIGHT(obj) + 5 + GET_OBJ_VAL(obj, 1)/10;
+           obj->set_weight(5 + GET_OBJ_VAL(obj, 1)/10);
+           return;
         }
 
 	if (obj->get_in_room() != NOWHERE)
