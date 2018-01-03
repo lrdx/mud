@@ -1246,7 +1246,7 @@ int remove_trigger(SCRIPT_DATA * sc, char *name, TRIG_DATA ** trig_addr)
 	if (!sc)
 		return 0;
 
-	if ((cname = strstr(name, ".")) || (!a_isdigit(*name)))
+	if ((cname = strchr(name, '.')) || (!a_isdigit(*name)))
 	{
 		string = TRUE;
 		if (cname)
@@ -2302,7 +2302,7 @@ void find_replacement(void* go, SCRIPT_DATA* sc, TRIG_DATA* trig, int type, char
 		}
 		else if (!str_cmp(field, "hitp"))
 		{
-			GET_HIT(c) = (sh_int) MAX(1, gm_char_field(c, field, subfield, (long) GET_HIT(c)));
+			GET_HIT(c) = (int) MAX(1, gm_char_field(c, field, subfield, (long) GET_HIT(c)));
 			sprintf(str, "%d", GET_HIT(c));
 		}
 		else if (!str_cmp(field, "arenahp"))
@@ -4902,7 +4902,7 @@ int process_run(void *go, SCRIPT_DATA ** sc, TRIG_DATA ** trig, int type, char *
 	};
 
 	name = trignum_s;
-	if ((cname = strstr(name, ".")) || (!a_isdigit(*name)))
+	if ((cname = strchr(name, '.')) || (!a_isdigit(*name)))
 	{
 		string = TRUE;
 		if (cname)
