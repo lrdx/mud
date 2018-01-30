@@ -1800,18 +1800,19 @@ void heartbeat(const int missed_pulses)
 	long check_at = 0;
 	int vmType = 0;
 	pulse++;
-
-	auto vmFull = voltMetrStart(vmType++,pulse);
+	//VM 0
+	auto vmFull = voltMetrStart(0,pulse);
 	// Roll pulse over after 10 hours
 	if (pulse >= (600 * 60 * PASSES_PER_SEC))
 	{
 		pulse = 0;
 	}
-	auto vmDgGlobal = voltMetrStart(vmType++,pulse);
+	//VM 1
+	auto vmDgGlobal = voltMetrStart( __LINE__,pulse);
 	dg_global_pulse++;
 	voltMetrStop(vmDgGlobal);
-
-	auto vmPtr = voltMetrStart(vmType++,pulse);
+	//VM 2
+	auto vmPtr = voltMetrStart( __LINE__,pulse);
 	if (!(pulse % PASSES_PER_SEC))
 	{
 		const auto boot_time = shutdown_parameters.get_boot_time();
@@ -1823,8 +1824,8 @@ void heartbeat(const int missed_pulses)
 	{
 		gifts();
 	}
-*/	
-	vmPtr = voltMetrStart(vmType++,pulse);
+*/	//VM 3
+	vmPtr = voltMetrStart( __LINE__,pulse);
 	if ((pulse % (PASSES_PER_SEC)) == 0)
 	{
 		for (auto &sw : speedwalks)
@@ -1867,26 +1868,27 @@ void heartbeat(const int missed_pulses)
 	{
 		GlobalDrop::reload_tables();
 	}
-	
-	vmPtr = voltMetrStart(vmType++,pulse);
+	//VM 4
+	vmPtr = voltMetrStart( __LINE__,pulse);
 	process_events();
 	voltMetrStop(vmPtr);
-	
-	vmPtr = voltMetrStart(vmType++,pulse);
+	//VM 5
+	vmPtr = voltMetrStart( __LINE__,pulse);
 	if (!((pulse + 1) % PULSE_DG_SCRIPT))  	//log("Triggers check...");
 	{
 		script_trigger_check();
 	}
 	voltMetrStop(vmPtr);
-
-	vmPtr = voltMetrStart(vmType++,pulse);
+	//VM 6
+	vmPtr = voltMetrStart( __LINE__,pulse);
 	if (!((pulse + 2) % (60 * PASSES_PER_SEC)))
 	{
 		sanity_check();
 	}
 	voltMetrStop(vmPtr);
-
-	vmPtr = voltMetrStart(vmType++,pulse);
+	
+	//VM 7
+	vmPtr = voltMetrStart( __LINE__,pulse);
 	if (!(pulse % (40 * PASSES_PER_SEC)))
 	{
 		check_idle_passwords();
@@ -1898,14 +1900,14 @@ void heartbeat(const int missed_pulses)
 // желательно, чтобы этот период был таким, чтобы различные задержки,
 // выраженные в количестве пульсов, были ему кратны.
 	
-	vmPtr = voltMetrStart(vmType++,pulse);
+	vmPtr = voltMetrStart( __LINE__,pulse);
 	if (!(pulse % 10))
 	{
 		mobile_activity(pulse, 10);
 	}
 	voltMetrStop(vmPtr);
 
-	vmPtr = voltMetrStart(vmType++,pulse);
+	vmPtr = voltMetrStart( __LINE__,pulse);
 	if ((missed_pulses == 0) && (inspect_list.size() > 0))
 	{
 		inspecting();
@@ -1917,7 +1919,7 @@ void heartbeat(const int missed_pulses)
 		setall_inspect();
 	}
 
-	vmPtr = voltMetrStart(vmType++,pulse);
+	vmPtr = voltMetrStart( __LINE__,pulse);
 	if (!(pulse % (2 * PASSES_PER_SEC)))
 	{
 		DeathTrap::activity();
@@ -1925,13 +1927,13 @@ void heartbeat(const int missed_pulses)
 		ClanSystem::check_player_in_house();
 	}
 	voltMetrStop(vmPtr);
-	vmPtr = voltMetrStart(vmType++,pulse);
+	vmPtr = voltMetrStart( __LINE__,pulse);
 	if (!((pulse + 3) % PULSE_VIOLENCE))
 	{
 		perform_violence();
 	}
 	voltMetrStop(vmPtr);
-	vmPtr = voltMetrStart(vmType++,pulse);
+	vmPtr = voltMetrStart( __LINE__,pulse);
 	if (!(pulse % (30 * PASSES_PER_SEC)))
 	{
 		if (uptime_minutes >= (shutdown_parameters.get_reboot_uptime() - 30)
@@ -1943,7 +1945,7 @@ void heartbeat(const int missed_pulses)
 		}
 	}
 	voltMetrStop(vmPtr);
-	vmPtr = voltMetrStart(vmType++,pulse);
+	vmPtr = voltMetrStart( __LINE__,pulse);
 
 	check_external_reboot_trigget(pulse);
 
@@ -1952,7 +1954,7 @@ void heartbeat(const int missed_pulses)
 		tact_auction();
 	}
 	voltMetrStop(vmPtr);
-	vmPtr = voltMetrStart(vmType++,pulse);
+	vmPtr = voltMetrStart( __LINE__,pulse);
 
 	if (!(pulse % (SECS_PER_ROOM_AFFECT * PASSES_PER_SEC)))
 	{
@@ -1960,7 +1962,7 @@ void heartbeat(const int missed_pulses)
 	}
 
 	voltMetrStop(vmPtr);
-	vmPtr = voltMetrStart(vmType++,pulse);
+	vmPtr = voltMetrStart( __LINE__,pulse);
 
 	if (!(pulse % (SECS_PER_PLAYER_AFFECT * PASSES_PER_SEC)))
 	{
@@ -1968,7 +1970,7 @@ void heartbeat(const int missed_pulses)
 	}
 
 	voltMetrStop(vmPtr);
-	vmPtr = voltMetrStart(vmType++,pulse);
+	vmPtr = voltMetrStart( __LINE__,pulse);
 
 	if (!(pulse % (TIME_KOEFF * SECS_PER_MUD_HOUR * PASSES_PER_SEC)))
 	{
@@ -1979,7 +1981,7 @@ void heartbeat(const int missed_pulses)
 	}
 
 	voltMetrStop(vmPtr);
-	vmPtr = voltMetrStart(vmType++,pulse);
+	vmPtr = voltMetrStart( __LINE__,pulse);
 
 	if (!((pulse + 5) % PULSE_ZONE))
 	{
@@ -1987,7 +1989,7 @@ void heartbeat(const int missed_pulses)
 	}
 
 	voltMetrStop(vmPtr);
-	vmPtr = voltMetrStart(vmType++,pulse);
+	vmPtr = voltMetrStart( __LINE__,pulse);
 
 	if (!((pulse + 49) % (60 * 60 * PASSES_PER_SEC)))
 	{
@@ -1997,7 +1999,7 @@ void heartbeat(const int missed_pulses)
 	}
 
 	voltMetrStop(vmPtr);
-	vmPtr = voltMetrStart(vmType++,pulse);
+	vmPtr = voltMetrStart( __LINE__,pulse);
 
 	if (!((pulse + 57) % (60 * mob_stat::SAVE_PERIOD * PASSES_PER_SEC)))
 	{
@@ -2011,7 +2013,7 @@ void heartbeat(const int missed_pulses)
 	}
 
 	voltMetrStop(vmPtr);
-	vmPtr = voltMetrStart(vmType++,pulse);
+	vmPtr = voltMetrStart( __LINE__,pulse);
 
 	// раз в 10 минут >> ///////////////////////////////////////////////////////////
 
@@ -2028,7 +2030,7 @@ void heartbeat(const int missed_pulses)
 	}
 
 	voltMetrStop(vmPtr);
-	vmPtr = voltMetrStart(vmType++,pulse);
+	vmPtr = voltMetrStart( __LINE__,pulse);
 
 	// сохранение клан-хранов для ингров
 	if (!((pulse + 48) % (60 * CHEST_UPDATE_PERIOD * PASSES_PER_SEC)))
@@ -2037,7 +2039,7 @@ void heartbeat(const int missed_pulses)
 	}
 
 	voltMetrStop(vmPtr);
-	vmPtr = voltMetrStart(vmType++,pulse);
+	vmPtr = voltMetrStart( __LINE__,pulse);
 
 	// убитые мобы для глобал-дропа
 	if (!((pulse + 47) % (60 * GlobalDrop::SAVE_PERIOD * PASSES_PER_SEC)))
@@ -2046,7 +2048,7 @@ void heartbeat(const int missed_pulses)
 	}
 
 	voltMetrStop(vmPtr);
-	vmPtr = voltMetrStart(vmType++,pulse);
+	vmPtr = voltMetrStart( __LINE__,pulse);
 
 	// снятие денег за шмот в клановых сундуках
 	if (!((pulse + 46) % (60 * CHEST_UPDATE_PERIOD * PASSES_PER_SEC)))
@@ -2055,7 +2057,7 @@ void heartbeat(const int missed_pulses)
 	}
 
 	voltMetrStop(vmPtr);
-	vmPtr = voltMetrStart(vmType++,pulse);
+	vmPtr = voltMetrStart( __LINE__,pulse);
 
 	// сохранение клан-хранов
 	if (!((pulse + 44) % (60 * CHEST_UPDATE_PERIOD * PASSES_PER_SEC)))
@@ -2119,7 +2121,7 @@ void heartbeat(const int missed_pulses)
 		HelpSystem::check_update_dynamic();
 	}
 	voltMetrStop(vmPtr);
-	vmPtr = voltMetrStart(vmType++,pulse);
+	vmPtr = voltMetrStart( __LINE__,pulse);
 
 	// обновление таблицы дропа сетов
 	if (!((pulse + 30) % (SECS_PER_MUD_HOUR * PASSES_PER_SEC)))
@@ -2128,7 +2130,7 @@ void heartbeat(const int missed_pulses)
 	}
 
 	voltMetrStop(vmPtr);
-	vmPtr = voltMetrStart(vmType++,pulse);
+	vmPtr = voltMetrStart( __LINE__,pulse);
 
 	// клан-пк
 	if (!((pulse + 29) % (SECS_PER_MUD_HOUR * PASSES_PER_SEC)))
@@ -2137,7 +2139,7 @@ void heartbeat(const int missed_pulses)
 	}
 
 	voltMetrStop(vmPtr);
-	vmPtr = voltMetrStart(vmType++,pulse);
+	vmPtr = voltMetrStart( __LINE__,pulse);
 
 	// очистка спурженных char_data и obj_data
 	if (!((pulse + 28) % (SECS_PER_MUD_HOUR * PASSES_PER_SEC)))
@@ -2147,7 +2149,7 @@ void heartbeat(const int missed_pulses)
 	}
 
 	voltMetrStop(vmPtr);
-	vmPtr = voltMetrStart(vmType++,pulse);
+	vmPtr = voltMetrStart( __LINE__,pulse);
 
 	// апдейт таймеров в личных хранах + пурж чего надо
 	if (!((pulse + 25) % (SECS_PER_MUD_HOUR * PASSES_PER_SEC)))
@@ -2156,7 +2158,7 @@ void heartbeat(const int missed_pulses)
 	}
 
 	voltMetrStop(vmPtr);
-	vmPtr = voltMetrStart(vmType++,pulse);
+	vmPtr = voltMetrStart( __LINE__,pulse);
 
 	// апдейт таймеров на почте + разворот посылок/пурж
 	if (!((pulse + 24) % (SECS_PER_MUD_HOUR * PASSES_PER_SEC)))
@@ -2165,7 +2167,7 @@ void heartbeat(const int missed_pulses)
 	}
 
 	voltMetrStop(vmPtr);
-	vmPtr = voltMetrStart(vmType++,pulse);
+	vmPtr = voltMetrStart( __LINE__,pulse);
 
 
 	// апдейт таймеров славы
@@ -2193,7 +2195,7 @@ void heartbeat(const int missed_pulses)
 	}
 
 	voltMetrStop(vmPtr);
-	vmPtr = voltMetrStart(vmType++,pulse);
+	vmPtr = voltMetrStart( __LINE__,pulse);
 
 	if (!((pulse + 16) % (SECS_PER_MUD_HOUR * PASSES_PER_SEC)))
 	{
@@ -2201,7 +2203,7 @@ void heartbeat(const int missed_pulses)
 	}
 
 	voltMetrStop(vmPtr);
-	vmPtr = voltMetrStart(vmType++,pulse);
+	vmPtr = voltMetrStart( __LINE__,pulse);
 
 	if (!((pulse + 11) % (SECS_PER_MUD_HOUR * PASSES_PER_SEC)))
 	{
@@ -2260,7 +2262,7 @@ void heartbeat(const int missed_pulses)
 	}
 
 	voltMetrStop(vmPtr);
-	vmPtr = voltMetrStart(vmType++,pulse);
+	vmPtr = voltMetrStart( __LINE__,pulse);
 
 	if (EXCHANGE_AUTOSAVETIME && auto_save && !((pulse + 9) % (EXCHANGE_AUTOSAVETIME * PASSES_PER_SEC)))
 	{
@@ -2273,7 +2275,7 @@ void heartbeat(const int missed_pulses)
 	}
 
 	voltMetrStop(vmPtr);
-	vmPtr = voltMetrStart(vmType++,pulse);
+	vmPtr = voltMetrStart( __LINE__,pulse);
 
 	if (auto_save && !((pulse + 9) % (60 * PASSES_PER_SEC)))
 	{
@@ -2317,7 +2319,7 @@ void heartbeat(const int missed_pulses)
 	}
 
 	voltMetrStop(vmPtr);
-	vmPtr = voltMetrStart(vmType++,pulse);
+	vmPtr = voltMetrStart( __LINE__,pulse);
 
 	// сохранение файла чексумм, если в нем были изменения
 	if (!((pulse + 23) % (PASSES_PER_SEC)))
@@ -2326,7 +2328,7 @@ void heartbeat(const int missed_pulses)
 	}
 
 	voltMetrStop(vmPtr);
-	vmPtr = voltMetrStart(vmType++,pulse);
+	vmPtr = voltMetrStart( __LINE__,pulse);
 
 	//Polud раз в час проверяем не пришло ли время сохранить статистику
 	if (SpellUsage::isActive && (!(pulse % (60*60*PASSES_PER_SEC))))
