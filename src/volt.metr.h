@@ -1,5 +1,5 @@
 //сюда указать число метрик которые сбрасываются
-#define MAX_VOLT_LEN	512
+#define MAX_VOLT_LEN	2048
 //сюда указать куда лог будет писать
 #define VOLT_METR_FILE	"../voltmetr.log.gz"
 

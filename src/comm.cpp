@@ -192,7 +192,9 @@ int currentVoltMetr = 0;
 int startedVoltMetr = 0;
 
 int voltMetrFlush() {
-	auto vmFile =gzopen(VOLT_METR_FILE,"a+");
+	printf("flush voltMetr\n");
+	auto vmFile = gzopen(VOLT_METR_FILE,"ab");
+	printf("FILE %d\n",vmFile);
 	struct timeval tv;
 	gettimeofday(&tv,NULL);
 	for(int i =0;i<=currentVoltMetr;i++) {
