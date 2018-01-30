@@ -2211,25 +2211,40 @@ void heartbeat(const int missed_pulses)
 		bloody::update();
 	}
 
+	voltMetrStop(vmPtr);
+	vmPtr = voltMetrStart( __LINE__,pulse);
+
 	if (!((pulse + 6) % (SECS_PER_MUD_HOUR * PASSES_PER_SEC)))
 	{
 		room_point_update();
 	}
 
+	voltMetrStop(vmPtr);
+	vmPtr = voltMetrStart( __LINE__,pulse);
+	
 	if (!((pulse + 5) % (SECS_PER_MUD_HOUR * PASSES_PER_SEC)))
 	{
 		Temporary_Spells::update_times();
 	}
+
+	voltMetrStop(vmPtr);
+	vmPtr = voltMetrStart( __LINE__,pulse);
 
 	if (!((pulse + 2) % (SECS_PER_MUD_HOUR * PASSES_PER_SEC)))
 	{
 		exchange_point_update();
 	}
 
+	voltMetrStop(vmPtr);
+	vmPtr = voltMetrStart( __LINE__,pulse);
+
 	if (!((pulse + 1) % (SECS_PER_MUD_HOUR * PASSES_PER_SEC)))
 	{
 		flush_player_index();
 	}
+
+	voltMetrStop(vmPtr);
+	vmPtr = voltMetrStart( __LINE__,pulse);
 
 	if (!(pulse % (SECS_PER_MUD_HOUR * PASSES_PER_SEC)))
 	{
@@ -2237,24 +2252,30 @@ void heartbeat(const int missed_pulses)
 	}
 
 // << раз в минуту /////////////////////////////////////////////////////////////
+	voltMetrStop(vmPtr);
+	vmPtr = voltMetrStart( __LINE__,pulse);
 
 	if (pulse == 720)
 	{
 		dupe_player_index();
 	}
+	voltMetrStop(vmPtr);
+	vmPtr = voltMetrStart( __LINE__,pulse);
 
 	if (!(pulse % PASSES_PER_SEC))
 	{
 		beat_points_update(pulse / PASSES_PER_SEC);
 	}
-
+	voltMetrStop(vmPtr);
+	vmPtr = voltMetrStart( __LINE__,pulse);
 #if defined WITH_SCRIPTING
 	if (!(pulse % scripting::HEARTBEAT_PASSES))
 	{
 		scripting::heartbeat();
 	}
 #endif
-
+	voltMetrStop(vmPtr);
+	vmPtr = voltMetrStart( __LINE__,pulse);
 	if (FRAC_SAVE && auto_save && !((pulse + 7) % PASSES_PER_SEC))  	// 1 game second
 	{
 		Crash_frac_save_all((pulse / PASSES_PER_SEC) % PLAYER_SAVE_ACTIVITY);
