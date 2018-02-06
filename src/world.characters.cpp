@@ -64,7 +64,8 @@ void Characters::get_mobs_by_rnum(const mob_rnum rnum, list_t& result)
 
 	for (const auto& character : i->second)
 	{
-		result.push_back(*m_object_raw_ptr_to_object_ptr[character]);
+		const auto i = m_object_raw_ptr_to_object_ptr[character];
+		result.push_back(*i);
 	}
 }
 

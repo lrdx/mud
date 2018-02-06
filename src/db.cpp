@@ -3752,7 +3752,6 @@ CHAR_DATA *read_mobile(mob_vnum nr, int type)
 	int test_hp = get_test_hp(GET_LEVEL(mob));
 	if (GET_EXP(mob) > 0 && mob->points.max_hit < test_hp)
 	{
-//		log("hp: (%s) %d -> %d", GET_NAME(mob), mob->points.max_hit, test_hp);
 		mob->points.max_hit = test_hp;
 	}
 
@@ -3760,10 +3759,16 @@ CHAR_DATA *read_mobile(mob_vnum nr, int type)
 	GET_MEM_TOTAL(mob) = GET_MEM_COMPLETED(mob) = 0;
 	GET_HORSESTATE(mob) = 800;
 	GET_LASTROOM(mob) = NOWHERE;
+
 	if (mob->mob_specials.speed <= -1)
+	{
 		GET_ACTIVITY(mob) = number(0, PULSE_MOBILE - 1);
+	}
 	else
+	{
 		GET_ACTIVITY(mob) = number(0, mob->mob_specials.speed);
+	}
+
 	EXTRACT_TIMER(mob) = 0;
 	mob->points.move = mob->points.max_move;
 	mob->add_gold(dice(GET_GOLD_NoDs(mob), GET_GOLD_SiDs(mob)));
@@ -4506,16 +4511,23 @@ void process_celebrates(int vnum)
 // Команда не должна изменить флаг
 #define		FLAG_PERSIST		2
 
-bool handle_zone_Q_command(const mob_rnum rnum)
+bool handle_zone_Q_command(const mob_rnum rnum, const bool fake_profiler)
 {
 	bool extracted = false;
 
 	Characters::list_t mobs;
 	character_list.get_mobs_by_rnum(rnum, mobs);
+
+	std::stringstream ss;
+	ss << "handle_zone_Q_command(" << rnum << "), " << mobs.size() << " mobs";
+	const auto timer = utils::Profiler::create(ss.str(), fake_profiler);
+
 	for (const auto& mob : mobs)
 	{
 		if (!MOB_FLAGGED(mob, MOB_RESURRECTED))
 		{
+			const auto timer = utils::Profiler::create(ss.str() + ", extract char", fake_profiler);
+
 			extract_char(mob.get(), FALSE, TRUE);
 			extracted = true;
 		}
@@ -4527,6 +4539,11 @@ bool handle_zone_Q_command(const mob_rnum rnum)
 // execute the reset command table of a given zone
 void reset_zone(zone_rnum zone)
 {
+	std::stringstream ss;
+	ss << "reset_zone(" << zone << ")";
+	const bool fake_profiler = 906 != zone_table[zone].number;
+	const auto timer = utils::Profiler::create(ss.str(), fake_profiler);
+
 	int cmd_no;
 	int cmd_tmp, obj_in_room_max, obj_in_room = 0;
 	CHAR_DATA *mob = NULL, *leader = NULL;
@@ -4538,9 +4555,12 @@ void reset_zone(zone_rnum zone)
 	int last_state, curr_state;	// статус завершения последней и текущей команды
 
 	log("[Reset] Start zone %s", zone_table[zone].name);
-	repop_decay(zone);	// рассыпание обьектов ITEM_REPOP_DECAY
 
-	//----------------------------------------------------------------------------
+	{
+		const auto timer = utils::Profiler::create(ss.str() + ", repop_decay()", fake_profiler);
+		repop_decay(zone);	// рассыпание обьектов ITEM_REPOP_DECAY
+	}
+
 	last_state = 1;		// для первой команды считаем, что все ок
 
 	for (cmd_no = 0; ZCMD.command != 'S'; cmd_no++)
@@ -4558,52 +4578,58 @@ void reset_zone(zone_rnum zone)
 			switch (ZCMD.command)
 			{
 			case 'M':
-				// read a mobile
-				// 'M' <flag> <mob_vnum> <max_in_world> <room_vnum> <max_in_room|-1>
-				mob = NULL;	//Добавлено Ладником
-				if (mob_index[ZCMD.arg1].number < ZCMD.arg2 &&
-					(ZCMD.arg4 < 0 || mobs_in_room(ZCMD.arg1, ZCMD.arg3) < ZCMD.arg4))
 				{
-					mob = read_mobile(ZCMD.arg1, REAL);
-					char_to_room(mob, ZCMD.arg3);
-					load_mtrigger(mob);
-					tmob = mob;
-					curr_state = 1;
+					const auto timer = utils::Profiler::create(ss.str() + ", M command", fake_profiler);
+					// read a mobile
+					// 'M' <flag> <mob_vnum> <max_in_world> <room_vnum> <max_in_room|-1>
+					mob = NULL;	//Добавлено Ладником
+					if (mob_index[ZCMD.arg1].number < ZCMD.arg2 &&
+						(ZCMD.arg4 < 0 || mobs_in_room(ZCMD.arg1, ZCMD.arg3) < ZCMD.arg4))
+					{
+						mob = read_mobile(ZCMD.arg1, REAL);
+						char_to_room(mob, ZCMD.arg3);
+						load_mtrigger(mob);
+						tmob = mob;
+						curr_state = 1;
+					}
+					tobj = NULL;
 				}
-				tobj = NULL;
 				break;
 
 			case 'F':
-				// Follow mobiles
-				// 'F' <flag> <room_vnum> <leader_vnum> <mob_vnum>
-				leader = NULL;
-				if (ZCMD.arg1 >= FIRST_ROOM && ZCMD.arg1 <= top_of_world)
 				{
-					for (const auto ch : world[ZCMD.arg1]->people)
-					{
-						if (IS_NPC(ch) && GET_MOB_RNUM(ch) == ZCMD.arg2)
-						{
-							leader = ch;
-						}
-					}
-
-					if (leader)
+					const auto timer = utils::Profiler::create(ss.str() + ", F command", fake_profiler);
+					// Follow mobiles
+					// 'F' <flag> <room_vnum> <leader_vnum> <mob_vnum>
+					leader = NULL;
+					if (ZCMD.arg1 >= FIRST_ROOM && ZCMD.arg1 <= top_of_world)
 					{
 						for (const auto ch : world[ZCMD.arg1]->people)
 						{
-							if (IS_NPC(ch)
-								&& GET_MOB_RNUM(ch) == ZCMD.arg3
-								&& leader != ch
-								&& !ch->makes_loop(leader))
+							if (IS_NPC(ch) && GET_MOB_RNUM(ch) == ZCMD.arg2)
 							{
-								if (ch->has_master())
+								leader = ch;
+							}
+						}
+
+						if (leader)
+						{
+							for (const auto ch : world[ZCMD.arg1]->people)
+							{
+								if (IS_NPC(ch)
+									&& GET_MOB_RNUM(ch) == ZCMD.arg3
+									&& leader != ch
+									&& !ch->makes_loop(leader))
 								{
-									stop_follower(ch, SF_EMPTY);
+									if (ch->has_master())
+									{
+										stop_follower(ch, SF_EMPTY);
+									}
+
+									leader->add_follower(ch);
+
+									curr_state = 1;
 								}
-
-								leader->add_follower(ch);
-
-								curr_state = 1;
 							}
 						}
 					}
@@ -4611,323 +4637,350 @@ void reset_zone(zone_rnum zone)
 				break;
 
 			case 'Q':
-				if (handle_zone_Q_command(ZCMD.arg1))
 				{
-					curr_state = 1;
-				}
+					const auto timer = utils::Profiler::create(ss.str() + ", Q command", fake_profiler);
+					if (handle_zone_Q_command(ZCMD.arg1, fake_profiler))
+					{
+						curr_state = 1;
+					}
 
-				tobj = NULL;
-				tmob = NULL;
+					tobj = NULL;
+					tmob = NULL;
+				}
 				break;
 
 			case 'O':
-				// read an object
-				// 'O' <flag> <obj_vnum> <max_in_world> <room_vnum|-1> <load%|-1>
-				// Проверка  - сколько всего таких же обьектов надо на эту клетку
-				for (cmd_tmp = 0, obj_in_room_max = 0; ZCMD_CMD(cmd_tmp).command != 'S'; cmd_tmp++)
-					if ((ZCMD_CMD(cmd_tmp).command == 'O')
+				{
+					const auto timer = utils::Profiler::create(ss.str() + ", O command", fake_profiler);
+					// read an object
+					// 'O' <flag> <obj_vnum> <max_in_world> <room_vnum|-1> <load%|-1>
+					// Проверка  - сколько всего таких же обьектов надо на эту клетку
+					for (cmd_tmp = 0, obj_in_room_max = 0; ZCMD_CMD(cmd_tmp).command != 'S'; cmd_tmp++)
+						if ((ZCMD_CMD(cmd_tmp).command == 'O')
 							&& (ZCMD.arg1 == ZCMD_CMD(cmd_tmp).arg1)
 							&& (ZCMD.arg3 == ZCMD_CMD(cmd_tmp).arg3))
-						obj_in_room_max++;
-				// Теперь считаем склько их на текущей клетке
-				if (ZCMD.arg3 >= 0)
-				{
-					for (obj_room = world[ZCMD.arg3]->contents, obj_in_room = 0; obj_room; obj_room = obj_room->get_next_content())
-					{
-						if (ZCMD.arg1 == GET_OBJ_RNUM(obj_room))
-						{
-							obj_in_room++;
-						}
-					}
-				}
-				// Теперь грузим обьект если надо
-				if ((obj_proto.actual_count(ZCMD.arg1) < GET_OBJ_MIW(obj_proto[ZCMD.arg1])
-						|| GET_OBJ_MIW(obj_proto[ZCMD.arg1]) == OBJ_DATA::UNLIMITED_GLOBAL_MAXIMUM
-						|| check_unlimited_timer(obj_proto[ZCMD.arg1].get()))
-					&& (ZCMD.arg4 <= 0
-						|| number(1, 100) <= ZCMD.arg4)
-					&& (obj_in_room < obj_in_room_max))
-				{
-					const auto obj = world_objects.create_from_prototype_by_rnum(ZCMD.arg1);
+							obj_in_room_max++;
+					// Теперь считаем склько их на текущей клетке
 					if (ZCMD.arg3 >= 0)
 					{
-						obj->set_zone(world[ZCMD.arg3]->zone);
-						if (!obj_to_room(obj.get(), ZCMD.arg3))
+						for (obj_room = world[ZCMD.arg3]->contents, obj_in_room = 0; obj_room; obj_room = obj_room->get_next_content())
 						{
-							extract_obj(obj.get());
-							break;
+							if (ZCMD.arg1 == GET_OBJ_RNUM(obj_room))
+							{
+								obj_in_room++;
+							}
 						}
-						load_otrigger(obj.get());
 					}
-					else
+					// Теперь грузим обьект если надо
+					if ((obj_proto.actual_count(ZCMD.arg1) < GET_OBJ_MIW(obj_proto[ZCMD.arg1])
+						|| GET_OBJ_MIW(obj_proto[ZCMD.arg1]) == OBJ_DATA::UNLIMITED_GLOBAL_MAXIMUM
+						|| check_unlimited_timer(obj_proto[ZCMD.arg1].get()))
+						&& (ZCMD.arg4 <= 0
+							|| number(1, 100) <= ZCMD.arg4)
+						&& (obj_in_room < obj_in_room_max))
 					{
-						obj->set_in_room(NOWHERE);
-					}
-					tobj = obj.get();
-					curr_state = 1;
+						const auto obj = world_objects.create_from_prototype_by_rnum(ZCMD.arg1);
+						if (ZCMD.arg3 >= 0)
+						{
+							obj->set_zone(world[ZCMD.arg3]->zone);
+							if (!obj_to_room(obj.get(), ZCMD.arg3))
+							{
+								extract_obj(obj.get());
+								break;
+							}
+							load_otrigger(obj.get());
+						}
+						else
+						{
+							obj->set_in_room(NOWHERE);
+						}
+						tobj = obj.get();
+						curr_state = 1;
 
-					if (!obj->get_extra_flag(EExtraFlag::ITEM_NODECAY))
-					{
-						sprintf(buf, "&YВНИМАНИЕ&G На землю загружен объект без флага NODECAY : %s (VNUM=%d)",
-							GET_OBJ_PNAME(obj, 0).c_str(), obj->get_vnum());
-						mudlog(buf, BRF, LVL_BUILDER, ERRLOG, TRUE);
+						if (!obj->get_extra_flag(EExtraFlag::ITEM_NODECAY))
+						{
+							sprintf(buf, "&YВНИМАНИЕ&G На землю загружен объект без флага NODECAY : %s (VNUM=%d)",
+								GET_OBJ_PNAME(obj, 0).c_str(), obj->get_vnum());
+							mudlog(buf, BRF, LVL_BUILDER, ERRLOG, TRUE);
+						}
 					}
+					tmob = NULL;
 				}
-				tmob = NULL;
 				break;
 
 			case 'P':
-				// object to object
-				// 'P' <flag> <obj_vnum> <max_in_world> <target_vnum> <load%|-1>
-				if ((obj_proto.actual_count(ZCMD.arg1) < GET_OBJ_MIW(obj_proto[ZCMD.arg1])
+				{
+					const auto timer = utils::Profiler::create(ss.str() + ", P command", fake_profiler);
+					// object to object
+					// 'P' <flag> <obj_vnum> <max_in_world> <target_vnum> <load%|-1>
+					if ((obj_proto.actual_count(ZCMD.arg1) < GET_OBJ_MIW(obj_proto[ZCMD.arg1])
 						|| GET_OBJ_MIW(obj_proto[ZCMD.arg1]) == OBJ_DATA::UNLIMITED_GLOBAL_MAXIMUM
 						|| check_unlimited_timer(obj_proto[ZCMD.arg1].get()))
-					&& (ZCMD.arg4 <= 0
-						|| number(1, 100) <= ZCMD.arg4))
-				{
-					if (!(obj_to = get_obj_num(ZCMD.arg3)))
+						&& (ZCMD.arg4 <= 0
+							|| number(1, 100) <= ZCMD.arg4))
 					{
-						ZONE_ERROR("target obj not found, command omited");
-						break;
+						if (!(obj_to = get_obj_num(ZCMD.arg3)))
+						{
+							ZONE_ERROR("target obj not found, command omited");
+							break;
+						}
+						if (GET_OBJ_TYPE(obj_to) != OBJ_DATA::ITEM_CONTAINER)
+						{
+							ZONE_ERROR("attempt put obj to non container, omited");
+							ZCMD.command = '*';
+							break;
+						}
+						const auto obj = world_objects.create_from_prototype_by_rnum(ZCMD.arg1);
+						if (obj_to->get_in_room() != NOWHERE)
+						{
+							obj->set_zone(world[obj_to->get_in_room()]->zone);
+						}
+						else if (obj_to->get_worn_by())
+						{
+							obj->set_zone(world[IN_ROOM(obj_to->get_worn_by())]->zone);
+						}
+						else if (obj_to->get_carried_by())
+						{
+							obj->set_zone(world[IN_ROOM(obj_to->get_carried_by())]->zone);
+						}
+						obj_to_obj(obj.get(), obj_to);
+						load_otrigger(obj.get());
+						tobj = obj.get();
+						curr_state = 1;
 					}
-					if (GET_OBJ_TYPE(obj_to) != OBJ_DATA::ITEM_CONTAINER)
-					{
-						ZONE_ERROR("attempt put obj to non container, omited");
-						ZCMD.command = '*';
-						break;
-					}
-					const auto obj = world_objects.create_from_prototype_by_rnum(ZCMD.arg1);
-					if (obj_to->get_in_room() != NOWHERE)
-					{
-						obj->set_zone(world[obj_to->get_in_room()]->zone);
-					}
-					else if (obj_to->get_worn_by())
-					{
-						obj->set_zone(world[IN_ROOM(obj_to->get_worn_by())]->zone);
-					}
-					else if (obj_to->get_carried_by())
-					{
-						obj->set_zone(world[IN_ROOM(obj_to->get_carried_by())]->zone);
-					}
-					obj_to_obj(obj.get(), obj_to);
-					load_otrigger(obj.get());
-					tobj = obj.get();
-					curr_state = 1;
+					tmob = NULL;
 				}
-				tmob = NULL;
 				break;
 
 			case 'G':
-				// obj_to_char
-				// 'G' <flag> <obj_vnum> <max_in_world> <-> <load%|-1>
-				if (!mob)
-					//Изменено Ладником
 				{
-					// ZONE_ERROR("attempt to give obj to non-existant mob, command disabled");
-					// ZCMD.command = '*';
-					break;
-				}
-				if ((obj_proto.actual_count(ZCMD.arg1) < GET_OBJ_MIW(obj_proto[ZCMD.arg1])
+					const auto timer = utils::Profiler::create(ss.str() + ", G command", fake_profiler);
+					// obj_to_char
+					// 'G' <flag> <obj_vnum> <max_in_world> <-> <load%|-1>
+					if (!mob)
+						//Изменено Ладником
+					{
+						// ZONE_ERROR("attempt to give obj to non-existant mob, command disabled");
+						// ZCMD.command = '*';
+						break;
+					}
+					if ((obj_proto.actual_count(ZCMD.arg1) < GET_OBJ_MIW(obj_proto[ZCMD.arg1])
 						|| GET_OBJ_MIW(obj_proto[ZCMD.arg1]) == OBJ_DATA::UNLIMITED_GLOBAL_MAXIMUM
 						|| check_unlimited_timer(obj_proto[ZCMD.arg1].get()))
-					&& (ZCMD.arg4 <= 0
-						|| number(1, 100) <= ZCMD.arg4))
-				{
-					const auto obj = world_objects.create_from_prototype_by_rnum(ZCMD.arg1);
-					obj_to_char(obj.get(), mob);
-					obj->set_zone(world[IN_ROOM(mob)]->zone);
-					tobj = obj.get();
-					load_otrigger(obj.get());
-					curr_state = 1;
+						&& (ZCMD.arg4 <= 0
+							|| number(1, 100) <= ZCMD.arg4))
+					{
+						const auto obj = world_objects.create_from_prototype_by_rnum(ZCMD.arg1);
+						obj_to_char(obj.get(), mob);
+						obj->set_zone(world[IN_ROOM(mob)]->zone);
+						tobj = obj.get();
+						load_otrigger(obj.get());
+						curr_state = 1;
+					}
+					tmob = NULL;
 				}
-				tmob = NULL;
 				break;
 
 			case 'E':
-				// object to equipment list
-				// 'E' <flag> <obj_vnum> <max_in_world> <wear_pos> <load%|-1>
-				//Изменено Ладником
-				if (!mob)
 				{
-					//ZONE_ERROR("trying to equip non-existant mob, command disabled");
-					// ZCMD.command = '*';
-					break;
-				}
-				if ((obj_proto.actual_count(ZCMD.arg1) < obj_proto[ZCMD.arg1]->get_max_in_world()
+					const auto timer = utils::Profiler::create(ss.str() + ", E command", fake_profiler);
+					// object to equipment list
+					// 'E' <flag> <obj_vnum> <max_in_world> <wear_pos> <load%|-1>
+					//Изменено Ладником
+					if (!mob)
+					{
+						//ZONE_ERROR("trying to equip non-existant mob, command disabled");
+						// ZCMD.command = '*';
+						break;
+					}
+					if ((obj_proto.actual_count(ZCMD.arg1) < obj_proto[ZCMD.arg1]->get_max_in_world()
 						|| GET_OBJ_MIW(obj_proto[ZCMD.arg1]) == OBJ_DATA::UNLIMITED_GLOBAL_MAXIMUM
 						|| check_unlimited_timer(obj_proto[ZCMD.arg1].get()))
-					&& (ZCMD.arg4 <= 0
-						|| number(1, 100) <= ZCMD.arg4))
-				{
-					if (ZCMD.arg3 < 0
-						|| ZCMD.arg3 >= NUM_WEARS)
+						&& (ZCMD.arg4 <= 0
+							|| number(1, 100) <= ZCMD.arg4))
 					{
-						ZONE_ERROR("invalid equipment pos number");
-					}
-					else
-					{
-						const auto obj = world_objects.create_from_prototype_by_rnum(ZCMD.arg1);
-						obj->set_zone(world[IN_ROOM(mob)]->zone);
-						obj->set_in_room(IN_ROOM(mob));
-						load_otrigger(obj.get());
-						if (wear_otrigger(obj.get(), mob, ZCMD.arg3))
+						if (ZCMD.arg3 < 0
+							|| ZCMD.arg3 >= NUM_WEARS)
 						{
-							obj->set_in_room(NOWHERE);
-							equip_char(mob, obj.get(), ZCMD.arg3);
+							ZONE_ERROR("invalid equipment pos number");
 						}
 						else
 						{
-							obj_to_char(obj.get(), mob);
-						}
-						if (!(obj->get_carried_by() == mob)
-							&& !(obj->get_worn_by() == mob))
-						{
-							extract_obj(obj.get());
-							tobj = NULL;
-						}
-						else
-						{
-							tobj = obj.get();
-							curr_state = 1;
+							const auto obj = world_objects.create_from_prototype_by_rnum(ZCMD.arg1);
+							obj->set_zone(world[IN_ROOM(mob)]->zone);
+							obj->set_in_room(IN_ROOM(mob));
+							load_otrigger(obj.get());
+							if (wear_otrigger(obj.get(), mob, ZCMD.arg3))
+							{
+								obj->set_in_room(NOWHERE);
+								equip_char(mob, obj.get(), ZCMD.arg3);
+							}
+							else
+							{
+								obj_to_char(obj.get(), mob);
+							}
+							if (!(obj->get_carried_by() == mob)
+								&& !(obj->get_worn_by() == mob))
+							{
+								extract_obj(obj.get());
+								tobj = NULL;
+							}
+							else
+							{
+								tobj = obj.get();
+								curr_state = 1;
+							}
 						}
 					}
+					tmob = NULL;
 				}
-				tmob = NULL;
 				break;
 
 			case 'R':
-				// rem obj from room
-				// 'R' <flag> <room_vnum> <obj_vnum>
-				if (const auto obj = get_obj_in_list_num(ZCMD.arg2, world[ZCMD.arg1]->contents))
 				{
-					obj_from_room(obj);
-					extract_obj(obj);
-					curr_state = 1;
+					const auto timer = utils::Profiler::create(ss.str() + ", R command", fake_profiler);
+					// rem obj from room
+					// 'R' <flag> <room_vnum> <obj_vnum>
+					if (const auto obj = get_obj_in_list_num(ZCMD.arg2, world[ZCMD.arg1]->contents))
+					{
+						obj_from_room(obj);
+						extract_obj(obj);
+						curr_state = 1;
+					}
+					tmob = NULL;
+					tobj = NULL;
 				}
-				tmob = NULL;
-				tobj = NULL;
 				break;
 
 			case 'D':
-				// set state of door
-				// 'D' <flag> <room_vnum> <door_pos> <door_state>
-				if (ZCMD.arg2 < 0 || ZCMD.arg2 >= NUM_OF_DIRS ||
+				{
+					const auto timer = utils::Profiler::create(ss.str() + ", D command", fake_profiler);
+					// set state of door
+					// 'D' <flag> <room_vnum> <door_pos> <door_state>
+					if (ZCMD.arg2 < 0 || ZCMD.arg2 >= NUM_OF_DIRS ||
 						(world[ZCMD.arg1]->dir_option[ZCMD.arg2] == NULL))
-				{
-					ZONE_ERROR("door does not exist, command disabled");
-					ZCMD.command = '*';
-				}
-				else
-				{
-					REMOVE_BIT(world[ZCMD.arg1]->dir_option[ZCMD.arg2]->exit_info, EX_BROKEN);
-					switch (ZCMD.arg3)
 					{
-					case 0:
-						REMOVE_BIT(world[ZCMD.arg1]->dir_option[ZCMD.arg2]->
-								   exit_info, EX_LOCKED);
-						REMOVE_BIT(world[ZCMD.arg1]->dir_option[ZCMD.arg2]->
-								   exit_info, EX_CLOSED);
-						break;
-					case 1:
-						SET_BIT(world[ZCMD.arg1]->dir_option[ZCMD.arg2]->exit_info, EX_CLOSED);
-						REMOVE_BIT(world[ZCMD.arg1]->dir_option[ZCMD.arg2]->
-								   exit_info, EX_LOCKED);
-						break;
-					case 2:
-						SET_BIT(world[ZCMD.arg1]->dir_option[ZCMD.arg2]->exit_info, EX_LOCKED);
-						SET_BIT(world[ZCMD.arg1]->dir_option[ZCMD.arg2]->exit_info, EX_CLOSED);
-						break;
-					case 3:
-						SET_BIT(world[ZCMD.arg1]->dir_option[ZCMD.arg2]->exit_info, EX_HIDDEN);
-						break;
-					case 4:
-						REMOVE_BIT(world[ZCMD.arg1]->dir_option[ZCMD.arg2]->
-								   exit_info, EX_HIDDEN);
-						break;
+						ZONE_ERROR("door does not exist, command disabled");
+						ZCMD.command = '*';
 					}
-					curr_state = 1;
+					else
+					{
+						REMOVE_BIT(world[ZCMD.arg1]->dir_option[ZCMD.arg2]->exit_info, EX_BROKEN);
+						switch (ZCMD.arg3)
+						{
+						case 0:
+							REMOVE_BIT(world[ZCMD.arg1]->dir_option[ZCMD.arg2]->
+								exit_info, EX_LOCKED);
+							REMOVE_BIT(world[ZCMD.arg1]->dir_option[ZCMD.arg2]->
+								exit_info, EX_CLOSED);
+							break;
+						case 1:
+							SET_BIT(world[ZCMD.arg1]->dir_option[ZCMD.arg2]->exit_info, EX_CLOSED);
+							REMOVE_BIT(world[ZCMD.arg1]->dir_option[ZCMD.arg2]->
+								exit_info, EX_LOCKED);
+							break;
+						case 2:
+							SET_BIT(world[ZCMD.arg1]->dir_option[ZCMD.arg2]->exit_info, EX_LOCKED);
+							SET_BIT(world[ZCMD.arg1]->dir_option[ZCMD.arg2]->exit_info, EX_CLOSED);
+							break;
+						case 3:
+							SET_BIT(world[ZCMD.arg1]->dir_option[ZCMD.arg2]->exit_info, EX_HIDDEN);
+							break;
+						case 4:
+							REMOVE_BIT(world[ZCMD.arg1]->dir_option[ZCMD.arg2]->
+								exit_info, EX_HIDDEN);
+							break;
+						}
+						curr_state = 1;
+					}
+					tmob = NULL;
+					tobj = NULL;
 				}
-				tmob = NULL;
-				tobj = NULL;
 				break;
 
 			case 'T':
-				// trigger command; details to be filled in later
-				// 'T' <flag> <trigger_type> <trigger_vnum> <room_vnum, для WLD_TRIGGER>
-				if (ZCMD.arg1 == MOB_TRIGGER && tmob)
 				{
-					if (!SCRIPT(tmob))
+					const auto timer = utils::Profiler::create(ss.str() + ", T command", fake_profiler);
+					// trigger command; details to be filled in later
+					// 'T' <flag> <trigger_type> <trigger_vnum> <room_vnum, для WLD_TRIGGER>
+					if (ZCMD.arg1 == MOB_TRIGGER && tmob)
 					{
-						SCRIPT(tmob) = std::make_shared<SCRIPT_DATA>();
-					}
-					add_trigger(SCRIPT(tmob).get(), read_trigger(real_trigger(ZCMD.arg2)), -1);
-					curr_state = 1;
-				}
-				else if (ZCMD.arg1 == OBJ_TRIGGER && tobj)
-				{
-					if (!tobj->get_script())
-					{
-						tobj->set_script(new SCRIPT_DATA());
-					}
-					add_trigger(tobj->get_script().get(), read_trigger(real_trigger(ZCMD.arg2)), -1);
-					curr_state = 1;
-				}
-				else if (ZCMD.arg1 == WLD_TRIGGER)
-				{
-					if (ZCMD.arg3 != NOWHERE)
-					{
-						if (!(world[ZCMD.arg3]->script))
+						if (!SCRIPT(tmob))
 						{
-							world[ZCMD.arg3]->script = std::make_shared<SCRIPT_DATA>();
+							SCRIPT(tmob) = std::make_shared<SCRIPT_DATA>();
 						}
-						add_trigger(world[ZCMD.arg3]->script.get(), read_trigger(real_trigger(ZCMD.arg2)), -1);
+						add_trigger(SCRIPT(tmob).get(), read_trigger(real_trigger(ZCMD.arg2)), -1);
 						curr_state = 1;
+					}
+					else if (ZCMD.arg1 == OBJ_TRIGGER && tobj)
+					{
+						if (!tobj->get_script())
+						{
+							tobj->set_script(new SCRIPT_DATA());
+						}
+						add_trigger(tobj->get_script().get(), read_trigger(real_trigger(ZCMD.arg2)), -1);
+						curr_state = 1;
+					}
+					else if (ZCMD.arg1 == WLD_TRIGGER)
+					{
+						if (ZCMD.arg3 != NOWHERE)
+						{
+							if (!(world[ZCMD.arg3]->script))
+							{
+								world[ZCMD.arg3]->script = std::make_shared<SCRIPT_DATA>();
+							}
+							add_trigger(world[ZCMD.arg3]->script.get(), read_trigger(real_trigger(ZCMD.arg2)), -1);
+							curr_state = 1;
+						}
 					}
 				}
 				break;
 
 			case 'V':
-				// 'V' <flag> <trigger_type> <room_vnum> <context> <var_name> <var_value>
-				if (ZCMD.arg1 == MOB_TRIGGER && tmob)
 				{
-					if (!SCRIPT(tmob))
+					const auto timer = utils::Profiler::create(ss.str() + ", V command", fake_profiler);
+					// 'V' <flag> <trigger_type> <room_vnum> <context> <var_name> <var_value>
+					if (ZCMD.arg1 == MOB_TRIGGER && tmob)
 					{
-						ZONE_ERROR("Attempt to give variable to scriptless mobile");
+						if (!SCRIPT(tmob))
+						{
+							ZONE_ERROR("Attempt to give variable to scriptless mobile");
+						}
+						else
+						{
+							add_var_cntx(&(SCRIPT(tmob)->global_vars), ZCMD.sarg1, ZCMD.sarg2, ZCMD.arg3);
+							curr_state = 1;
+						}
 					}
-					else
+					else if (ZCMD.arg1 == OBJ_TRIGGER && tobj)
 					{
-						add_var_cntx(&(SCRIPT(tmob)->global_vars), ZCMD.sarg1, ZCMD.sarg2, ZCMD.arg3);
-						curr_state = 1;
-					}
-				}
-				else if (ZCMD.arg1 == OBJ_TRIGGER && tobj)
-				{
-					if (!tobj->get_script())
-					{
-						ZONE_ERROR("Attempt to give variable to scriptless object");
-					}
-					else
-					{
-						add_var_cntx(&(tobj->get_script()->global_vars), ZCMD.sarg1, ZCMD.sarg2, ZCMD.arg3);
-						curr_state = 1;
-					}
-				}
-				else if (ZCMD.arg1 == WLD_TRIGGER)
-				{
-					if (ZCMD.arg2 < FIRST_ROOM || ZCMD.arg2 > top_of_world)
-					{
-						ZONE_ERROR("Invalid room number in variable assignment");
-					}
-					else
-					{
-						if (!(world[ZCMD.arg2]->script))
+						if (!tobj->get_script())
 						{
 							ZONE_ERROR("Attempt to give variable to scriptless object");
 						}
 						else
 						{
-							add_var_cntx(&(world[ZCMD.arg2]->script->global_vars), ZCMD.sarg1, ZCMD.sarg2, ZCMD.arg3);
+							add_var_cntx(&(tobj->get_script()->global_vars), ZCMD.sarg1, ZCMD.sarg2, ZCMD.arg3);
 							curr_state = 1;
+						}
+					}
+					else if (ZCMD.arg1 == WLD_TRIGGER)
+					{
+						if (ZCMD.arg2 < FIRST_ROOM || ZCMD.arg2 > top_of_world)
+						{
+							ZONE_ERROR("Invalid room number in variable assignment");
+						}
+						else
+						{
+							if (!(world[ZCMD.arg2]->script))
+							{
+								ZONE_ERROR("Attempt to give variable to scriptless object");
+							}
+							else
+							{
+								add_var_cntx(&(world[ZCMD.arg2]->script->global_vars), ZCMD.sarg1, ZCMD.sarg2, ZCMD.arg3);
+								curr_state = 1;
+							}
 						}
 					}
 				}
@@ -4954,51 +5007,63 @@ void reset_zone(zone_rnum zone)
 
 	zone_table[zone].age = 0;
 	zone_table[zone].used = FALSE;
-	process_celebrates(zone_table[zone].number);
-
-	if (get_zone_rooms(zone, &rnum_start, &rnum_stop))
 	{
-		ROOM_DATA* room;
-		ROOM_DATA* gate_room;
-		// все внутренние резеты комнат зоны теперь идут за один цикл
-		// резет порталов теперь тут же и переписан, чтобы не гонять по всем румам, ибо жрал половину времени резета -- Krodo
-		for (int rnum = rnum_start; rnum <= rnum_stop; rnum++)
+		const auto timer = utils::Profiler::create(ss.str() + ", process_celebrates", fake_profiler);
+		process_celebrates(zone_table[zone].number);
+	}
+
+	{
+		const auto timer = utils::Profiler::create(ss.str() + ", ingredients", fake_profiler);
+		if (get_zone_rooms(zone, &rnum_start, &rnum_stop))
 		{
-			room = world[rnum];
-			reset_wtrigger(room);
-			im_reset_room(room, zone_table[zone].level, zone_table[zone].type);
-			gate_room = OneWayPortal::get_from_room(room);
-			if (gate_room)   // случай врат
+			ROOM_DATA* room;
+			ROOM_DATA* gate_room;
+			// все внутренние резеты комнат зоны теперь идут за один цикл
+			// резет порталов теперь тут же и переписан, чтобы не гонять по всем румам, ибо жрал половину времени резета -- Krodo
+			for (int rnum = rnum_start; rnum <= rnum_stop; rnum++)
 			{
-				gate_room->portal_time = 0;
-				OneWayPortal::remove(room);
+				room = world[rnum];
+				reset_wtrigger(room);
+				im_reset_room(room, zone_table[zone].level, zone_table[zone].type);
+				gate_room = OneWayPortal::get_from_room(room);
+				if (gate_room)   // случай врат
+				{
+					gate_room->portal_time = 0;
+					OneWayPortal::remove(room);
+				}
+				else if (room->portal_time > 0)   // случай двусторонней пенты
+				{
+					world[room->portal_room]->portal_time = 0;
+					room->portal_time = 0;
+				}
+				paste_on_reset(room);
 			}
-			else if (room->portal_time > 0)   // случай двусторонней пенты
-			{
-				world[room->portal_room]->portal_time = 0;
-				room->portal_time = 0;
-			}
-			paste_on_reset(room);
 		}
 	}
 
-	for (rnum_start = 0; rnum_start <= top_of_zone_table; rnum_start++)
 	{
-		// проверяем, не содержится ли текущая зона в чьем-либо typeB_list
-		for (curr_state = zone_table[rnum_start].typeB_count; curr_state > 0; curr_state--)
+		const auto timer = utils::Profiler::create(ss.str() + ", double loop", fake_profiler);
+		for (rnum_start = 0; rnum_start <= top_of_zone_table; rnum_start++)
 		{
-			if (zone_table[rnum_start].typeB_list[curr_state - 1] == zone_table[zone].number)
+			// проверяем, не содержится ли текущая зона в чьем-либо typeB_list
+			for (curr_state = zone_table[rnum_start].typeB_count; curr_state > 0; curr_state--)
 			{
-				zone_table[rnum_start].typeB_flag[curr_state - 1] = TRUE;
+				if (zone_table[rnum_start].typeB_list[curr_state - 1] == zone_table[zone].number)
+				{
+					zone_table[rnum_start].typeB_flag[curr_state - 1] = TRUE;
 
-				break;
+					break;
+				}
 			}
 		}
 	}
 
 	//Если это ведущая зона, то при ее сбросе обнуляем typeB_flag
 	for (rnum_start = zone_table[zone].typeB_count; rnum_start > 0; rnum_start--)
+	{
 		zone_table[zone].typeB_flag[rnum_start - 1] = FALSE;
+	}
+
 	log("[Reset] Stop zone %s", zone_table[zone].name);
 	after_reset_zone(zone);
 }
@@ -5877,20 +5942,13 @@ void dupe_player_index(void)
 			continue;
 		}
 
-		// check double
-		std::size_t c = 0;
-		for (; c < i; c++)
-			if (!str_cmp(player_table[c].name(), player_table[i].name()))
-				break;
-		if (c < i)
-			continue;
-
 		++dupes;
 		sprintf(name, "%s %d %d %d %d\n",
 				player_table[i].name(),
 				player_table[i].id(), player_table[i].unique, player_table[i].level, player_table[i].last_logon);
 		fputs(name, players);
 	}
+
 	fclose(players);
 	log("Продублировано индексов %zd (считано при загрузке %zd)", dupes, player_table.size());
 }

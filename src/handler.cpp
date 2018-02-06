@@ -2900,7 +2900,9 @@ void update_char_objects(CHAR_DATA * ch)
 void drop_obj_on_zreset(CHAR_DATA *ch, OBJ_DATA *obj, bool inv, bool zone_reset)
 {
 	if (zone_reset && !OBJ_FLAGGED(obj, EExtraFlag::ITEM_TICKTIMER))
+	{
 		extract_obj(obj);
+	}
 	else
 	{
 		if (inv)
