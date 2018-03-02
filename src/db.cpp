@@ -4521,16 +4521,10 @@ bool handle_zone_Q_command(const mob_rnum rnum, const bool fake_profiler)
 	Characters::list_t mobs;
 	character_list.get_mobs_by_rnum(rnum, mobs);
 
-	std::stringstream ss;
-	ss << "handle_zone_Q_command(" << rnum << "), " << mobs.size() << " mobs";
-	const auto timer = utils::Profiler::create(ss.str(), fake_profiler);
-
 	for (const auto& mob : mobs)
 	{
 		if (!MOB_FLAGGED(mob, MOB_RESURRECTED))
 		{
-			const auto timer = utils::Profiler::create(ss.str() + ", extract char", fake_profiler);
-
 			extract_char(mob.get(), FALSE, TRUE);
 			extracted = true;
 		}

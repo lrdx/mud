@@ -1746,7 +1746,7 @@ void check_external_reboot_trigget(const int pulse)
 void heartbeat(const int missed_pulses)
 {
 	static utils::CExecutionTimer timer;
-	constexpr bool do_profile = false;
+	constexpr bool do_profile = true;
 
 	if (12.0 < timer.delta().count())	// report every 12 seconds
 	{
