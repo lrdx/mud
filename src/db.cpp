@@ -4437,15 +4437,18 @@ void process_attach_celebrate(Celebrates::CelebrateDataPtr celebrate, int zone_v
 		Celebrates::AttachList list = celebrate->mobsToAttach[zone_vnum];
 		for (const auto ch : character_list)
 		{
-			if (ch->nr > 0 && list.find(mob_index[ch->nr].vnum) != list.end())
+			const auto rnum = ch->get_rnum();
+			if (rnum > 0
+				&& list.find(mob_index[rnum].vnum) != list.end())
 			{
 				if (!SCRIPT(ch))
 				{
 					SCRIPT(ch) = std::make_shared<SCRIPT_DATA>();
 				}
 
-				for (Celebrates::TrigList::iterator it = list[mob_index[ch->nr].vnum].begin();
-						it != list[mob_index[ch->nr].vnum].end(); ++it)
+				for (Celebrates::TrigList::iterator it = list[mob_index[rnum].vnum].begin();
+					it != list[mob_index[rnum].vnum].end();
+					++it)
 				{
 					add_trigger(SCRIPT(ch).get(), read_trigger(real_trigger(*it)), -1);
 				}
@@ -5918,39 +5921,6 @@ void flush_player_index(void)
 	}
 	fclose(players);
 	log("Сохранено индексов %zd (считано при загрузке %zd)", saved, player_table.size());
-}
-
-void dupe_player_index(void)
-{
-	FILE *players;
-	char name[MAX_STRING_LENGTH];
-
-	sprintf(name, LIB_PLRS "players.dup");
-
-	if (!(players = fopen(name, "w+")))
-	{
-		log("Can't save players list...");
-		return;
-	}
-
-	std::size_t dupes = 0;
-	for (std::size_t i = 0; i < player_table.size(); i++)
-	{
-		if (!player_table[i].name()
-			|| !*player_table[i].name())
-		{
-			continue;
-		}
-
-		++dupes;
-		sprintf(name, "%s %d %d %d %d\n",
-				player_table[i].name(),
-				player_table[i].id(), player_table[i].unique, player_table[i].level, player_table[i].last_logon);
-		fputs(name, players);
-	}
-
-	fclose(players);
-	log("Продублировано индексов %zd (считано при загрузке %zd)", dupes, player_table.size());
 }
 
 void rename_char(CHAR_DATA * ch, char *oname)

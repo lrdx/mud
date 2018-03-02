@@ -1030,6 +1030,7 @@ void setall_inspect()
 		timediff(&result, &stop, &start);
 		if (result.tv_sec > 0 || result.tv_usec >= OPT_USEC)
 		{
+			delete vict;
 			return;
 		}
 		buf1[0] = '\0';
@@ -1041,7 +1042,7 @@ void setall_inspect()
 		    if(strstr(player_table[it->second->pos].mail, it->second->mail))
 			{
 				it->second->found++;
-				if (it->second->type_req == SETALL_FREEZE)		
+				if (it->second->type_req == SETALL_FREEZE)
 				{
 					if (is_online)
 					{
@@ -1162,7 +1163,7 @@ void setall_inspect()
 					}
 				}							
 			}
-		delete vict;	
+		delete vict;
 	}
 	if (it->second->mail && it->second->pwd)
 		Password::send_password(it->second->mail, it->second->pwd);
@@ -4890,13 +4891,15 @@ void print_mob_bosses(CHAR_DATA *ch, bool lvl_sort)
 		std::string zone_name_str = zone_table[mob_index[mob_rnum].zone].name ?
 			zone_table[mob_index[mob_rnum].zone].name  : "EMPTY" ;
 
+		const auto mob = mob_proto + mob_rnum;
+		const auto vnum = GET_MOB_VNUM(mob);
 		out += boost::str(boost::format("%3d %31s [%2d][%6d] %31s\r\n")
 			% ++cnt
-			% (mob_proto[mob_rnum].get_name_str().size() > 31
-				? mob_proto[mob_rnum].get_name_str().substr(0, 31)
-				: mob_proto[mob_rnum].get_name_str())
+			% (mob->get_name_str().size() > 31
+				? mob->get_name_str().substr(0, 31)
+				: mob->get_name_str())
 			% zone_table[mob_index[mob_rnum].zone].mob_level
-			% GET_MOB_VNUM(mob_proto + mob_rnum)
+			% vnum
 			% (zone_name_str.size() > 31
 				? zone_name_str.substr(0, 31)
 				: zone_name_str));

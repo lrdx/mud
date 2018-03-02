@@ -461,7 +461,7 @@ void WorldFile::parse_room(int virtual_nr, const int virt)
 		{
 			std::string buffer(temp_buf);
 			boost::trim_right_if(buffer, boost::is_any_of(std::string(" _"))); //убираем пробелы в конце строки
-			RECREATE(temp_buf, strlen(buffer.c_str()) + 1);
+			RECREATE(temp_buf, buffer.length() + 1);
 			strcpy(temp_buf, buffer.c_str());
 		}
 		world[room_nr]->description_num = RoomDescription::add_desc(temp_buf);
@@ -1281,7 +1281,7 @@ void MobileFile::parse_mobile(const int nr)
 		mob_proto[i].equipment[j] = NULL;
 	}
 
-	mob_proto[i].nr = i;
+	mob_proto[i].set_rnum(i);
 	mob_proto[i].desc = NULL;
 
 	set_test_data(mob_proto + i);

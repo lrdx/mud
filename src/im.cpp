@@ -1189,7 +1189,7 @@ void list_recipes(CHAR_DATA * ch, bool all_recipes)
 
 			if (strlen(buf1) >= MAX_STRING_LENGTH - 60)
 			{
-				strcat(buf1, "**OVERFLOW**\r\n");
+				strcat(buf1, "***ðåòåðïìîåîéå***\r\n");
 				break;
 			}
 			rs = im_get_char_rskill(ch, sortpos);
@@ -1224,7 +1224,7 @@ void list_recipes(CHAR_DATA * ch, bool all_recipes)
 // -newbook.patch (Alisher)
 		if (strlen(buf2) >= MAX_STRING_LENGTH - 60)
 		{
-			strcat(buf2, "**OVERFLOW**\r\n");
+			strcat(buf2, "***ðåòåðïìîåîéå***\r\n");
 			break;
 		}
 		if (rs->perc <= 0)
@@ -2062,26 +2062,36 @@ void do_imlist(CHAR_DATA *ch, char *argument, int/* cmd*/, int/* subcmd*/)
 	for (i = 0; i < 100; ++i)
 	{
 		if ((rnum = real_mobile(i + 100 * zone)) == -1)
+		{
 			continue;
+		}
+
 		ping = mob_proto[rnum].ing_list;
 		for (str = buf1, str[0] = 0; im_ing_dump(ping, str); ping += 2)
 		{
 			strcat(str, " ");
 			str += strlen(str);
 		}
+
 		if (buf1[0])
 		{
+			const auto mob = mob_proto + rnum;
 			sprintf(buf + strlen(buf), "íÏÂ %d [%s,%d]\r\n%s\r\n",
-					GET_MOB_VNUM(mob_proto + rnum),
-					GET_NAME(mob_proto + rnum), GET_LEVEL(mob_proto + rnum), buf1);
+				GET_MOB_VNUM(mob),
+				GET_NAME(mob),
+				GET_LEVEL(mob),
+				buf1);
 		}
 	}
 
 	if (!buf[0])
+	{
 		send_to_char("÷ ÚÏÎÅ ÉÎÇÒÅÄÉÅÎÔÙ ÎÅ ÚÁÇÒÕÖÁÀÔÓÑ", ch);
+	}
 	else
+	{
 		page_string(ch->desc, buf, 1);
-
+	}
 }
 
 

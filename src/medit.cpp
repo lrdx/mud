@@ -190,8 +190,9 @@ void medit_mobile_copy(CHAR_DATA * dst, CHAR_DATA * src)
 
 	// Копирую скрипт и прототипы
 	SCRIPT(dst) = NULL;
-	dst->proto_script.reset(new OBJ_DATA::triggers_list_t());
-	*dst->proto_script = *src->proto_script;
+	auto proto_script_old = new OBJ_DATA::triggers_list_t(*src->proto_script);
+	dst->proto_script.reset(proto_script_old);
+	//*dst->proto_script = *src->proto_script;
 	im_inglist_copy(&dst->ing_list, src->ing_list);
 	dl_list_copy(&dst->dl_list, src->dl_list);
 	dst->in_fighting_list_ = tmp.in_fighting_list_;
@@ -309,7 +310,7 @@ void medit_setup(DESCRIPTOR_DATA * d, int real_num)
 
 	if (real_num == -1)
 	{
-		GET_MOB_RNUM(mob) = -1;
+		mob->set_rnum(NOBODY);
 		mob->set_pc_name("неоконченный моб");
 		mob->set_npc_name("неоконченный моб");
 		GET_LDESC(mob) = str_dup("Неоконченный моб стоит тут.\r\n");
@@ -454,7 +455,7 @@ void medit_save_internally(DESCRIPTOR_DATA * d)
 					new_index[rmob_num].number = 0;
 					new_index[rmob_num].func = NULL;
 					new_mob_num = rmob_num;
-					GET_MOB_RNUM(OLC_MOB(d)) = rmob_num;
+					OLC_MOB(d)->set_rnum(rmob_num);
 					medit_mobile_copy(&new_proto[rmob_num], OLC_MOB(d));
 					//					new_proto[rmob_num] = *(OLC_MOB(d));
 					new_index[rmob_num].zone = real_zone(OLC_NUM(d));
@@ -472,7 +473,7 @@ void medit_save_internally(DESCRIPTOR_DATA * d)
 			{
 				new_index[rmob_num + 1] = mob_index[rmob_num];
 				new_proto[rmob_num + 1] = mob_proto[rmob_num];
-				GET_MOB_RNUM(new_proto + rmob_num + 1) = rmob_num + 1;
+				new_proto[rmob_num + 1].set_rnum(rmob_num + 1);
 			}
 		}
 #if defined(DEBUG)
@@ -489,9 +490,10 @@ void medit_save_internally(DESCRIPTOR_DATA * d)
 			new_index[rmob_num].number = 0;
 			new_index[rmob_num].func = NULL;
 			new_mob_num = rmob_num;
-			GET_MOB_RNUM(OLC_MOB(d)) = rmob_num;
+			OLC_MOB(d)->set_rnum(rmob_num);
+
 			medit_mobile_copy(&new_proto[rmob_num], OLC_MOB(d));
-			//			new_proto[rmob_num] = *(OLC_MOB(d));
+
 			new_index[rmob_num].zone = real_zone(OLC_NUM(d));
 			new_index[rmob_num].set_idx = -1;
 		}
@@ -507,6 +509,7 @@ void medit_save_internally(DESCRIPTOR_DATA * d)
 		mob_index = new_index;
 		mob_proto = new_proto;
 		top_of_mobt++;
+
 #if defined(DEBUG)
 		fprintf(stderr, "Free ok.\n");
 #endif
@@ -521,7 +524,7 @@ void medit_save_internally(DESCRIPTOR_DATA * d)
 		{
 			if (GET_MOB_RNUM(live_mob) >= new_mob_num)
 			{
-				GET_MOB_RNUM(live_mob)++;
+				live_mob->set_rnum(1 + live_mob->get_rnum());
 			}
 		}
 
@@ -543,15 +546,18 @@ void medit_save_internally(DESCRIPTOR_DATA * d)
 				}
 
 		// 4. Другие редактируемые мобы
-				// * Update keepers in shops being edited and other mobs being edited.
+		// * Update keepers in shops being edited and other mobs being edited.
 		for (dsc = descriptor_list; dsc; dsc = dsc->next)
 		{
 			if (dsc->connected == CON_MEDIT)
 			{
 				if (GET_MOB_RNUM(OLC_MOB(dsc)) >= new_mob_num)
-					GET_MOB_RNUM(OLC_MOB(dsc))++;
+				{
+					OLC_MOB(dsc)->set_rnum(1 + OLC_MOB(dsc)->get_rnum());
+				}
 			}
 		}
+
 		// 5. Информация о выслеживании
 		for (j = FIRST_ROOM; j <= top_of_world; j++)
 		{
@@ -560,7 +566,9 @@ void medit_save_internally(DESCRIPTOR_DATA * d)
 			for (track = world[j]->track; track; track = track->next)
 			{
 				if (IS_SET(track->track_info, TRACK_NPC) && track->who >= new_mob_num)
+				{
 					track->who++;
+				}
 			}
 		}
 
@@ -1515,6 +1523,25 @@ void disp_dl_list(DESCRIPTOR_DATA * d)
 	send_to_char(buf, d->character.get());
 }
 
+void medit_disp_clone_menu(DESCRIPTOR_DATA* d)
+{
+	get_char_cols(d->character.get());
+
+	sprintf(buf,
+#if defined(CLEAR_SCREEN)
+		"[H[J"
+#endif
+		"%s1%s) Заменить триггеры\r\n"
+		"%s2%s) Не заменять триггеры\r\n"
+		"%s3%s) Quit\r\n"
+		"Ваш выбор : ",
+		grn, nrm,
+		grn, nrm,
+		grn, nrm);
+
+	send_to_char(buf, d->character.get());
+}
+
 // ************************************************************************
 // *      The GARGANTAUN event handler                                    *
 // ************************************************************************
@@ -1522,7 +1549,7 @@ void disp_dl_list(DESCRIPTOR_DATA * d)
 void medit_parse(DESCRIPTOR_DATA * d, char *arg)
 {
 	struct helper_data_type *helper;
-	int i, number, plane, bit;
+	int i, number = 0, plane, bit;
 
 	if (OLC_MODE(d) > MEDIT_NUMERICAL_RESPONSE)
 	{
@@ -1933,7 +1960,7 @@ void medit_parse(DESCRIPTOR_DATA * d, char *arg)
 		case 'ч':
 		case 'Ч':
 			OLC_MODE(d) = MEDIT_CLONE;
-			send_to_char(d->character.get(), "Введите VNUM моба с которого будут склонированы все характеристики:");
+			medit_disp_clone_menu(d);
 			return;
 
 		default:
@@ -2687,18 +2714,59 @@ void medit_parse(DESCRIPTOR_DATA * d, char *arg)
 		return;
 
 	case MEDIT_CLONE:
-		mob_rnum rnum, rnum_old;
-		int vnum;
-		vnum = atoi(arg);
-		if ((rnum = real_mobile(vnum)) < 0)
+		switch (*arg)
+		{
+		case '1':
+			OLC_MODE(d) = MEDIT_CLONE_WITH_TRIGGERS;
+			send_to_char("Введите VNUM моба для клонирования:", d->character.get());
+			return;
+		case '2':
+			OLC_MODE(d) = MEDIT_CLONE_WITHOUT_TRIGGERS;
+			send_to_char("Введите VNUM моба для клонирования:", d->character.get());
+			return;
+		case '3':
+			break;	//to main menu
+		default:
+			medit_disp_clone_menu(d);
+			return;
+		}
+		break;
+
+	case MEDIT_CLONE_WITH_TRIGGERS:
+	{
+		auto rnum = real_mobile(atoi(arg));
+
+		if (rnum < 0)
 		{
 			send_to_char("Нет моба с таким внумом. Повторите ввод:", d->character.get());
 			return;
 		}
-		rnum_old = GET_MOB_RNUM(OLC_MOB(d));
+
+		auto rnum_old = GET_MOB_RNUM(OLC_MOB(d));
 		medit_mobile_copy(OLC_MOB(d), &mob_proto[rnum]);
-		GET_MOB_RNUM(OLC_MOB(d)) = rnum_old;
+		OLC_MOB(d)->set_rnum(rnum_old);
+
 		break;
+	}
+
+	case MEDIT_CLONE_WITHOUT_TRIGGERS:
+	{
+		auto rnum = real_mobile(atoi(arg));
+
+		if (rnum < 0)
+		{
+			send_to_char("Нет моба с таким внумом. Повторите ввод:", d->character.get());
+			return;
+		}
+
+		auto rnum_old = GET_MOB_RNUM(OLC_MOB(d));
+		auto proto_script_old = OLC_MOB(d)->proto_script;
+		medit_mobile_copy(OLC_MOB(d), &mob_proto[rnum]);
+		OLC_MOB(d)->set_rnum(rnum_old);
+		OLC_MOB(d)->proto_script = proto_script_old;
+
+		break;
+	}
 
 	default:
 		// * We should never get here.

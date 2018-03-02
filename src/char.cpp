@@ -72,6 +72,41 @@ std::list<CHAR_DATA *> fighting_list;
 
 } // namespace
 
+
+ProtectedCharacterData::ProtectedCharacterData(): m_rnum(NOBODY)
+{
+}
+
+ProtectedCharacterData::ProtectedCharacterData(const ProtectedCharacterData& rhv)
+{
+	*this = rhv;
+}
+
+void ProtectedCharacterData::set_rnum(const mob_rnum rnum)
+{
+	if (rnum != m_rnum)
+	{
+		const auto old_rnum = m_rnum;
+
+		m_rnum = rnum;
+
+		for (const auto& observer : m_rnum_change_observers)
+		{
+			observer->notify(*this, old_rnum);
+		}
+	}
+}
+
+ProtectedCharacterData& ProtectedCharacterData::operator=(const ProtectedCharacterData& rhv)
+{
+	if (this != &rhv)
+	{
+		set_rnum(rhv.m_rnum);
+	}
+
+	return *this;
+}
+
 CHAR_DATA::CHAR_DATA() :
 	chclass_(CLASS_UNDEFINED),
 	role_(MOB_ROLE_TOTAL_NUM),
@@ -403,7 +438,7 @@ void CHAR_DATA::zero_init()
 	attackers_.clear();
 	restore_timer_ = 0;
 	// char_data
-	nr = NOBODY;
+	set_rnum(NOBODY);
 	in_room = 0;
 	set_wait(0u);
 	punctual_wait = 0;
@@ -997,7 +1032,7 @@ bool CAN_SEE(const CHAR_DATA* sub, const CHAR_DATA* obj)
 // * Внутри цикла чар нигде не пуржится и сам список соответственно не меняется.
 void change_fighting(CHAR_DATA* ch, int need_stop)
 {
-	character_list.foreach_on_copy([&](const CHAR_DATA::shared_ptr& k)
+	for (const auto& k : character_list)
 	{
 		if (k->get_protecting() == ch)
 		{
@@ -1045,7 +1080,7 @@ void change_fighting(CHAR_DATA* ch, int need_stop)
 				stop_fighting(k.get(), FALSE);
 			}
 		}
-	});
+	}
 }
 
 size_t fighting_list_size()
@@ -1810,10 +1845,15 @@ void CHAR_DATA::clear_add_affects()
 ///////////////////////////////////////////////////////////////////////////////
 int CHAR_DATA::get_zone_group() const
 {
-	if (IS_NPC(this) && nr >= 0 && mob_index[nr].zone >= 0)
+	const auto rnum = get_rnum();
+	if (IS_NPC(this)
+		&& rnum >= 0
+		&& mob_index[rnum].zone >= 0)
 	{
-		return MAX(1, zone_table[mob_index[nr].zone].group);
+		const auto zone = mob_index[rnum].zone;
+		return MAX(1, zone_table[zone].group);
 	}
+
 	return 1;
 }
 
