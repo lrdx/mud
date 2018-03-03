@@ -84,8 +84,21 @@ void Characters::get_mobs_by_rnum(const mob_rnum rnum, list_t& result)
 
 	for (const auto& character : i->second)
 	{
-		const auto i = m_object_raw_ptr_to_object_ptr[character];
-		result.push_back(*i);
+		const auto char_i = m_object_raw_ptr_to_object_ptr.find(character);
+		if (char_i == m_object_raw_ptr_to_object_ptr.end())
+		{
+			std::cerr << "Couldn't find character at address 0x" << character << " with rnum " << character->get_rnum() << ". Passed rnum is " << rnum << std::endl;
+			std::cerr << "List of characters with rnum " << rnum << ":" << std::endl;
+			for (const auto& character : i->second)
+			{
+				std::cerr << "\t" << rnum << ": " << character->get_name() << std::endl;
+			}
+			abort();
+		}
+		else
+		{
+			result.push_back(*m_object_raw_ptr_to_object_ptr[character]);
+		}
 	}
 }
 

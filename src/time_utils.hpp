@@ -128,7 +128,7 @@ namespace utils
 	class FakeTimer : public CExecutionTimer
 	{
 	public:
-		FakeTimer(const std::string& label, ProfilingStatistics& stats) {}
+		FakeTimer(const std::string&, ProfilingStatistics&) {}
 	};
 
 	class Profiler
