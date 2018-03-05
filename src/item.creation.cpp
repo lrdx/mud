@@ -34,6 +34,7 @@
 
 #define SpINFO   spell_info[spellnum]
 extern int material_value[];
+extern const char *pc_class_types[];
 int slot_for_char(CHAR_DATA * ch, int i);
 void die(CHAR_DATA * ch, CHAR_DATA * killer);
 
@@ -198,6 +199,13 @@ void mredit_parse(DESCRIPTOR_DATA * d, char *arg)
 
 		if (sagr == "3")
 		{
+			send_to_char("Введите номер профессии (-1 без ограничения): ", d->character.get());
+			OLC_MODE(d) = MREDIT_SELECT_PROF;
+			return;
+		}
+
+		if (sagr == "4")
+		{
 			send_to_char("Блокировать рецепт? (y/n): ", d->character.get());
 			OLC_MODE(d) = MREDIT_LOCK;
 			return;
@@ -263,6 +271,20 @@ void mredit_parse(DESCRIPTOR_DATA * d, char *arg)
 		else
 		{
 			trec->obj_proto = i;
+			OLC_VAL(d) = 1;
+		}
+		mredit_disp_menu(d);
+		break;
+                
+	case MREDIT_SELECT_PROF:
+		i = atoi(sagr.c_str());
+		if ((i < CLASS_UNDEFINED )||(NUM_PLAYER_CLASSES < i))
+		{
+			send_to_char("Выбрана некорректная профессия.\r\n", d->character.get());
+		}
+		else
+		{
+			trec->ch_class = i;
 			OLC_VAL(d) = 1;
 		}
 		mredit_disp_menu(d);
@@ -526,7 +548,7 @@ void mredit_disp_menu(DESCRIPTOR_DATA * d)
 	// Рисуем меню ...
 	MakeRecept *trec;
 	char tmpbuf[MAX_INPUT_LENGTH];
-	string tmpstr, objname, skillname;
+	string tmpstr, objname, skillname, profname;
 	trec = OLC_MREC(d);
 	get_char_cols(d->character.get());
 	auto tobj = get_object_prototype(trec->obj_proto);
@@ -550,6 +572,14 @@ void mredit_disp_menu(DESCRIPTOR_DATA * d)
 		}
 		i++;
 	}
+        if (trec->ch_class>CLASS_UNDEFINED)
+	{
+		profname = pc_class_types[trec->ch_class];
+	}
+	else
+	{
+		profname = "Нет";
+	}       
 	sprintf(tmpbuf,
 #if defined(CLEAR_SCREEN)
 			"[H[J"
@@ -558,9 +588,12 @@ void mredit_disp_menu(DESCRIPTOR_DATA * d)
 			"-- Рецепт --\r\n"
 			"%s1%s) Предмет    : %s%s (%d)\r\n"
 			"%s2%s) Умение     : %s%s (%d)\r\n"
-			"%s3%s) Блокирован : %s%s \r\n",
+			"%s3%s) Профессия  : %s%s (%d)\r\n"
+			"%s4%s) Блокирован : %s%s \r\n",
 			grn, nrm, yel, objname.c_str(), trec->obj_proto,
-			grn, nrm, yel, skillname.c_str(), trec->skill, grn, nrm, yel, (trec->locked ? "Да" : "Нет"));
+			grn, nrm, yel, skillname.c_str(), trec->skill, 
+			grn, nrm, yel, profname.c_str(), trec->ch_class, 
+                        grn, nrm, yel, (trec->locked ? "Да" : "Нет"));
 	tmpstr = string(tmpbuf);
 	for (int i = 0; i < MAX_PARTS; i++)
 	{
@@ -2478,7 +2511,11 @@ int MakeRecept::load_from_str(string & rstr)
 	rstr = rstr.substr(rstr.find(" ") + 1);
 	obj_proto = atoi((rstr.substr(0, rstr.find(" "))).c_str());
 	rstr = rstr.substr(rstr.find(" ") + 1);
-
+        
+        //загрузка професии
+        ch_class = atoi((rstr.substr(0, rstr.find(" "))).c_str());
+ 	rstr = rstr.substr(rstr.find(" ") + 1);
+        
 	if (real_object(obj_proto) < 0)
 	{
 		// Обнаружен несуществующий прототип объекта.
@@ -2529,7 +2566,7 @@ int MakeRecept::save_to_str(string & rstr)
 	{
 		rstr = "";
 	}
-	sprintf(tmpstr, "%d %d", skill, obj_proto);
+	sprintf(tmpstr, "%d %d %d", skill, obj_proto, ch_class);
 	rstr += string(tmpstr);
 	for (int i = 0; i < MAX_PARTS; i++)
 	{

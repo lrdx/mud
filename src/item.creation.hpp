@@ -42,6 +42,7 @@
 #define MREDIT_INGR_POWER	7
 #define MREDIT_DEL 	 	8
 #define MREDIT_CONFIRM_SAVE     9
+#define MREDIT_SELECT_PROF     10
 
 #define MAKE_ANY 	0
 #define MAKE_POTION	1
@@ -163,6 +164,8 @@ public:
 
 	ESkill skill;
 	int obj_proto;
+	// какой професси доступен рецепт
+	short ch_class;
 	boost::array<ingr_part_type, MAX_PARTS> parts;
 
 	// конструктор деструктор загрузка из строчки.
