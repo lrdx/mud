@@ -199,7 +199,16 @@ void mredit_parse(DESCRIPTOR_DATA * d, char *arg)
 
 		if (sagr == "3")
 		{
-			send_to_char("Введите номер профессии (-1 без ограничения): ", d->character.get());
+			tmpstr = "\r\nСписок профессий:\r\n";
+                        sprintf(tmpbuf, "%s%d%s) %s.\r\n", grn, -1, nrm, "Без ограничения");
+			i = 0;
+			for (i = 0; i < NUM_PLAYER_CLASSES; i++)
+                        {
+				sprintf(tmpbuf, "%s%d%s) %s.\r\n", grn, i, nrm, pc_class_types[i]);
+				tmpstr += string(tmpbuf);
+				i++;
+			}
+			send_to_char("Введите номер профессии: ", d->character.get());
 			OLC_MODE(d) = MREDIT_SELECT_PROF;
 			return;
 		}
@@ -278,14 +287,14 @@ void mredit_parse(DESCRIPTOR_DATA * d, char *arg)
                 
 	case MREDIT_SELECT_PROF:
 		i = atoi(sagr.c_str());
-		if ((i < CLASS_UNDEFINED )||(NUM_PLAYER_CLASSES < i))
-		{
-			send_to_char("Выбрана некорректная профессия.\r\n", d->character.get());
-		}
-		else
+		if ((CLASS_UNDEFINED < i )&&(i < NUM_PLAYER_CLASSES))
 		{
 			trec->ch_class = i;
 			OLC_VAL(d) = 1;
+		}
+		else
+		{
+			send_to_char("Выбрана некорректная профессия.\r\n", d->character.get());
 		}
 		mredit_disp_menu(d);
 		break;
@@ -1482,6 +1491,11 @@ int MakeRecept::can_make(CHAR_DATA * ch)
 	{
 		return (FALSE);
 	}
+	if (!(ch_class ==-1 || GET_CLASS(ch) == ch_class))
+	{
+		return (FALSE);
+	}
+        
 	// Делаем проверку может ли чар сделать посох такого типа
 	if (skill == SKILL_MAKE_STAFF)
 	{
