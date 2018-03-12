@@ -20,6 +20,7 @@ set(TESTS
 	char.affects.cpp
 	char.leaders.cpp
 	obj.copy.cpp
+	olc.medit.cpp
 	act.makefood.cpp
 	utils.editor.cpp
 	utils.string.cpp
@@ -30,7 +31,9 @@ set(TESTS
 	triggers.list.cpp)
 set(UTILITIES
 	char.utilities.hpp
-	char.utilities.cpp)
+	char.utilities.cpp
+	olc.utilities.hpp
+	olc.utilities.cpp)
 set(ADDITIONAL_FILES
 	data/boards/changelog.sample
 	data/boards/news.sample)
