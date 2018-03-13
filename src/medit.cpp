@@ -1989,7 +1989,7 @@ void medit_parse(DESCRIPTOR_DATA * d, char *arg)
 	case MEDIT_ROLE:
 		{
 			int num = atoi(arg);
-			if (num != 0)
+			if (num > 0)
 			{
 				OLC_MOB(d)->set_role(num - 1, !OLC_MOB(d)->get_role(num - 1));
 				medit_disp_role(d);
