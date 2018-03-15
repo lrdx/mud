@@ -14,7 +14,8 @@ namespace test_utils
 		using descriptor_t = std::shared_ptr<DESCRIPTOR_DATA>;
 		using character_t = CharacterBuilder::character_t;
 
-		void create_new();
+		void create_new_descriptor();
+
 		void create_new_mob();
 		void create_new_obj();
 		void create_new_room();
@@ -31,8 +32,8 @@ namespace test_utils
 
 	private:
 
-		static void check_character_existance(descriptor_t character);
-		void check_character_existance() const;
+		static void check_descriptor_existance(descriptor_t character);
+		void check_descriptor_existance() const;
 
 		descriptor_t m_result;
 	};

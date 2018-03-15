@@ -1,8 +1,8 @@
 #include <gtest/gtest.h>
 
-#include "olc.utilities.hpp"
-
 #include <boost\dynamic_bitset.hpp>
+
+#include "olc.utilities.hpp"
 
 #include <utils.h>
 #include <olc.h>
@@ -15,7 +15,7 @@ void medit_parse(DESCRIPTOR_DATA * d, char *arg);
 TEST(Olc_Medit, ChangeRace_CorrectRace)
 {
 	test_utils::OlcBuilder builder;
-	builder.create_new();
+	builder.create_new_descriptor();
 	auto desc = builder.get_descriptor().get();
 	medit_setup(desc, -1);
 	auto mob = builder.get_mob();
@@ -34,7 +34,7 @@ TEST(Olc_Medit, ChangeRace_CorrectRace)
 TEST(Olc_Medit, ChangeRace_IncorrectRace)
 {
 	test_utils::OlcBuilder builder;
-	builder.create_new();
+	builder.create_new_descriptor();
 	auto desc = builder.get_descriptor().get();
 	medit_setup(desc, -1);
 	auto mob = builder.get_mob();
@@ -50,11 +50,12 @@ TEST(Olc_Medit, ChangeRace_IncorrectRace)
 TEST(Olc_Medit, ChangeRole_Add)
 {
 	test_utils::OlcBuilder builder;
-	builder.create_new();
+	builder.create_new_descriptor();
 	auto desc = builder.get_descriptor().get();
 	medit_setup(desc, -1);
 	auto mob = builder.get_mob();
 
+	//TODO: Why role_t is boost::dynamic_bitset?
 	for (size_t i = 0; i < MOB_ROLE_TOTAL_NUM; ++i)
 	{
 		mob->set_role(i, false);
@@ -67,13 +68,16 @@ TEST(Olc_Medit, ChangeRole_Add)
 		EXPECT_EQ(true, mob->get_role(i));
 	}
 
-	EXPECT_EQ(true, mob->get_role_bits().all());
+	for (size_t i = 0; i < MOB_ROLE_TOTAL_NUM; ++i)
+	{
+		EXPECT_EQ(true, mob->get_role(i));
+	}
 }
 
 TEST(Olc_Medit, ChangeRole_Remove)
 {
 	test_utils::OlcBuilder builder;
-	builder.create_new();
+	builder.create_new_descriptor();
 	auto desc = builder.get_descriptor().get();
 	medit_setup(desc, -1);
 	auto mob = builder.get_mob();
@@ -89,14 +93,17 @@ TEST(Olc_Medit, ChangeRole_Remove)
 		medit_parse(desc, const_cast<char*>(std::to_string(i + 1).c_str()));
 		EXPECT_EQ(false, mob->get_role(i));
 	}
-	
-	EXPECT_EQ(true, mob->get_role_bits().none());
+
+	for (size_t i = 0; i < MOB_ROLE_TOTAL_NUM; ++i)
+	{
+		EXPECT_EQ(false, mob->get_role(i));
+	}
 }
 
-TEST(Olc_Medit, ChangeFeats_Add)
+TEST(Olc_Medit, ChangeFeat_Add)
 {
 	test_utils::OlcBuilder builder;
-	builder.create_new();
+	builder.create_new_descriptor();
 	auto desc = builder.get_descriptor().get();
 	medit_setup(desc, -1);
 	auto mob = builder.get_mob();
@@ -109,14 +116,12 @@ TEST(Olc_Medit, ChangeFeats_Add)
 		medit_parse(desc, const_cast<char*>(std::to_string(i + 1).c_str()));
 		EXPECT_EQ(false, mob->real_abils.Feats.test(i));
 	}
-
-	EXPECT_EQ(true, mob->real_abils.Feats.all());
 }
 
-TEST(Olc_Medit, ChangeFeats_Remove)
+TEST(Olc_Medit, ChangeFeat_Remove)
 {
 	test_utils::OlcBuilder builder;
-	builder.create_new();
+	builder.create_new_descriptor();
 	auto desc = builder.get_descriptor().get();
 	medit_setup(desc, -1);
 	auto mob = builder.get_mob();

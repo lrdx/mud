@@ -4,7 +4,7 @@
 
 namespace test_utils
 {
-	void OlcBuilder::create_new()
+	void OlcBuilder::create_new_descriptor()
 	{
 		descriptor_t result = std::make_shared<DESCRIPTOR_DATA>();
 		
@@ -20,8 +20,8 @@ namespace test_utils
 	{
 		if (!m_result)
 		{
-			create_new();
-			check_character_existance();
+			create_new_descriptor();
+			check_descriptor_existance();
 		}
 
 		CharacterBuilder builder;
@@ -43,28 +43,28 @@ namespace test_utils
 
 	void OlcBuilder::set_olc_item_type(int type)
 	{
-		check_character_existance();
+		check_descriptor_existance();
 		m_result->olc->item_type = type;
 	}
 
 	void OlcBuilder::set_olc_mode(int mode)
 	{
-		check_character_existance();
+		check_descriptor_existance();
 		m_result->olc->mode = mode;
 	}
 
 	void OlcBuilder::set_olc_script_mode(int mode)
 	{
-		check_character_existance();
+		check_descriptor_existance();
 		m_result->olc->script_mode = mode;
 	}
 
-	void OlcBuilder::check_character_existance() const
+	void OlcBuilder::check_descriptor_existance() const
 	{
-		OlcBuilder::check_character_existance(m_result);
+		OlcBuilder::check_descriptor_existance(m_result);
 	}
 
-	void OlcBuilder::check_character_existance(descriptor_t desc)
+	void OlcBuilder::check_descriptor_existance(descriptor_t desc)
 	{
 		if (!desc)
 		{
