@@ -13,6 +13,7 @@ if (UNIX)
 endif ()
 
 set(TESTS
+	suffix.tree.cpp
 	blocking.queue.cpp
 	boards.changelog.cpp
 	boards.news.cpp
