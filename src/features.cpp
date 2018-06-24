@@ -596,6 +596,12 @@ void assign_feats(void)
 	*/
 //140
     feato(SHOT_FINESSE_FEAT, "ловкий выстрел", NORMAL_FTYPE, TRUE, feat_app);
+//141
+    feato(SKILL_CAPABLE_FEAT, "накладывание чар", NORMAL_FTYPE, TRUE, feat_app);
+//142
+    // ускороный выстрел зачарованными стрелами
+    feato(DEFT_SHOOTER_FEAT, "ловкий стрелок", NORMAL_FTYPE, TRUE, feat_app);
+    
 }
 
 // Может ли персонаж использовать способность? Проверка по уровню, ремортам, параметрам персонажа, требованиям.
@@ -1106,11 +1112,82 @@ void do_fit(CHAR_DATA *ch, char *argument, int/* cmd*/, int subcmd)
 
 int slot_for_char(CHAR_DATA * ch, int i);
 #define SpINFO spell_info[spellnum]
+
+void do_enchant_staff(CHAR_DATA *ch, char *argument)
+{
+        OBJ_DATA *tobj;
+        OBJ_DATA *obj;
+	tobj = NULL;
+    
+	if (!ch->affected.empty())
+	{
+		for (const auto& aff : ch->affected)
+		{
+			if (aff->location == APPLY_PLAQUE
+				&& number(1, 100) < 10) // лихорадка 10% фэйл 
+			{
+				send_to_char("Вас трясет лихорадка, вы не смогли сконцентрироваться на зачаровании.\r\n", ch);
+				return;
+			}
+
+			if (aff->location == APPLY_MADNESS
+				&& number(1, 100) < 20) // безумие 20% фэйл 
+			{
+				send_to_char("Начав безумно кричать, вы забыли, что хотели сделать.\r\n", ch);
+				return;
+			}
+		}
+	}	
+        if (ch->is_morphed())
+	{
+		send_to_char("Вы не можете зачаровывать в звериной форме.\r\n", ch);
+		return;
+	}
+
+        if ((tobj = get_obj_in_list_vis(ch, argument, ch->carrying)) == NULL)
+        {    
+            send_to_char("И чтоже будем зачаровывать?\r\n", ch);
+            return;
+        }  
+        // взяли в левую ручку бутылочку с напитком
+	obj = GET_EQ(ch, WEAR_HOLD);
+
+        if ((obj = GET_EQ(ch, WEAR_HOLD)) == NULL)
+        {    
+            send_to_char("Пальцем будем зачаровывать?\r\n", ch);
+            return;
+        }   
+        
+        if (!((obj->get_type() == OBJ_DATA::ITEM_POTION)&& (tobj->get_type() == OBJ_DATA::ITEM_MAGIC_ARROW)))
+        {
+            send_to_char("Кураж куражом, а в зачаровании путать предметы низя!\r\n", ch);
+            return;
+        }
+        
+	if (OBJ_FLAGGED(obj, EExtraFlag::ITEM_NOPOUR))
+	{
+            send_to_char(ch,"И как же вы планировали %s использовать? .\r\n",
+            GET_OBJ_PNAME(obj, 3).c_str());
+            return;
+	}
+        
+        tobj->set_val(0, GET_OBJ_VAL(obj, 1));
+        send_to_char(ch,"Вы аккуратно зачаровали %s.\r\n", GET_OBJ_PNAME(tobj, 3).c_str());
+        
+        extract_obj(obj);
+    
+}
 // Вложить закл в клона
 void do_spell_capable(CHAR_DATA *ch, char *argument, int/* cmd*/, int/* subcmd*/)
 {
 	struct timed_type timed;
 
+
+	if (IS_IMPL(ch) || (IS_NPC(ch) && can_use_feat(ch, SKILL_CAPABLE_FEAT)))
+	{
+		do_enchant_staff(ch, argument);
+		return;
+	}
 	if (!IS_IMPL(ch) && (IS_NPC(ch) || !can_use_feat(ch, SPELL_CAPABLE_FEAT)))
 	{
 		send_to_char("Вы не столь могущественны.\r\n", ch);

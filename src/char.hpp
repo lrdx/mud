@@ -15,6 +15,7 @@
 #include "utils.h"
 #include "structs.h"
 #include "conf.h"
+#include "fight.extra.atack.hpp"
 
 #include <boost/dynamic_bitset.hpp>
 
@@ -632,6 +633,8 @@ public:
 	void cleanup_script();
 
 	bool is_npc() const { return char_specials.saved.act.get(MOB_ISNPC); }
+        //Polel колчан
+        WeaponMagicalAtack * WeaponMagic;
 
 private:
 	const auto& get_player_specials() const { return player_specials; }

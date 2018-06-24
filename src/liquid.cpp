@@ -322,10 +322,17 @@ void do_drink_poison (CHAR_DATA *ch, OBJ_DATA *jar,int amount) {
 
 int cast_potion(CHAR_DATA *ch, OBJ_DATA *jar)
 {
+    OBJ_DATA *mag_cont;
 	// Added by Adept - обкаст если в фонтане или емкости зелье	
 	if (is_potion(jar) && jar->get_value(ObjVal::EValueKey::POTION_PROTO_VNUM) >= 0)
 	{
-		act("$n выпил$g зелья из $o1.", TRUE, ch, jar, 0, TO_ROOM);
+	mag_cont = GET_EQ(ch, WEAR_HOLD);	
+        if ((GET_OBJ_TYPE(jar) != OBJ_DATA::ITEM_FOUNTAIN)&&(mag_cont!=jar) )
+        {
+            send_to_char(ch, "А на четвереньках и из лужи?.\r\n");
+            return 0;
+        }
+            act("$n выпил$g зелья из $o1.", TRUE, ch, jar, 0, TO_ROOM);
 		send_to_char(ch, "Вы выпили зелья из %s.\r\n", OBJN(jar, ch, 1));
 		
 		//не очень понятно, но так было

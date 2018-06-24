@@ -5458,7 +5458,6 @@ void mag_assign_spells(void)
 	skillo(SKILL_MAKE_WEAPON, "выковать оружие", 140);
 	skillo(SKILL_MAKE_ARMOR, "выковать доспех", 140);
 	skillo(SKILL_MAKE_WEAR, "сшить одежду", 140);
-	skillo(SKILL_MAKE_JEWEL, "смастерить диковинку", 140);
 	skillo(SKILL_MANADRAIN, "сглазить", 100);
 	skillo(SKILL_NOPARRYHIT, "скрытый удар", 100);
 	skillo(SKILL_TOWNPORTAL, "врата", 100);
@@ -5477,6 +5476,8 @@ void mag_assign_spells(void)
 	skillo(SKILL_MIND_MAGIC, "магия разума", 200);
 	skillo(SKILL_LIFE_MAGIC, "магия жизни", 200);
 	skillo(SKILL_STUN, "ошеломить", 200);
+	skillo(SKILL_MAKE_JEWEL, "смастерить диковинку", 200);
+	skillo(SKILL_MAKE_STAFF, "смастерить предмет", 200);
 	skillo(SKILL_MAKE_AMULET, "смастерить оберег", 200);
 }
 

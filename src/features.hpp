@@ -164,9 +164,11 @@ using std::bitset;
 #define RESERVED_FEAT_6			137 //
 */
 
-#define EVASION_FEAT            138 //скользский тип
-#define EXPEDIENT_CUT_FEAT      139 //порез
-#define SHOT_FINESSE_FEAT		140  //ловкий выстрел
+#define EVASION_FEAT			138 //скользский тип
+#define EXPEDIENT_CUT_FEAT		139 //порез
+#define SHOT_FINESSE_FEAT		140 //ловкий выстрел
+#define SKILL_CAPABLE_FEAT		141 //зачаровывание предметов
+#define DEFT_SHOOTER_FEAT		142 //ловкий стрелок
 
 /*
 #define AIR_MAGIC_FOCUS_FEAT		  //любимая_магия: воздух

@@ -158,8 +158,8 @@ public:
 		ITEM_BOAT = 22,			// Item is a boat    //
 		ITEM_FOUNTAIN = 23,		// Item is a fountain      //
 		ITEM_BOOK = 24,			// Item is book //
-		ITEM_INGREDIENT = 25,	// Item is magical ingradient //
-		ITEM_MING = 26,			// Магический ингредиент //
+		ITEM_INGREDIENT = 25,           // Магический ингредиент (руны+крафт) //
+		ITEM_MING = 26,			// Магические компоненты (ингредиентная магия)//
 		ITEM_MATERIAL = 27,		// Материал для крафтовых умений //
 		ITEM_BANDAGE = 28,		// бинты для перевязки
 		ITEM_ARMOR_LIGHT = 29,	// легкий тип брони
@@ -167,7 +167,7 @@ public:
 		ITEM_ARMOR_HEAVY = 31,	// тяжелый тип брони
 		ITEM_ENCHANT = 32,		// зачарование предмета
 		ITEM_MAGIC_MATERIAL = 33,	// Item is a material related to craft system
-		ITEM_MAGIC_ARROW = 34,	// Item is a material related to craft system
+		ITEM_MAGIC_ARROW = 34,	        // Item is a material related to craft system
 		ITEM_MAGIC_CONTAINER = 35,	// Item is a material related to craft system
 		ITEM_CRAFT_MATERIAL = 36,	// Item is a material related to craft system
 	};

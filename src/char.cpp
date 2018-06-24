@@ -30,6 +30,7 @@
 #include "msdp.constants.hpp"
 #include "backtrace.hpp"
 #include "dg_scripts.h"
+#include "fight.extra.atack.hpp"
 
 #include <boost/format.hpp>
 

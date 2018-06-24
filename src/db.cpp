@@ -3100,6 +3100,7 @@ int trans_obj_name(OBJ_DATA * obj, CHAR_DATA * ch)
 {
 	// ищем метку @p , @p1 ... и заменяем на падежи.
 	int i, k;
+        char buf[200];
 	for (i = 0; i < CObjectPrototype::NUM_PADS; i++)
 	{
 		std::string obj_pad = GET_OBJ_PNAME(obj_proto[GET_OBJ_RNUM(obj)], i);
@@ -3115,7 +3116,8 @@ int trans_obj_name(OBJ_DATA * obj, CHAR_DATA * ch)
 			if (i == 0)
 			{
 				obj->set_short_description(obj_pad);
-				obj->set_aliases(obj_pad); // ставим алиасы
+                                sprintf(buf, "%s материал",obj_pad );
+				obj->set_aliases(buf); // ставим алиасы
 			}
 		}
 	};

@@ -985,6 +985,9 @@ void oedit_disp_val4_menu(DESCRIPTOR_DATA * d)
 	case OBJ_DATA::ITEM_CONTAINER:
 		send_to_char("Введите сложность замка (0-255): ", d->character.get());
 		break;
+	case OBJ_DATA::ITEM_MAGIC_CONTAINER:
+		send_to_char("Модификатор прохождения: ", d->character.get());
+		break;
 
 	default:
 		oedit_disp_menu(d);

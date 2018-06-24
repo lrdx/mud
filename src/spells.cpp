@@ -2009,10 +2009,13 @@ void mort_show_obj_values(const OBJ_DATA * obj, CHAR_DATA * ch, int fullness)
 		break;
 //Конец инфы о емкостях и контейнерах (Купала)
 
-           case OBJ_DATA::ITEM_MAGIC_ARROW:
-           case OBJ_DATA::ITEM_MAGIC_CONTAINER:
-		sprintf(buf, "Может вместить стрел: %d.\r\n", GET_OBJ_VAL(obj, 1));
-		sprintf(buf, "Осталось стрел: %s%d&n.\r\n",
+	case OBJ_DATA::ITEM_MAGIC_ARROW:
+ 	case OBJ_DATA::ITEM_MAGIC_CONTAINER:
+		sprintf(buf, "Зачарован заклинанием:\r\n");
+ 		if (GET_OBJ_VAL(obj, 0) >= 1 && GET_OBJ_VAL(obj, 0) < MAX_SPELLS)
+			sprintf(buf + strlen(buf), " %s \r\n", spell_name(GET_OBJ_VAL(obj, 0)));
+		sprintf(buf + strlen(buf), "Может вместить стрел: %d.\r\n", GET_OBJ_VAL(obj, 1));
+		sprintf(buf + strlen(buf), "Осталось стрел: %s%d&n.\r\n",
 			GET_OBJ_VAL(obj, 2) > 3 ? "&G" : "&R", GET_OBJ_VAL(obj, 2));
 		send_to_char(buf, ch);
 		break;
@@ -2210,8 +2213,19 @@ void imm_show_obj_values(OBJ_DATA * obj, CHAR_DATA * ch)
 		strcat(buf, "\r\n");
 		send_to_char(buf, ch);
 		break;
+                
+ 	case OBJ_DATA::ITEM_MAGIC_ARROW:
+ 	case OBJ_DATA::ITEM_MAGIC_CONTAINER:
+		sprintf(buf, "Зачарован заклинанием:\r\n");
+ 		if (GET_OBJ_VAL(obj, 0) >= 1 && GET_OBJ_VAL(obj, 0) < MAX_SPELLS)
+			sprintf(buf + strlen(buf), " %s \r\n", spell_name(GET_OBJ_VAL(obj, 0)));
+		sprintf(buf + strlen(buf), "Может вместить стрел: %d.\r\n", GET_OBJ_VAL(obj, 1));
+		sprintf(buf + strlen(buf), "Осталось стрел: %s%d&n.\r\n",
+			GET_OBJ_VAL(obj, 2) > 3 ? "&G" : "&R", GET_OBJ_VAL(obj, 2));
+		send_to_char(buf, ch);
+		break;
 
-	case OBJ_DATA::ITEM_WAND:
+            case OBJ_DATA::ITEM_WAND:
 	case OBJ_DATA::ITEM_STAFF:
 		sprintf(buf, "Вызывает заклинания: ");
 		if (GET_OBJ_VAL(obj, 3) >= 1 && GET_OBJ_VAL(obj, 3) < MAX_SPELLS)
