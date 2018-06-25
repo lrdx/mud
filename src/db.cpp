@@ -1078,6 +1078,38 @@ void load_random_obj()
 	}
 }
 
+OBJ_DATA *create_material(CHAR_DATA *mob)
+{
+        int vnum = 0;
+     	if ((GET_RACE(mob) == NPC_RACE_ANIMAL)) 
+	{
+            vnum = 3047;
+	}
+ 	if ((GET_RACE(mob) == NPC_RACE_PLANT)) 
+	{
+            vnum = 3043;
+	}
+ 	if ((GET_RACE(mob) == NPC_RACE_BIRD)) 
+	{
+            vnum = 3044;
+	}
+ 	if ((GET_RACE(mob) == NPC_RACE_FISH)) 
+	{
+            vnum = 3045;
+	}
+    
+    if (vnum)
+    {
+    const auto material = world_objects.create_from_prototype_by_vnum(vnum);
+    //act("$n нашел$g что-то среди остатков $o3.", FALSE, ch, material.get(), 0, TO_ROOM | TO_ARENA_LISTEN);
+    //act("Вы нашли что-то среди остатков $o3.", FALSE, ch, material.get(), 0, TO_CHAR);
+
+    return material.get();
+    }
+    return 0;    
+}
+
+
 /*
  * Too bad it doesn't check the return values to let the user
  * know about -1 values.  This will result in an 'Okay.' to a
@@ -3264,6 +3296,43 @@ int dl_load_obj(OBJ_DATA * corpse, CHAR_DATA * ch, CHAR_DATA * chr, int DL_LOAD_
 	}
 
 	return TRUE;
+}
+
+int load_obj_rip(OBJ_DATA * corpse, CHAR_DATA * mob, CHAR_DATA * ch)
+{
+    OBJ_DATA *tobj;
+    int percent = 0;
+
+    percent = number(1,400);
+    if ((GET_RACE(mob) == NPC_RACE_ANIMAL)&&((percent<250)&&(200<percent))) // жгут и жилы
+    {
+        tobj =create_material(mob);
+    }
+    if ((GET_RACE(mob) == NPC_RACE_PLANT)&&((percent<300)&&(250<percent))) // древко для стрел
+    {
+        tobj =create_material(mob);
+    }
+    if ((GET_RACE(mob) == NPC_RACE_BIRD)&&((percent<350)&&(300<percent))) // перья для стрел
+    {
+        tobj =create_material(mob);
+    }
+    if ((GET_RACE(mob) == NPC_RACE_FISH)&&((percent<400)&&(350<percent))) // наконечник для стрел
+    {
+        tobj =create_material(mob);
+    }
+    if (tobj)
+    {
+        if (MOB_FLAGGED(ch, MOB_CORPSE))
+        {
+            act("На земле остал$U лежать $o.", FALSE, ch, tobj, 0, TO_ROOM);
+            obj_to_room(tobj, ch->in_room);
+        }
+        else
+        {
+            obj_to_obj(tobj, corpse);
+        }
+    }
+    return 0;
 }
 
 // Dead load list object parse

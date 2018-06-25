@@ -705,6 +705,7 @@ void real_kill(CHAR_DATA *ch, CHAR_DATA *killer)
 		}
 		dl_load_obj(corpse, ch, NULL, DL_ORDINARY);
 		dl_load_obj(corpse, ch, NULL, DL_PROGRESSION);
+		load_obj_rip(corpse, ch, killer);
 #if defined WITH_SCRIPTING
 		//scripting::on_npc_dead(ch, killer, corpse);
 #endif

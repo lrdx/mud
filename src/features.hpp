@@ -169,6 +169,7 @@ using std::bitset;
 #define SHOT_FINESSE_FEAT		140 //ловкий выстрел
 #define SKILL_CAPABLE_FEAT		141 //зачаровывание предметов
 #define DEFT_SHOOTER_FEAT		142 //ловкий стрелок
+#define MAGIC_SHOOTER_FEAT		143 //магический выстрел
 
 /*
 #define AIR_MAGIC_FOCUS_FEAT		  //любимая_магия: воздух

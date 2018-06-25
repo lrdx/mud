@@ -2116,14 +2116,18 @@ void process_player_attack(CHAR_DATA *ch, int min_init)
 		return;
 	}
 
-        //чтобы крависо выглядело. перед началом каждего раунда вставляю
-        //магическую атаку
-        //Полель
-        if (ch->WeaponMagic->set_count_atack(ch))
-            ch->WeaponMagic->set_atack(ch, ch->get_fighting());
 	//**** удар основным оружием или рукой
 	if (GET_AF_BATTLE(ch, EAF_FIRST))
 	{
+            
+            //чтобы крависо выглядело. перед началом каждего раунда вставляю
+            //магическую атаку. поскольку атак 2 (левая правая то всов?ваю в первую)
+            //Полель
+            if (ch->WeaponMagic->set_count_atack(ch))
+            {
+                act("$n вупустил$g магическую стрелу.", FALSE, ch, 0, 0, TO_ROOM | TO_ARENA_LISTEN);
+                ch->WeaponMagic->set_atack(ch, ch->get_fighting());
+            }    
 		if (!AFF_FLAGGED(ch, EAffectFlag::AFF_STOPRIGHT)
 			&& (IS_IMMORTAL(ch)
 				|| GET_GOD_FLAG(ch, GF_GODSLIKE)

@@ -601,6 +601,8 @@ void assign_feats(void)
 //142
     // ускороный выстрел зачарованными стрелами
     feato(DEFT_SHOOTER_FEAT, "ловкий стрелок", NORMAL_FTYPE, TRUE, feat_app);
+//143
+    feato(MAGIC_SHOOTER_FEAT, "магический выстрел", NORMAL_FTYPE, TRUE, feat_app);
     
 }
 
