@@ -662,7 +662,7 @@ OBJ_DATA::shared_ptr read_one_object_new(char **data, int *error)
 	{
 		if (GET_OBJ_WEIGHT(object) < GET_OBJ_VAL(object, 1))
 		{
-			object->set_weight(GET_OBJ_VAL(object, 1) + 5);
+			object->set_weight(GET_OBJ_VAL(object, 1)/10 + 5);
 		}
 	}
 	// проставляем имя жидкости
@@ -870,7 +870,7 @@ OBJ_DATA::shared_ptr read_one_object(char **data, int *error)
 	{
 		if (GET_OBJ_WEIGHT(object) < GET_OBJ_VAL(object, 1))
 		{
-			object->set_weight(GET_OBJ_VAL(object, 1) + 5);
+			object->set_weight(GET_OBJ_VAL(object, 1)/10 + 5);
 		}
 	}
 

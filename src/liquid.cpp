@@ -322,16 +322,9 @@ void do_drink_poison (CHAR_DATA *ch, OBJ_DATA *jar,int amount) {
 
 int cast_potion(CHAR_DATA *ch, OBJ_DATA *jar)
 {
-    OBJ_DATA *mag_cont;
 	// Added by Adept - обкаст если в фонтане или емкости зелье	
 	if (is_potion(jar) && jar->get_value(ObjVal::EValueKey::POTION_PROTO_VNUM) >= 0)
 	{
-	mag_cont = GET_EQ(ch, WEAR_HOLD);	
-        if ((GET_OBJ_TYPE(jar) != OBJ_DATA::ITEM_FOUNTAIN)&&(mag_cont!=jar) )
-        {
-            send_to_char(ch, "А на четвереньках и из лужи?.\r\n");
-            return 0;
-        }
             act("$n выпил$g зелья из $o1.", TRUE, ch, jar, 0, TO_ROOM);
 		send_to_char(ch, "Вы выпили зелья из %s.\r\n", OBJN(jar, ch, 1));
 		
@@ -341,7 +334,7 @@ int cast_potion(CHAR_DATA *ch, OBJ_DATA *jar)
 				break;
 		
 		WAIT_STATE(ch, PULSE_VIOLENCE);
-		jar->dec_weight();
+		jar->set_weight(5 + GET_OBJ_VAL(jar, 1)/10);
 		// все выпито
 		jar->dec_val(1);
 
@@ -403,19 +396,9 @@ int do_drink_check(CHAR_DATA *ch, OBJ_DATA *jar)
 OBJ_DATA* do_drink_get_jar (CHAR_DATA *ch, char *jar_name)
 {
 	OBJ_DATA* jar = NULL;
-	if (!(jar = get_obj_in_list_vis(ch, jar_name, ch->carrying)))
+	if (!(jar =  get_obj_vis(ch, jar_name)))
 	{
-		if (!(jar = get_obj_in_list_vis(ch, arg, world[ch->in_room]->contents)))
-		{
-			send_to_char("Вы не смогли это найти!\r\n", ch);
-			return jar;
-		}
-
-		if (GET_OBJ_TYPE(jar) == OBJ_DATA::ITEM_DRINKCON)
-		{
-			send_to_char("Прежде это стоит поднять.\r\n", ch);
-			return jar;
-		}
+            send_to_char("Вы не смогли это найти!\r\n", ch);
 	}
 	return jar;
 }
@@ -579,6 +562,7 @@ void do_drink_drunk(CHAR_DATA *ch, OBJ_DATA *jar, int amount){
 void do_drink(CHAR_DATA *ch, char *argument, int/* cmd*/, int subcmd)
 {
 	OBJ_DATA *jar;
+        OBJ_DATA *mag_cont;
 	int amount;
 	
 	//мобы не пьют
@@ -601,6 +585,12 @@ void do_drink(CHAR_DATA *ch, char *argument, int/* cmd*/, int subcmd)
 	if (!do_drink_check(ch,jar))
 		return;
 	
+	mag_cont = GET_EQ(ch, WEAR_HOLD);	
+        if ((GET_OBJ_TYPE(jar) != OBJ_DATA::ITEM_FOUNTAIN)&&(mag_cont!=jar) )
+        {
+            send_to_char(ch, "А на четвереньках и из лужи?\r\n");
+            return;
+        }
 	// Бухаем зелье
 	if (cast_potion(ch, jar))
 		return;
@@ -630,7 +620,8 @@ void do_drink(CHAR_DATA *ch, char *argument, int/* cmd*/, int subcmd)
 
 	if (GET_OBJ_TYPE(jar) != OBJ_DATA::ITEM_FOUNTAIN)
 	{
-		weight_change_object(jar, - MIN(amount, GET_OBJ_WEIGHT(jar)));	// Subtract amount
+            jar->set_weight(5 + GET_OBJ_VAL(jar, 1)/10); //нижняя строка приводит к отрицательному весу
+            //weight_change_object(jar, - MIN(amount, GET_OBJ_WEIGHT(jar)));	// Subtract amount
 	}
 
 	if (
