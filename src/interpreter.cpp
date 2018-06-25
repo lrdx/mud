@@ -3845,14 +3845,18 @@ Sventovit
 			{
 				if (new_char_codes[d->character->get_pc_name()] != code_rand)
 				{
-					//SEND_TO_Q("\r\nВы ввели неправильный код, попробуйте еще раз.\r\n", d);
-					//break;
+				#ifdef TEST_BUILD
+				#else
+                                    SEND_TO_Q("\r\nВы ввели неправильный код, попробуйте еще раз.\r\n", d);
+                                    break;
+				#endif
 				}
 				new_char_codes.erase(d->character->get_pc_name());
 				DoAfterEmailConfirm(d);
 				break;
 			}
-                        /*
+			#ifdef TEST_BUILD
+			#else
 
 			if (new_loc_codes.count(GET_EMAIL(d->character)) == 0)
 			{
@@ -3865,7 +3869,7 @@ Sventovit
 				STATE(d) = CON_CLOSE;
 				break;
 			}
-                        */  
+			#endif
 			new_loc_codes.erase(GET_EMAIL(d->character));
 			add_logon_record(d);
 			DoAfterPassword(d);
