@@ -3148,7 +3148,7 @@ int trans_obj_name(OBJ_DATA * obj, CHAR_DATA * ch)
 			if (i == 0)
 			{
 				obj->set_short_description(obj_pad);
-                                sprintf(buf, "%s материал",obj_pad );
+                                sprintf(buf, "%s материал",obj_pad.c_str() );
 				obj->set_aliases(buf); // ставим алиасы
 			}
 		}
@@ -3298,7 +3298,7 @@ int dl_load_obj(OBJ_DATA * corpse, CHAR_DATA * ch, CHAR_DATA * chr, int DL_LOAD_
 	return TRUE;
 }
 
-int load_obj_rip(OBJ_DATA * corpse, CHAR_DATA * mob, CHAR_DATA * ch)
+int load_obj_rip(OBJ_DATA * corpse, CHAR_DATA * mob)
 {
     OBJ_DATA *tobj;
     int percent = 0;
@@ -3322,10 +3322,10 @@ int load_obj_rip(OBJ_DATA * corpse, CHAR_DATA * mob, CHAR_DATA * ch)
     }
     if (tobj)
     {
-        if (MOB_FLAGGED(ch, MOB_CORPSE))
+        if (MOB_FLAGGED(mob, MOB_CORPSE))
         {
-            act("На земле остал$U лежать $o.", FALSE, ch, tobj, 0, TO_ROOM);
-            obj_to_room(tobj, ch->in_room);
+            act("На земле остал$U лежать $o.", FALSE, mob, tobj, 0, TO_ROOM);
+            obj_to_room(tobj, mob->in_room);
         }
         else
         {

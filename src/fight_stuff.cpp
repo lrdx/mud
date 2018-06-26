@@ -697,7 +697,7 @@ void real_kill(CHAR_DATA *ch, CHAR_DATA *killer)
 		{
 			log("Killed: %d %d %ld", GET_LEVEL(ch), GET_MAX_HIT(ch), GET_EXP(ch));
 			obj_load_on_death(corpse, ch);
-                        load_obj_rip(corpse, ch, killer);
+                        //load_obj_rip(corpse, ch);
 		}
 		if (MOB_FLAGGED(ch, MOB_CORPSE))
 		{
