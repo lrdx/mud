@@ -31,7 +31,7 @@ bool WeaponMagicalAtack::set_count_atack(CHAR_DATA * ch)
     //sprintf(buf, "Количество выстрелов %d", get_count());
     //act(buf, TRUE, ch, 0, 0, TO_ROOM | TO_ARENA_LISTEN);
     //выстрел из колчана
-    if (((GET_OBJ_TYPE(GET_EQ(ch, WEAR_BOTHS))) == OBJ_DATA::ITEM_WEAPON) 
+    if ((GET_EQ(ch, WEAR_BOTHS)&&(GET_OBJ_TYPE(GET_EQ(ch, WEAR_BOTHS)) == OBJ_DATA::ITEM_WEAPON)) 
             && (GET_OBJ_SKILL(GET_EQ(ch, WEAR_BOTHS)) == SKILL_BOWS )
             && (GET_EQ(ch, WEAR_QUIVER)))
         {
