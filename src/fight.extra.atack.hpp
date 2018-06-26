@@ -11,10 +11,11 @@ class WeaponMagicalAtack
 public:
     int get_count() const { return count_atack; }
     void set_count(const int _) { count_atack = _; }
+    void start_count() { count_atack = 0; }
     void set_atack(CHAR_DATA *ch, CHAR_DATA *victim);
     bool set_count_atack(CHAR_DATA *ch);
 private:
-    int count_atack;
+    int count_atack=0;
 
 };
 

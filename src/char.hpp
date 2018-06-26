@@ -582,6 +582,7 @@ public:
 
 	void add_attacker(CHAR_DATA *ch, unsigned type, int num);
 	int get_attacker(CHAR_DATA *ch, unsigned type) const;
+	void clean_count();
 	std::pair<int /* uid */, int /* rounds */> get_max_damager_in_room() const;
 
 	void inc_restore_timer(int num);

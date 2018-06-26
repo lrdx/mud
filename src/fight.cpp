@@ -232,7 +232,7 @@ void set_fighting(CHAR_DATA * ch, CHAR_DATA * vict)
 		send_to_char("Вы забыли о концентрации и ринулись в бой!\r\n", ch);
 		affect_from_char(ch, SPELL_RECALL_SPELLS);
 	}
-
+        
 	ch->next_fighting = combat_list;
 	combat_list = ch;
 
@@ -240,6 +240,7 @@ void set_fighting(CHAR_DATA * ch, CHAR_DATA * vict)
 		affect_from_char(ch, SPELL_SLEEP);
 
 	ch->set_fighting(vict);
+        //ch->clean_count();
 
 	NUL_AF_BATTLE(ch);
 	//Polud вступление в битву не мешает прикрывать

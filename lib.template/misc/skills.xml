@@ -48,7 +48,7 @@
     <skill id="SKILL_STUPOR">
 	    <number val="5" />
         <name text="оглушить" />
-        <max_percent val="100" />
+        <max_percent val="16" />
     </skill>
     <skill id="SKILL_POISONED">
 	    <number val="6" />
@@ -352,11 +352,11 @@
         <name text="врата" />
         <max_percent val="100" />
     </skill>
-    <!-- Крафтовые скиллы, но реально из них реализован только крафт луков -->
+    <!-- Крафтовые скиллы, но реально из них реализован только крафт луков и сшить-->
     <skill id="SKILL_MAKE_STAFF">
 	    <number val="169" />
-        <name text="изготовить посох" />
-        <max_percent val="140" />
+        <name text="смастерить предмет" />
+        <max_percent val="200" />
     </skill>
     <skill id="SKILL_MAKE_BOW">
 	    <number val="170" />
@@ -381,12 +381,12 @@
 	<skill id="SKILL_MAKE_JEWEL">
 	    <number val="174" />
         <name text="смастерить диковинку" />
-        <max_percent val="140" />
+        <max_percent val="200" />
     </skill>
     <skill id="SKILL_MAKE_POTION">
 	    <number val="175" />
         <name text="смастерить диковинку" />
-        <max_percent val="140" />
+        <max_percent val="200" />
     </skill>
     <!-- Дальше снова рабочие скиллы  -->
     <skill id="SKILL_DIG">

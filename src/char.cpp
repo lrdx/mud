@@ -2156,6 +2156,16 @@ int CHAR_DATA::get_attacker(CHAR_DATA *ch, unsigned type) const
 	return 0;
 }
 
+//сбрасывает счетчик атак в 0
+void CHAR_DATA::clean_count()
+{
+        if ((IS_NPC(this))&&(((GET_OBJ_TYPE(GET_EQ(this, WEAR_BOTHS))) == OBJ_DATA::ITEM_WEAPON) 
+            && (GET_OBJ_SKILL(GET_EQ(this, WEAR_BOTHS)) == SKILL_BOWS )
+            && (GET_EQ(this, WEAR_QUIVER)))) 
+        WeaponMagic->set_count(0);    
+    
+}
+
 // поиск в списке атакующих нанесшего максимальный урон, который при этом
 // находится в данный момент в этой же комнате с боссом и онлайн
 std::pair<int /* uid */, int /* rounds */> CHAR_DATA::get_max_damager_in_room() const

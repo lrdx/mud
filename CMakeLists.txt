@@ -69,6 +69,7 @@ set(SOURCES
 	src/features.cpp
 	src/fight.cpp
 	src/fight_hit.cpp
+	src/fight.extra.atack.cpp
 	src/fight.penalties.cpp
 	src/fight_stuff.cpp
 	src/file_crc.cpp
@@ -233,6 +234,7 @@ set(HEADERS
 	src/fight_constants.hpp
 	src/fight.h
 	src/fight_hit.hpp
+	src/fight.extra.atack.hpp
 	src/fight_stuff.hpp
 	src/fight.penalties.hpp
 	src/file_crc.hpp
