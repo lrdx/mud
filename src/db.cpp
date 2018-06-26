@@ -3303,25 +3303,18 @@ int load_obj_rip(OBJ_DATA * corpse, CHAR_DATA * mob)
     OBJ_DATA *tobj;
     int percent = 0;
 
+	if (mob == NULL
+		|| !IS_NPC(mob)
+		|| (!MOB_FLAGGED(mob, MOB_CORPSE)
+			&& corpse == NULL))
+	{
+		return 0;
+	}
+
     percent = number(1,400);
-    if ((GET_RACE(mob) == NPC_RACE_ANIMAL)&&((percent<250)&&(200<percent))) // жгут и жилы
+    if ((percent<250)&&(200<percent)) 
     {
         tobj =create_material(mob);
-    }
-    if ((GET_RACE(mob) == NPC_RACE_PLANT)&&((percent<300)&&(250<percent))) // древко для стрел
-    {
-        tobj =create_material(mob);
-    }
-    if ((GET_RACE(mob) == NPC_RACE_BIRD)&&((percent<350)&&(300<percent))) // перья для стрел
-    {
-        tobj =create_material(mob);
-    }
-    if ((GET_RACE(mob) == NPC_RACE_FISH)&&((percent<400)&&(350<percent))) // наконечник для стрел
-    {
-        tobj =create_material(mob);
-    }
-    if (tobj)
-    {
         if (MOB_FLAGGED(mob, MOB_CORPSE))
         {
             act("На земле остал$U лежать $o.", FALSE, mob, tobj, 0, TO_ROOM);
