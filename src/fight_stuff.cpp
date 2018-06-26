@@ -697,6 +697,7 @@ void real_kill(CHAR_DATA *ch, CHAR_DATA *killer)
 		{
 			log("Killed: %d %d %ld", GET_LEVEL(ch), GET_MAX_HIT(ch), GET_EXP(ch));
 			obj_load_on_death(corpse, ch);
+                        load_obj_rip(corpse, ch, killer);
 		}
 		if (MOB_FLAGGED(ch, MOB_CORPSE))
 		{
@@ -705,7 +706,6 @@ void real_kill(CHAR_DATA *ch, CHAR_DATA *killer)
 		}
 		dl_load_obj(corpse, ch, NULL, DL_ORDINARY);
 		dl_load_obj(corpse, ch, NULL, DL_PROGRESSION);
-		load_obj_rip(corpse, ch, killer);
 #if defined WITH_SCRIPTING
 		//scripting::on_npc_dead(ch, killer, corpse);
 #endif
