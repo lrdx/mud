@@ -14,8 +14,10 @@ public:
     void start_count() { count_atack = 0; }
     void set_atack(CHAR_DATA *ch, CHAR_DATA *victim);
     bool set_count_atack(CHAR_DATA *ch);
+    WeaponMagicalAtack(CHAR_DATA * ch); 
 private:
     int count_atack=0;
+    CHAR_DATA *ch_;
 
 };
 

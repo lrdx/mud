@@ -6,7 +6,9 @@
 
 #include <boost/algorithm/string.hpp>
 
-void WeaponMagicalAtack::set_atack(CHAR_DATA *ch, CHAR_DATA *victim) 
+WeaponMagicalAtack::WeaponMagicalAtack(CHAR_DATA * ch) {ch_=ch;}
+
+void WeaponMagicalAtack::set_atack(CHAR_DATA * ch, CHAR_DATA * victim) 
 {
     OBJ_DATA *mag_cont;
 
@@ -22,7 +24,7 @@ void WeaponMagicalAtack::set_atack(CHAR_DATA *ch, CHAR_DATA *victim)
     mag_single_target(GET_LEVEL(ch), ch, victim, NULL, GET_OBJ_VAL(mag_cont, 0), SAVING_REFLEX);
     
 }
-bool WeaponMagicalAtack::set_count_atack(CHAR_DATA *ch)
+bool WeaponMagicalAtack::set_count_atack(CHAR_DATA * ch)
 {
     OBJ_DATA *mag_cont;
     mag_cont = GET_EQ(ch, WEAR_QUIVER);

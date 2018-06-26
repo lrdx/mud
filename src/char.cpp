@@ -114,6 +114,7 @@ CHAR_DATA::CHAR_DATA() :
 	followers(nullptr)
 {
 	this->zero_init();
+        WeaponMagic = new WeaponMagicalAtack(this); 
 	current_morph_ = GetNormalMorphNew(this);
 	caching::character_cache.add(this);
 }
