@@ -1865,6 +1865,8 @@ int mag_damage(int level, CHAR_DATA * ch, CHAR_DATA * victim, int spellnum, int 
 		if (can_use_feat(ch, MAGIC_SHOOTER_FEAT) && !IS_NPC(victim))
 		{
 			modi = GET_OBJ_VAL(GET_EQ(ch, WEAR_QUIVER), 3); //бонуса выстрела у охотника
+                        if (PRF_FLAGGED(ch, PRF_AWAKE) && !IS_NPC(victim)) // потом отниметься
+                            modi += 50;
 		}
 	}
 
@@ -2385,6 +2387,16 @@ int mag_damage(int level, CHAR_DATA * ch, CHAR_DATA * victim, int spellnum, int 
 			WAIT_STATE(victim, 2 * PULSE_VIOLENCE);
 		}
 		break;
+	case SPELL_ARROWS_FIRE:
+	case SPELL_ARROWS_WATER:
+	case SPELL_ARROWS_EARTH:
+	case SPELL_ARROWS_AIR:
+	case SPELL_ARROWS_DEATH:
+		ndice = 3+ch->get_remort();
+		sdice = 4;
+		adice = level + ch->get_remort() + 1;
+		break;
+                
 
 	}			// switch(spellnum)
 
@@ -4252,8 +4264,77 @@ int mag_affects(int level, CHAR_DATA * ch, CHAR_DATA * victim, int spellnum, int
 		to_room = "$n вдохновенно выпятил$g грудь.";
 		to_vict = "Вы почувствовали вдохновение.";
 		break;
-	}
+	case SPELL_ARROWS_FIRE:
+	case SPELL_ARROWS_WATER:
+	case SPELL_ARROWS_EARTH:
+	case SPELL_ARROWS_AIR:
+	case SPELL_ARROWS_DEATH:
+            
+            switch(number(1, 4))
+            {
+                case 1:
+                {
+                        savetype = SAVING_REFLEX;
+                        if (AFF_FLAGGED(victim, EAffectFlag::AFF_BROKEN_CHAINS)
+                                        || (ch != victim && general_savingthrow(ch, victim, savetype, modi)))
+                        {
+                                send_to_char(NOEFFECT, ch);
+                                success = FALSE;
+                                break;
+                        }
 
+                        af[0].location = APPLY_HITROLL;
+                        af[0].modifier = -2;
+                        af[0].duration = calculate_resistance_coeff(victim, get_resist_type(spellnum),
+                                                         pc_duration(victim, 3, level, 6, 0, 0)) * koef_duration;
+                        af[0].battleflag = AF_BATTLEDEC;
+                        af[0].bitvector = to_underlying(EAffectFlag::AFF_NOFLEE);
+                        af[1].location = APPLY_AC;
+                        af[1].modifier = 20;
+                        af[1].duration = af[0].duration;
+                        af[1].battleflag = AF_BATTLEDEC;
+                        af[1].bitvector = to_underlying(EAffectFlag::AFF_NOFLEE);
+                        to_room = "$n3 покрыла невидимая паутина, сковывая $s движения!";
+                        to_vict = "Вас покрыла невидимая паутина!";
+			//spellnum = SPELL_MAGICBATTLE;
+                        break;
+                }        
+                case 2:
+                {    
+			WAIT_STATE(victim, 2 * PULSE_VIOLENCE);
+			af[0].duration = calculate_resistance_coeff(victim, get_resist_type(spellnum),
+							 pc_duration(victim, 2, 0, 0, 0, 0)) * koef_duration;
+			af[0].bitvector = to_underlying(EAffectFlag::AFF_MAGICSTOPFIGHT);
+			af[0].battleflag = AF_BATTLEDEC | AF_PULSEDEC;
+			to_room = "$n3 оглушило.";
+			to_vict = "Вас оглушило.";
+			//spellnum = SPELL_MAGICBATTLE;
+			mag_affects(level, ch, victim, SPELL_BLINDNESS, SAVING_STABILITY);
+                         break;
+                }    
+                case 3:
+                {
+                     af[0].duration = calculate_resistance_coeff(victim, get_resist_type(spellnum),
+							 pc_duration(victim, 2, 0, 0, 0, 0)) * koef_duration;
+
+                    af[0].bitvector = to_underlying(EAffectFlag::AFF_HOLD);
+                    af[0].battleflag = AF_BATTLEDEC;
+                    to_room = "$n0 замер$q на месте!";
+                    to_vict = "Вы замерли на месте, не в силах пошевельнуться.";
+                    //spellnum = SPELL_MAGICBATTLE;
+                    break;
+                }
+                case 4:
+                    break;
+                //case 5:
+                //    break;
+                //case 6:
+                //    break;
+                //default:
+                //    break;
+            }                
+            }        
+            
 	/*
 	 * If this is a mob that has this affect set in its mob file, do not
 	 * perform the affect.  This prevents people from un-sancting mobs

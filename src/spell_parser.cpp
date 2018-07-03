@@ -5364,6 +5364,27 @@ void mag_assign_spells(void)
 	spello(SPELL_EARTH_AURA, "земной поклон", "earth aura", 140, 120, 2,
                    POS_FIGHTING, TAR_IGNORE, FALSE, MAG_GROUPS | MAG_AFFECTS | NPC_AFFECT_NPC, 0, STYPE_EARTH);
        
+//227
+	spello(SPELL_ARROWS_FIRE, "стрелы огня", "arrows of fire", 0, 0, 0,
+            POS_FIGHTING, TAR_IGNORE, MTYPE_AGGRESSIVE, MAG_AFFECTS, 2, STYPE_FIRE);
+//228
+	spello(SPELL_ARROWS_WATER, "стрелы воды", "arrows of water", 0, 0, 0,
+            POS_FIGHTING, TAR_CHAR_ROOM | TAR_FIGHT_VICT, MTYPE_AGGRESSIVE,
+            MAG_DAMAGE | NPC_AFFECT_PC | MAG_AFFECTS | NPC_DAMAGE_PC | NPC_DAMAGE_PC_MINHP, 2, STYPE_WATER);
+//229
+	spello(SPELL_ARROWS_EARTH, "стрелы земли", "arrows of earth", 0, 0, 0,
+            POS_FIGHTING, TAR_CHAR_ROOM | TAR_FIGHT_VICT, MTYPE_AGGRESSIVE,
+            MAG_DAMAGE | NPC_AFFECT_PC | MAG_AFFECTS | NPC_DAMAGE_PC | NPC_DAMAGE_PC_MINHP, 2, STYPE_EARTH);
+//230
+	spello(SPELL_ARROWS_AIR, "стрелы воздуха", "arrows of air", 0, 0, 0,
+            POS_FIGHTING, TAR_CHAR_ROOM | TAR_FIGHT_VICT, MTYPE_AGGRESSIVE,
+            MAG_DAMAGE | NPC_AFFECT_PC | MAG_AFFECTS | NPC_DAMAGE_PC | NPC_DAMAGE_PC_MINHP, 2, STYPE_AIR);
+//231
+	spello(SPELL_ARROWS_DEATH, "стрелы смерти", "arrows of death", 0, 0, 0,
+            POS_FIGHTING, TAR_CHAR_ROOM | TAR_FIGHT_VICT, MTYPE_AGGRESSIVE,
+            MAG_DAMAGE | NPC_AFFECT_PC | MAG_AFFECTS | NPC_DAMAGE_PC | NPC_DAMAGE_PC_MINHP, 2, STYPE_DARK);
+
+
 	/*
 	 * These spells are currently not used, not implemented, and not castable.
 	 * Values for the 'breath' spells are filled in assuming a dragon's breath.
