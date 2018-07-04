@@ -3444,11 +3444,11 @@ const spell_wear_off_msg_t spell_wear_off_msg =
 	"!SPELL STONE WALL!",
 	"!SPELL SNAKE EYES!",
 	"Матушка земля забыла про Вас."
-	"!SPELL !",
-	"!SPELL !",
-	"!SPELL !",
-	"!SPELL !",
-	"!SPELL ARROWS_DEATH!",
+	"!SPELL ARROWS!",
+	"!SPELL ARROWS!",
+	"!SPELL ARROWS!",
+	"!SPELL ARROWS!",
+	"!SPELL ARROWS",
 };
 
 /**

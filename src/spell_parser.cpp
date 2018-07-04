@@ -5374,7 +5374,7 @@ void mag_assign_spells(void)
 //229
 	spello(SPELL_ARROWS_EARTH, "стрелы земли", "arrows of earth", 0, 0, 0,
             POS_FIGHTING, TAR_CHAR_ROOM | TAR_FIGHT_VICT, MTYPE_AGGRESSIVE,
-            MAG_DAMAGE | NPC_AFFECT_PC | MAG_AFFECTS | NPC_DAMAGE_PC | NPC_DAMAGE_PC_MINHP, 2, STYPE_EARTH);
+            MAG_AREAS | MAG_DAMAGE | NPC_AFFECT_PC | MAG_AFFECTS | NPC_DAMAGE_PC | NPC_DAMAGE_PC_MINHP, 2, STYPE_EARTH);
 //230
 	spello(SPELL_ARROWS_AIR, "стрелы воздуха", "arrows of air", 0, 0, 0,
             POS_FIGHTING, TAR_CHAR_ROOM | TAR_FIGHT_VICT, MTYPE_AGGRESSIVE,

@@ -2392,11 +2392,14 @@ int mag_damage(int level, CHAR_DATA * ch, CHAR_DATA * victim, int spellnum, int 
 	case SPELL_ARROWS_EARTH:
 	case SPELL_ARROWS_AIR:
 	case SPELL_ARROWS_DEATH:
-		ndice = 3+ch->get_remort();
-		sdice = 4;
-		adice = level + ch->get_remort() + 1;
-		break;
-                
+        {
+            act("Ваша магическая стрела поразила $N1.", FALSE, ch, 0, victim, TO_CHAR);
+            act("Магическая стрела $n1 поразила $N1.", FALSE, ch, 0, victim, TO_NOTVICT);
+            act("Магическая стрела настигла вас.", FALSE, ch, 0, victim, TO_VICT);
+            ndice = 3+ch->get_remort();
+            sdice = 4;
+            adice = level + ch->get_remort() + 1;
+       }    break;      
 
 	}			// switch(spellnum)
 
@@ -2713,6 +2716,10 @@ int mag_affects(int level, CHAR_DATA * ch, CHAR_DATA * victim, int spellnum, int
 		if (can_use_feat(ch, MAGIC_SHOOTER_FEAT) && !IS_NPC(victim))
 		{
                     modi = GET_OBJ_VAL(GET_EQ(ch, WEAR_QUIVER), 3); //бонуса выстрела у охотника
+                    if (PRF_FLAGGED(ch, PRF_AWAKE) && !IS_NPC(victim)) //потом все равно отниметься
+                    {
+                            modi += 50;
+                    }
 		}
 
 	}
@@ -4264,65 +4271,321 @@ int mag_affects(int level, CHAR_DATA * ch, CHAR_DATA * victim, int spellnum, int
 		to_room = "$n вдохновенно выпятил$g грудь.";
 		to_vict = "Вы почувствовали вдохновение.";
 		break;
-	case SPELL_ARROWS_FIRE:
 	case SPELL_ARROWS_WATER:
+            switch(number(1, 10))
+            {
+                case 1:
+                {
+                    savetype = SAVING_STABILITY;
+                    if (ch != victim && general_savingthrow(ch, victim, savetype, modi))
+                    {
+                            send_to_char(NOEFFECT, ch);
+                            success = FALSE;
+                            break;
+                    }
+                    af[0].location = APPLY_STR;
+                    af[0].duration = calculate_resistance_coeff(victim, get_resist_type(spellnum),
+                                                     pc_duration(victim, 2, level, 4, 6, 0)) * koef_duration;
+                    af[0].modifier = -1;
+                    af[0].battleflag = AF_BATTLEDEC;
+                    accum_duration = TRUE;
+                    to_room = "$n получил$g обморожение первой степени.";
+                    to_vict = "Вы почувствовали что замерзаете!";
+                    break;
+                }        
+                case 2:
+                {    
+                    savetype = SAVING_STABILITY;
+                    if (ch != victim && general_savingthrow(ch, victim, savetype, modi))
+                    {
+                            send_to_char(NOEFFECT, ch);
+                            success = FALSE;
+                            break;
+                    }
+                    af[0].location = APPLY_STR;
+                    af[0].duration = calculate_resistance_coeff(victim, get_resist_type(spellnum),
+                                                     pc_duration(victim, 2, level, 4, 6, 0)) * koef_duration;
+                    af[0].modifier = -3;
+                    af[0].battleflag = AF_BATTLEDEC;
+                    accum_duration = TRUE;
+                    to_room = "$n получил$g обморожение второй степени.";
+                    to_vict = "Вы почувствовали что сильно замерзаете!";
+                    break;
+               }    
+                case 3:
+                {
+                   savetype = SAVING_STABILITY;
+                    if (ch != victim && general_savingthrow(ch, victim, savetype, modi))
+                    {
+                            send_to_char(NOEFFECT, ch);
+                            success = FALSE;
+                            break;
+                    }
+                    af[0].location = APPLY_STR;
+                    af[0].duration = calculate_resistance_coeff(victim, get_resist_type(spellnum),
+                                                     pc_duration(victim, 2, level, 4, 6, 0)) * koef_duration;
+                    af[0].modifier = -10;
+                    af[0].battleflag = AF_BATTLEDEC;
+                    accum_duration = TRUE;
+                    to_room = "$n получил$g обморожение третьей степени.";
+                    to_vict = "Вы почувствовали что очень сильно замерзаете!";
+                    break;
+                }
+                case 4:
+                {
+                   savetype = SAVING_STABILITY;
+                    if (ch != victim && general_savingthrow(ch, victim, savetype, modi))
+                    {
+                            send_to_char(NOEFFECT, ch);
+                            success = FALSE;
+                            break;
+                    }
+                    af[0].location = APPLY_STR;
+                    af[0].duration = calculate_resistance_coeff(victim, get_resist_type(spellnum),
+                                                     pc_duration(victim, 2, level, 4, 6, 0)) * koef_duration;
+                    af[0].modifier = -10;
+                    af[0].battleflag = AF_BATTLEDEC;
+                    accum_duration = TRUE;
+                    to_room = "$n привратил$gся в сосульку.";
+                    to_vict = "Вы замерзли!";
+
+                    af[1].duration = calculate_resistance_coeff(victim, get_resist_type(spellnum),
+							 pc_duration(victim, 2, 0, 0, 0, 0)) * koef_duration;
+
+                    af[1].bitvector = to_underlying(EAffectFlag::AFF_HOLD);
+                    af[1].battleflag = AF_BATTLEDEC;
+                    break;
+                }    
+                case 5:
+                {
+                    savetype = SAVING_STABILITY;
+                    if (AFF_FLAGGED(victim, EAffectFlag::AFF_BROKEN_CHAINS)
+                                    || (ch != victim && general_savingthrow(ch, victim, savetype, modi)))
+                    {
+                            send_to_char(NOEFFECT, ch);
+                            success = FALSE;
+                            break;
+                    }
+
+                    af[0].duration = calculate_resistance_coeff(victim, get_resist_type(spellnum),
+                                                     pc_duration(victim, 9, 0, 0, 0, 0)) * koef_duration;
+                    af[0].bitvector = to_underlying(EAffectFlag::AFF_SLOW);
+                    af[1].location = APPLY_HITROLL;
+                    af[1].duration = af[0].duration;
+                    af[1].modifier = -(level/6 + decline_mod);
+                    af[1].bitvector = to_underlying(EAffectFlag::AFF_CURSE);
+                    
+                    to_room = "$n немного подмерз.";
+                    to_vict = "Вы немного замерзли.";
+                    break;
+                }    
+                case 6:
+                {
+                    savetype = SAVING_STABILITY;
+                    if (AFF_FLAGGED(victim, EAffectFlag::AFF_BROKEN_CHAINS)
+                                    || (ch != victim && general_savingthrow(ch, victim, savetype, modi)))
+                    {
+                            send_to_char(NOEFFECT, ch);
+                            success = FALSE;
+                            break;
+                    }
+
+                    if (affected_by_spell(victim, SPELL_HASTE))
+                    {
+                            affect_from_char(victim, SPELL_HASTE);
+                            success = FALSE;
+                            break;
+                    }
+
+                    af[0].duration = calculate_resistance_coeff(victim, get_resist_type(spellnum),
+                                                     pc_duration(victim, 9, 0, 0, 0, 0)) * koef_duration;
+                    af[0].bitvector = to_underlying(EAffectFlag::AFF_SLOW);
+                    af[1].location = APPLY_HITROLL;
+                    af[1].duration = af[0].duration;
+                    af[1].modifier = -(level/6 + decline_mod);
+                    af[1].bitvector = to_underlying(EAffectFlag::AFF_CURSE);
+                    af[2].location = APPLY_CAST_SUCCESS;
+                    af[2].duration = af[0].duration;
+                    af[2].modifier = -1 * (level / 3 + GET_REMORT(ch));
+                    if (IS_NPC(ch) && level >= (LVL_IMMORT))
+                            af[2].modifier += (LVL_IMMORT - level - 1);	//1 cast per mob level above 30
+                    af[2].bitvector = to_underlying(EAffectFlag::AFF_CURSE);
+                    to_room = "$n подмерз.";
+                    to_vict = "Вы замерзли.";
+                    break;
+                }    
+                //case 7:
+                //{
+                //    break;
+                //}    
+                default:
+                break;
+            }                
+            break;
+	case SPELL_ARROWS_FIRE:
+            switch(number(1, 10))
+            {
+                case 1:
+                {
+ 
+                    break;
+                }        
+                case 2:
+                {    
+
+                    break;
+               }    
+                case 3:
+                {
+
+                    break;
+                }
+                case 4:
+                {
+                    break;
+                }    
+                case 5:
+                {
+
+                    break;
+                }    
+                case 6:
+                {
+
+                    break;
+                }    
+                //case 7:
+                //{
+                //    break;
+                //}    
+                default:
+                break;
+            }                
+            break;
 	case SPELL_ARROWS_EARTH:
+            switch(number(1, 10))
+            {
+                case 1:
+                {
+ 
+                    break;
+                }        
+                case 2:
+                {    
+
+                    break;
+               }    
+                case 3:
+                {
+
+                    break;
+                }
+                case 4:
+                {
+                    break;
+                }    
+                case 5:
+                {
+
+                    break;
+                }    
+                case 6:
+                {
+
+                    break;
+                }    
+                //case 7:
+                //{
+                //    break;
+                //}    
+                default:
+                break;
+            }                
+            break;
 	case SPELL_ARROWS_AIR:
+            switch(number(1, 10))
+            {
+                case 1:
+                {
+                    savetype = SAVING_REFLEX;
+                    if (AFF_FLAGGED(victim, EAffectFlag::AFF_BROKEN_CHAINS)
+                                    || (ch != victim && general_savingthrow(ch, victim, savetype, modi)))
+                    {
+                            send_to_char(NOEFFECT, ch);
+                            success = FALSE;
+                            break;
+                    }
+
+                    af[0].location = APPLY_HITROLL;
+                    af[0].modifier = -2;
+                    af[0].duration = calculate_resistance_coeff(victim, get_resist_type(spellnum),
+                                                     pc_duration(victim, 3, level, 6, 0, 0)) * koef_duration;
+                    af[0].battleflag = AF_BATTLEDEC;
+                    af[0].bitvector = to_underlying(EAffectFlag::AFF_NOFLEE);
+                    af[1].location = APPLY_AC;
+                    af[1].modifier = 20;
+                    af[1].duration = af[0].duration;
+                    af[1].battleflag = AF_BATTLEDEC;
+                    af[1].bitvector = to_underlying(EAffectFlag::AFF_NOFLEE);
+                    to_room = "$n3 покрыла невидимая паутина, сковывая $s движения!";
+                    to_vict = "Вас покрыла невидимая паутина!";
+                    //spellnum = SPELL_MAGICBATTLE;
+                     break;
+                }        
+                case 2:
+                {    
+
+                    break;
+               }    
+                case 3:
+                {
+
+                    break;
+                }
+                case 4:
+                {
+                    break;
+                }    
+                case 5:
+                {
+
+                    break;
+                }    
+                case 6:
+                {
+
+                    break;
+                }    
+                //case 7:
+                //{
+                //    break;
+                //}    
+                default:
+                break;
+            }                
+            break;
 	case SPELL_ARROWS_DEATH:
             
             switch(number(1, 4))
             {
                 case 1:
                 {
-                        savetype = SAVING_REFLEX;
-                        if (AFF_FLAGGED(victim, EAffectFlag::AFF_BROKEN_CHAINS)
-                                        || (ch != victim && general_savingthrow(ch, victim, savetype, modi)))
-                        {
-                                send_to_char(NOEFFECT, ch);
-                                success = FALSE;
-                                break;
-                        }
-
-                        af[0].location = APPLY_HITROLL;
-                        af[0].modifier = -2;
-                        af[0].duration = calculate_resistance_coeff(victim, get_resist_type(spellnum),
-                                                         pc_duration(victim, 3, level, 6, 0, 0)) * koef_duration;
-                        af[0].battleflag = AF_BATTLEDEC;
-                        af[0].bitvector = to_underlying(EAffectFlag::AFF_NOFLEE);
-                        af[1].location = APPLY_AC;
-                        af[1].modifier = 20;
-                        af[1].duration = af[0].duration;
-                        af[1].battleflag = AF_BATTLEDEC;
-                        af[1].bitvector = to_underlying(EAffectFlag::AFF_NOFLEE);
-                        to_room = "$n3 покрыла невидимая паутина, сковывая $s движения!";
-                        to_vict = "Вас покрыла невидимая паутина!";
-			//spellnum = SPELL_MAGICBATTLE;
-                        break;
+                       break;
                 }        
                 case 2:
                 {    
-			WAIT_STATE(victim, 2 * PULSE_VIOLENCE);
+			WAIT_STATE(victim, 1 * PULSE_VIOLENCE);
 			af[0].duration = calculate_resistance_coeff(victim, get_resist_type(spellnum),
 							 pc_duration(victim, 2, 0, 0, 0, 0)) * koef_duration;
 			af[0].bitvector = to_underlying(EAffectFlag::AFF_MAGICSTOPFIGHT);
 			af[0].battleflag = AF_BATTLEDEC | AF_PULSEDEC;
 			to_room = "$n3 оглушило.";
 			to_vict = "Вас оглушило.";
-			//spellnum = SPELL_MAGICBATTLE;
-			mag_affects(level, ch, victim, SPELL_BLINDNESS, SAVING_STABILITY);
-                         break;
+                        break;
                 }    
                 case 3:
                 {
-                     af[0].duration = calculate_resistance_coeff(victim, get_resist_type(spellnum),
-							 pc_duration(victim, 2, 0, 0, 0, 0)) * koef_duration;
-
-                    af[0].bitvector = to_underlying(EAffectFlag::AFF_HOLD);
-                    af[0].battleflag = AF_BATTLEDEC;
-                    to_room = "$n0 замер$q на месте!";
-                    to_vict = "Вы замерли на месте, не в силах пошевельнуться.";
-                    //spellnum = SPELL_MAGICBATTLE;
-                    break;
+                     break;
                 }
                 case 4:
                     break;
@@ -5787,6 +6050,11 @@ const spl_message areas_messages[] =
 	 NULL,
 	 NULL,
 	 0},
+	{SPELL_ARROWS_EARTH,
+	 "Вы выпустили магическую стрелу в сердце земли.",
+	 "$n0 выстрелил$g в сердце земли, послышался нарастающий гул.",
+	 NULL,
+	 4},
 	{ -1, 0, 0, 0, 0}
 };
 
@@ -5864,6 +6132,15 @@ int mag_areas(int level, CHAR_DATA * ch, CHAR_DATA * victim, int spellnum, int s
 	if (spellnum == SPELL_SHOCK)
 	{
 		max_targets = number(0, 2);
+		if (max_targets == 0)
+		{
+			return 1;
+		}
+	}
+	
+        if (spellnum == SPELL_ARROWS_EARTH)
+	{
+		max_targets = number(0, 5);
 		if (max_targets == 0)
 		{
 			return 1;
