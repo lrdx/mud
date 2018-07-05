@@ -1257,21 +1257,25 @@ void do_reboot(CHAR_DATA *ch, char *argument, int/* cmd*/, int/* subcmd*/)
 			SetsDrop::reload();
 		}
 	}
-	else if (!str_cmp(arg, "remort.xml"))
+	else if (!str_cmp(arg, "remort"))
 	{
 		Remort::init();
 	}
-	else if (!str_cmp(arg, "noob_help.xml"))
+	else if (!str_cmp(arg, "noobhelp"))
 	{
 		Noob::init();
 	}
-	else if (!str_cmp(arg, "reset_stats.xml"))
+	else if (!str_cmp(arg, "resetstats"))
 	{
 		ResetStats::init();
 	}
-	else if (!str_cmp(arg, "obj_sets.xml"))
+	else if (!str_cmp(arg, "objsets"))
 	{
 		obj_sets::load();
+	}
+	else if (!str_cmp(arg, "setsdrop"))
+	{
+		SetsDrop::reload_by_timer();
 	}
 	else
 	{
