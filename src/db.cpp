@@ -1273,10 +1273,6 @@ void do_reboot(CHAR_DATA *ch, char *argument, int/* cmd*/, int/* subcmd*/)
 	{
 		obj_sets::load();
 	}
-	else if (!str_cmp(arg, "setsdrop"))
-	{
-		SetsDrop::reload_by_timer();
-	}
 	else
 	{
 		send_to_char("Неверный параметр для перезагрузки файлов.\r\n", ch);

@@ -3,6 +3,7 @@
 
 #include "sets_drop.hpp"
 
+#include "time_utils.hpp"
 #include "measurements.hpp"
 #include "object.prototypes.hpp"
 #include "obj.hpp"
@@ -610,6 +611,8 @@ namespace
 	class SetsDropReload
 	{
 	public:
+		SetsDropReload() : m_counter(0) {}
+
 		void reload(const int zone_vnum);
 
 		void print_stats(const CHAR_DATA* character) const;
@@ -623,16 +626,51 @@ namespace
 		static void init_link_system();
 
 	private:
+		enum EStep
+		{
+			ES_CLEAR,
+			ES_INIT_OBJ_LIST,
+			ES_INIT_DROP_SYSTEM,
+			ES_INIT_LINK_SYSTEM,
+			ES_RELOAD_HELP_SYSTEM,
+			ES_MESSAGE_FOR_PLAYERS,
+			ES_RELOAD,
+			ES_COUNT
+		};
+
 		struct SetsDropReloadLabel
 		{
-			SetsDropReloadLabel() : timestamp(0) {}
+			using shared_ptr = std::shared_ptr<SetsDropReloadLabel>;
+
+			SetsDropReloadLabel(): timestamp(time(nullptr)) {}
 
 			time_t timestamp;
-			std::unordered_map<std::size_t, double> steps;
+			std::list<std::pair<EStep, double>> steps;
 		};
 		using SetsDropStats = LabelledMeasurements<SetsDropReloadLabel>;
 
-		static void clear(const int zone_vnum);
+		static const char* STEP_LABELS[ES_COUNT];
+
+		class Step
+		{
+		public:
+			Step(SetsDropReloadLabel& label, const EStep step):
+				m_label(label),
+				m_step(step)
+			{
+			}
+			~Step() { m_label.steps.emplace_back(m_step, m_timer.delta().count()); }
+
+		private:
+			SetsDropReloadLabel& m_label;
+			utils::CExecutionTimer m_timer;
+			EStep m_step;
+		};
+
+		void step_clear(const int zone_vnum);
+		void step_init_obj_list();
+		void step_init_drop_system();
+		void step_init_link_system();
 
 		/**
 		* Генерация предварительного общего списка мобов для последующего
@@ -674,27 +712,82 @@ namespace
 		static void init_drop_table(int type);
 
 		static void init_linked_mobs(const std::set<int> &node);
-		static void message_for_players();
+		void step_message_for_players();
 
 		SetsDropStats m_stats;
+		SetsDropReloadLabel::shared_ptr m_current_label;
+		int m_counter;
+	};
+
+	const char* SetsDropReload::STEP_LABELS[SetsDropReload::EStep::ES_COUNT] = {
+		"Clear",
+		"Init obj list",
+		"Init drop system",
+		"Init link system",
+		"Reload help system",
+		"Message for players",
+		"Whole reload"
 	};
 
 	void SetsDropReload::reload(const int zone_vnum)
 	{
-		clear(zone_vnum);
+		m_current_label = std::make_shared<SetsDropReloadLabel>();
+		utils::CExecutionTimer timer;
 
-		init_obj_list();
-		init_drop_system();
-		init_link_system();
+		{
+			Step step(*m_current_label, ES_RELOAD);
 
-		HelpSystem::reload(HelpSystem::DYNAMIC);
+			step_clear(zone_vnum);
 
-		message_for_players();
+			step_init_obj_list();
+			step_init_drop_system();
+			step_init_link_system();
+
+			{
+				Step step(*m_current_label, ES_RELOAD_HELP_SYSTEM);
+				HelpSystem::reload(HelpSystem::DYNAMIC);
+			}
+
+			step_message_for_players();
+		}
+
+		const auto count = timer.delta().count();
+		m_stats.add(*m_current_label, ++m_counter, count);
+		m_current_label.reset();
 	}
 
 	void SetsDropReload::print_stats(const CHAR_DATA* character) const
 	{
-		send_to_char(character, "Under construction");
+		std::stringstream ss;
+		ss << std::fixed << std::setprecision(6);
+
+		const auto& longest = m_stats.global_max();
+		if (BasicMeasurements::NO_VALUE == longest.second)
+		{
+			ss << "SetsDrop reload operation has not been performed.";
+		}
+		else
+		{
+			const auto& label = longest.first;
+
+			const std::tm* ptm = std::localtime(&label.timestamp);
+			constexpr std::size_t TIMESTAMP_BUFFER_LENGTH = 64;
+			char timestamp_str[TIMESTAMP_BUFFER_LENGTH];
+			std::strftime(timestamp_str, TIMESTAMP_BUFFER_LENGTH, "%a, %d.%m.%Y %H:%M:%S", ptm);
+			ss << "Longest reload operation of SetsDrop has been performed at &Y"
+				<< timestamp_str << "&n. Duration: &Y" << longest.second.second
+				<< "&n. Details:" << std::endl;
+
+			bool first = true;
+			for (const auto& substep : label.steps)
+			{
+				ss << (first ? "" : "\n") << "\t&W" << STEP_LABELS[substep.first]
+					<< "&n: &Y" << substep.second << "&n";
+				first = false;
+			}
+		}
+
+		send_to_char(ss.str(), character);
 	}
 
 	void SetsDropReload::save_drop_table()
@@ -940,8 +1033,10 @@ namespace
 		}
 	}
 
-	void SetsDropReload::clear(const int zone_vnum)
+	void SetsDropReload::step_clear(const int zone_vnum)
 	{
+		Step step(*m_current_label, ES_CLEAR);
+
 		group_obj_list.clear();
 		solo_obj_list.clear();
 		mob_name_list.clear();
@@ -954,6 +1049,24 @@ namespace
 		{
 			mob_stat::clear_zone(zone_vnum);
 		}
+	}
+
+	void SetsDropReload::step_init_obj_list()
+	{
+		Step step(*m_current_label, ES_INIT_OBJ_LIST);
+		init_obj_list();
+	}
+
+	void SetsDropReload::step_init_drop_system()
+	{
+		Step step(*m_current_label, ES_INIT_DROP_SYSTEM);
+		init_drop_system();
+	}
+
+	void SetsDropReload::step_init_link_system()
+	{
+		Step step(*m_current_label, ES_INIT_LINK_SYSTEM);
+		init_link_system();
 	}
 
 	void SetsDropReload::init_mob_name_list()
@@ -1323,8 +1436,10 @@ namespace
 		}
 	}
 
-	void SetsDropReload::message_for_players()
+	void SetsDropReload::step_message_for_players()
 	{
+		Step step(*m_current_label, ES_MESSAGE_FOR_PLAYERS);
+
 		for (DESCRIPTOR_DATA *i = descriptor_list; i; i = i->next)
 		{
 			if (STATE(i) == CON_PLAYING && i->character)
