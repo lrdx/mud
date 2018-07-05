@@ -3,6 +3,7 @@
 
 #include "sets_drop.hpp"
 
+#include "measurements.hpp"
 #include "object.prototypes.hpp"
 #include "obj.hpp"
 #include "db.h"
@@ -249,351 +250,6 @@ void create_clone_miniset(int vnum)
 	obj_proto.set_idx(rnum_nobj, obj_proto.set_idx(rnum));
 }
 
-// * Инициализация списка сетов на лоад.
-void init_obj_list()
-{
-	pugi::xml_document doc;
-	pugi::xml_parse_result result = doc.load_file(CONFIG_FILE);
-	if (!result)
-	{
-		snprintf(buf, MAX_STRING_LENGTH, "...%s", result.description());
-		mudlog(buf, CMP, LVL_IMMORT, SYSLOG, TRUE);
-		return;
-	}
-    pugi::xml_node node_list = doc.child("set_list");
-    if (!node_list)
-    {
-		mudlog("...<set_list> read fail", CMP, LVL_IMMORT, SYSLOG, TRUE);
-		return;
-    }
-	for (pugi::xml_node set_node = node_list.child("set");
-		set_node; set_node = set_node.next_sibling("set"))
-	{
-		HelpNode node;
-
-		node.alias_list = Parse::attr_str(set_node, "help_alias");
-		if (node.alias_list.empty())
-		{
-			mudlog("...bad set attributes (empty help_alias)",
-				CMP, LVL_IMMORT, SYSLOG, TRUE);
-			continue;
-		}
-
-		std::string type = Parse::attr_str(set_node, "type");
-		if (type.empty() || (type != "auto" && type != "manual"))
-		{
-			snprintf(buf, sizeof(buf),
-				"...bad set attributes (type=%s)", type.c_str());
-			mudlog(buf, CMP, LVL_IMMORT, SYSLOG, TRUE);
-			continue;
-		}
-
-		std::set<int> tmp_solo_list;
-
-		if (type == "manual")
-		{
-			for (pugi::xml_node obj_node = set_node.child("obj");
-				obj_node; obj_node = obj_node.next_sibling("obj"))
-			{
-				const int obj_vnum = Parse::attr_int(obj_node, "vnum");
-				const int obj_rnum = real_object(obj_vnum);
-				if (obj_rnum < 0)
-				{
-					snprintf(buf, sizeof(buf),
-						"...bad obj_node attributes (vnum=%d)", obj_vnum);
-					mudlog(buf, CMP, LVL_IMMORT, SYSLOG, TRUE);
-					continue;
-				}
-
-				std::string list_type = Parse::attr_str(obj_node, "list");
-				if (list_type.empty()
-					|| (list_type != "solo" && list_type != "group"))
-				{
-					snprintf(buf, sizeof(buf),
-						"...bad manual obj attributes (list=%s, obj_vnum=%d)",
-						list_type.c_str(), obj_vnum);
-					mudlog(buf, CMP, LVL_IMMORT, SYSLOG, TRUE);
-					continue;
-				}
-
-				if (list_type == "solo")
-				{
-					solo_obj_list.push_back(obj_vnum);
-					// предварительный соло список, который
-					// дальше может быть поделен еще на два
-					tmp_solo_list.insert(obj_vnum);
-				}
-				else
-				{
-					group_obj_list.push_back(obj_vnum);
-					// груп список инится сразу
-					node.group_list.insert(obj_vnum);
-				}
-				// имя сета
-				if (node.title.empty())
-				{
-					if (obj_proto.set_idx(obj_rnum) != static_cast<size_t>(-1))
-					{
-						node.title = obj_sets::get_name(obj_proto.set_idx(obj_rnum));
-					}
-					else
-					{
-						for (const auto& it : OBJ_DATA::set_table)
-						{
-							const auto k = it.second.find(obj_vnum);
-							if (k != it.second.end())
-							{
-								node.title = it.second.get_name();
-							}
-						}
-					}
-				}
-				//create_clone_miniset(obj_vnum);				
-			}
-		}
-		else
-		{
-			// список сета сортированный по макс.активаторам
-			std::multimap<int, int> set_sort_list;
-
-			for (pugi::xml_node obj_node = set_node.child("obj"); obj_node; obj_node = obj_node.next_sibling("obj"))
-			{
-				const int obj_vnum = Parse::attr_int(obj_node, "vnum");
-				if (real_object(obj_vnum) < 0)
-				{
-					snprintf(buf, sizeof(buf),
-						"...bad obj_node attributes (vnum=%d)", obj_vnum);
-					mudlog(buf, CMP, LVL_IMMORT, SYSLOG, TRUE);
-					continue;
-				}
-				// заполнение списка активаторов
-				for (id_to_set_info_map::const_iterator it = OBJ_DATA::set_table.begin(),
-					iend = OBJ_DATA::set_table.end(); it != iend; ++it)
-				{
-					set_info::const_iterator k = it->second.find(obj_vnum);
-					if (k != it->second.end() && !k->second.empty())
-					{
-						// берется последний (максимальный) в списке активатор
-						set_sort_list.insert(
-							std::make_pair(k->second.rbegin()->first, obj_vnum));
-						// имя сета
-						if (node.title.empty())
-						{
-							node.title = it->second.get_name();
-						}
-					}
-				}
-			}
-			// первая половина активаторов в соло-лист, вторая в групп
-			size_t num = 0;
-			size_t total_num = set_sort_list.size();
-			for (std::multimap<int, int>::const_iterator i = set_sort_list.begin(),
-				iend = set_sort_list.end(); i != iend; ++i, ++num)
-			{
-				if (num < total_num / 2)
-				{
-					solo_obj_list.push_back(i->second);
-					tmp_solo_list.insert(i->second);
-				}
-				else
-				{
-					group_obj_list.push_back(i->second);
-					node.group_list.insert(i->second);
-				}
-			}
-		}
-		// деление соло списка на два, если требуется
-		if (tmp_solo_list.size() > 4)
-		{
-			size_t num = 0;
-			size_t total_num = tmp_solo_list.size();
-			for (std::set<int>::const_iterator i = tmp_solo_list.begin(),
-				iend = tmp_solo_list.end(); i != iend; ++i, ++num)
-			{
-				if (num < total_num / 2)
-				{
-					node.solo_list_1.insert(*i);
-				}
-				else
-				{
-					node.solo_list_2.insert(*i);
-				}
-			}
-		}
-		else
-		{
-			node.solo_list_1 = tmp_solo_list;
-		}
-
-		// список алиасов и сетин для справки
-		help_list.push_back(node);
-	}
-}
-
-void add_to_zone_list(std::list<ZoneNode> &cont, MobNode &node)
-{
-	int zone = node.vnum/100;
-	std::list<ZoneNode>::iterator k = std::find_if(cont.begin(), cont.end(),
-		[&](const ZoneNode& zn)
-	{
-		return zn.zone == zone;
-	});
-
-	if (k != cont.end())
-	{
-		k->mobs.push_back(node);
-	}
-	else
-	{
-		ZoneNode tmp_node;
-		tmp_node.zone = zone;
-		tmp_node.mobs.push_back(node);
-		cont.push_back(tmp_node);
-	}
-}
-
-/**
- * Генерация предварительного общего списка мобов для последующего
- * отсева неуникальных по именам внутри одной зоны.
- * Инится у моба: внум, рун, имя
- * Отсекаются: мобы без прототипа
- *             левые зоны: клан-замки, города с рентой, почтой и банком
- */
-void init_mob_name_list()
-{
-	std::set<int> bad_zones;
-
-	// клан-замки
-	for (const auto& clan : Clan::ClanList)
-	{
-		bad_zones.insert(clan->GetRent()/100);
-	}
-
-	// города
-	int curr_zone = 0;
-	bool rent = false, mail = false, banker = false;
-	for (const auto i : world)
-	{
-		if (curr_zone != zone_table[i->zone].number)
-		{
-			if (rent && mail && banker)
-			{
-				bad_zones.insert(curr_zone);
-			}
-			rent = false;
-			mail = false;
-			banker = false;
-			curr_zone = zone_table[i->zone].number;
-		}
-
-		for (const auto ch : i->people)
-		{
-			if (IS_RENTKEEPER(ch))
-			{
-				rent = true;
-			}
-			else if (IS_POSTKEEPER(ch))
-			{
-				mail = true;
-			}
-			else if (IS_BANKKEEPER(ch))
-			{
-				banker = true;
-			}
-		}
-	}
-
-	// тестовые зоны
-	for (int nr = 0; nr <= top_of_zone_table; nr++)
-	{
-		if (zone_table[nr].under_construction)
-		{
-			bad_zones.insert(zone_table[nr].number);
-		}
-	}
-
-	for (auto i = mob_stat::mob_list.cbegin(),
-		iend = mob_stat::mob_list.cend(); i != iend; ++i)
-	{
-		const int rnum = real_mobile(i->first);
-		const int zone = i->first/100;
-		std::set<int>::const_iterator k = bad_zones.find(zone);
-
-		if (rnum < 0
-			|| zone < 100
-			|| k != bad_zones.end())
-		{
-			continue;
-		}
-
-		MobNode node;
-		node.vnum = i->first;
-		node.rnum = rnum;
-		node.name = mob_proto[rnum].get_name();
-		auto stat = mob_stat::sum_stat(i->second, 4);
-		node.kill_stat = stat.kills;
-
-		add_to_zone_list(mob_name_list, node);
-	}
-}
-
-// * Инится у зоны: тип
-void init_zone_type()
-{
-	for (std::list<ZoneNode>::iterator i = mob_name_list.begin(),
-		iend = mob_name_list.end(); i != iend; ++i)
-	{
-		int killed_solo = 0;
-		for (std::list<MobNode>::iterator k = i->mobs.begin(),
-			kend = i->mobs.end(); k != kend; ++k)
-		{
-			int group_cnt = 0;
-			for (int cnt = 2; cnt <= MAX_GROUP_SIZE; ++cnt)
-			{
-				group_cnt += k->kill_stat.at(cnt);
-			}
-			if (k->kill_stat.at(1) > group_cnt)
-			{
-				++killed_solo;
-			}
-		}
-		if (killed_solo >= i->mobs.size() * 0.8)
-		{
-			i->type = SOLO_ZONE;
-		}
-		else
-		{
-			i->type = GROUP_ZONE;
-		}
-	}
-}
-
-// * Инится у моба: тип
-void init_mob_type()
-{
-	for (std::list<ZoneNode>::iterator i = mob_name_list.begin(),
-		iend = mob_name_list.end(); i != iend; ++i)
-	{
-		for (std::list<MobNode>::iterator k = i->mobs.begin(),
-			kend = i->mobs.end(); k != kend; ++k)
-		{
-			int group_cnt = 0;
-			for (int cnt = 2; cnt <= MAX_GROUP_SIZE; ++cnt)
-			{
-				group_cnt += k->kill_stat.at(cnt);
-			}
-			if (i->type == SOLO_ZONE && k->kill_stat.at(1) > group_cnt)
-			{
-				k->type = SOLO_MOB;
-			}
-			else if (i->type == GROUP_ZONE && k->kill_stat.at(1) < group_cnt)
-			{
-				k->type = GROUP_MOB;
-			}
-		}
-	}
-}
-
 /**
  * Расчет макс.в.мире на основе поля резета зоны.
  * Если мест лоада несколько - берется максимальное значение.
@@ -613,157 +269,6 @@ int calc_max_in_world(int mob_rnum)
 		}
 	}
 	return max_in_world;
-}
-
-/**
- * С этого момента начинают отсекаться отдельные мобы
- * Отсекаются: мобы с неуникальным именем внутри одной зоны,
- *             мобы больше 1 макс.в.мире
- *             мобы ниже требуемого уровня для данного типа
- *             мобы с флагами только полнолуние/времена года
- * Инится у моба: макс.в.мире
- */
-void filter_dupe_names()
-{
-	int vnum = 0;
-	int level = 0;
-	for (std::list<ZoneNode>::iterator it = mob_name_list.begin(),
-		iend = mob_name_list.end(); it != iend; ++it)
-	{
-		std::list<MobNode> tmp_list;
-		// отсеиваем (включая оригинал) одинаковые имена с разными внумами
-		for (std::list<MobNode>::iterator k = it->mobs.begin(),
-			kend = it->mobs.end(); k != kend; ++k)
-		{
-			// одинаковые имена в пределах зоны
-			bool good = true;
-			for (std::list<MobNode>::iterator l = it->mobs.begin(),
-				lend = it->mobs.end(); l != lend; ++l)
-			{
-				if (k->vnum != l->vnum && k->name == l->name)
-				{
-					good = false;
-					break;
-				}
-			}
-			if (!good || k->type == -1)
-			{
-				continue;
-			}			
-			if (k->type == GROUP_MOB
-				&& mob_proto[k->rnum].get_level() < MIN_GROUP_MOB_LVL)
-			{
-				continue;
-			}
-			// редко появляющиеся мобы, мобы без экспы
-			const CHAR_DATA *mob = &mob_proto[k->rnum];
-			if (MOB_FLAGGED(mob, MOB_LIKE_FULLMOON)
-				|| MOB_FLAGGED(mob, MOB_LIKE_WINTER)
-				|| MOB_FLAGGED(mob, MOB_LIKE_SPRING)
-				|| MOB_FLAGGED(mob, MOB_LIKE_SUMMER)
-				|| MOB_FLAGGED(mob, MOB_LIKE_AUTUMN)
-				|| NPC_FLAGGED(mob, NPC_NOSETSDROP)
-				|| mob->get_exp() <= 0)
-			{
-				continue;
-			}
-			
-
-			
-
-			// пока только уникальные мобы
-			k->miw = calc_max_in_world(k->rnum);
-			if (k->miw != 1)
-			{
-				continue;
-			}
-			
-
-			vnum = mob_index[k->rnum].vnum;
-			level = mob_proto[k->rnum].get_level();
-			unique_mobs.insert(std::make_pair(vnum, level));
-
-			// проверка на левел моба
-			if (k->type == SOLO_MOB
-				&& (mob_proto[k->rnum].get_level() < MIN_SOLO_MOB_LVL
-					|| mob_proto[k->rnum].get_level() > MAX_SOLO_MOB_LVL))
-			{
-				continue;
-			}
-
-			tmp_list.push_back(*k);
-		}
-		it->mobs = tmp_list;
-	}
-}
-
-/**
- * Отсекаются: лишние мобы в зонах с самым длинным списком мобов
- * для более равномерного распределения по разным зонам
- */
-void filter_extra_mobs(int total, int type)
-{
-	std::list<ZoneNode> &cont = (type == GROUP_MOB) ? group_mob_list : solo_mob_list;
-	const size_t obj_total = (type == GROUP_MOB) ? group_obj_list.size() : solo_obj_list.size();
-	// обрезание лишних мобов в самых заполненных зонах
-	int num_del = total - static_cast<int>(obj_total);
-	while (num_del > 0)
-	{
-		size_t max_num = 0;
-		for (std::list<ZoneNode>::iterator it = cont.begin(),
-			iend = cont.end(); it != iend; ++it)
-		{
-			if (it->mobs.size() > max_num)
-			{
-				max_num = it->mobs.size();
-			}
-		}
-		for (std::list<ZoneNode>::iterator it = cont.begin(),
-			iend = cont.end(); it != iend; ++it)
-		{
-			if (it->mobs.size() >= max_num)
-			{
-				std::list<MobNode>::iterator l = it->mobs.begin();
-				std::advance(l, number(0, static_cast<int>(it->mobs.size()) - 1));
-				it->mobs.erase(l);
-				if (it->mobs.empty())
-				{
-					cont.erase(it);
-				}
-				--num_del;
-				break;
-			}
-		}
-	}
-}
-
-// * Разделение общего списка мобов на групп- и соло- списки.
-void split_mob_name_list()
-{
-	int total_group_mobs = 0, total_solo_mobs = 0;
-
-	for (std::list<ZoneNode>::iterator it = mob_name_list.begin(),
-		iend = mob_name_list.end(); it != iend; ++it)
-	{
-		for (std::list<MobNode>::iterator k = it->mobs.begin(),
-			kend = it->mobs.end(); k != kend; ++k)
-		{
-			if (k->type == GROUP_MOB)
-			{
-				add_to_zone_list(group_mob_list, *k);
-				++total_group_mobs;
-			}
-			else if (k->type == SOLO_MOB)
-			{
-				add_to_zone_list(solo_mob_list, *k);
-				++total_solo_mobs;
-			}
-		}
-	}
-	mob_name_list.clear();
-
-	filter_extra_mobs(total_group_mobs, GROUP_MOB);
-	filter_extra_mobs(total_solo_mobs, SOLO_MOB);
 }
 
 int calc_drop_chance(std::list<MobNode>::iterator &mob, int obj_rnum)
@@ -818,99 +323,6 @@ int calc_drop_chance(std::list<MobNode>::iterator &mob, int obj_rnum)
 	}
 
 	return chance;
-}
-
-// * Генерация финальной таблицы дропа с мобов.
-void init_drop_table(int type)
-{
-	std::list<ZoneNode> &mob_list = (type == GROUP_MOB) ? group_mob_list : solo_mob_list;
-	std::list<int> &obj_list = (type == GROUP_MOB) ? group_obj_list : solo_obj_list;
-
-	while(!obj_list.empty() && !mob_list.empty())
-	{
-		std::list<int>::iterator it = obj_list.begin();
-		std::advance(it, number(0, static_cast<int>(obj_list.size()) - 1));
-		const int obj_rnum = real_object(*it);
-
-		std::list<ZoneNode>::iterator k = mob_list.begin();
-		std::advance(k, number(0, static_cast<int>(mob_list.size()) - 1));
-
-		// по идее чистить надо сразу после удаления последнего
-		// элемента, но тут может получиться ситуация, что на входе
-		// изначально был пустой список после всяких фильтраций
-		if (k->mobs.empty())
-		{
-			mob_list.erase(k);
-			continue;
-		}
-
-		std::list<MobNode>::iterator l = k->mobs.begin();
-		std::advance(l, number(0, static_cast<int>(k->mobs.size()) - 1));
-
-		DropNode tmp_node;
-		tmp_node.obj_rnum = obj_rnum;
-		tmp_node.obj_vnum = *it;
-		tmp_node.chance = calc_drop_chance(l, obj_rnum);
-		tmp_node.solo = (type == GROUP_MOB) ? false : true;
-
-		drop_list.insert(std::make_pair(l->rnum, tmp_node));
-
-		obj_list.erase(it);
-		k->mobs.erase(l);
-	}
-
-	obj_list.clear();
-	mob_list.clear();
-}
-
-void init_linked_mobs(const std::set<int> &node)
-{
-	// инит рнумов залинкованных мобов
-	Linked tmp_linked_mobs;
-	for (std::set<int>::const_iterator l = node.begin(),
-		lend = node.end(); l != lend; ++l)
-	{
-		for (std::map<int, DropNode>::iterator k = drop_list.begin(),
-				kend = drop_list.end(); k != kend; ++k)
-		{
-			if (k->second.obj_vnum == *l)
-			{
-				tmp_linked_mobs.add(k->first);
-			}
-		}
-	}
-	// суем сформированный список каждому мобу из этого же списка,
-	// но уже в рабочий DropNode
-	for (std::set<int>::const_iterator l = node.begin(),
-		lend = node.end(); l != lend; ++l)
-	{
-		for (std::map<int, DropNode>::iterator k = drop_list.begin(),
-				kend = drop_list.end(); k != kend; ++k)
-		{
-			if (k->second.obj_vnum == *l)
-			{
-				k->second.linked_mobs = tmp_linked_mobs;
-			}
-		}
-	}
-}
-
-void init_link_system()
-{
-	// инит DropNode::linked_mobs
-	for (std::vector<HelpNode>::const_iterator i = help_list.begin(),
-		iend = help_list.end(); i != iend; ++i)
-	{
-		init_linked_mobs(i->solo_list_1);
-		init_linked_mobs(i->solo_list_2);
-	}
-	// инит DropNode::is_big_set
-	for (std::map<int, DropNode>::iterator k = drop_list.begin(),
-		kend = drop_list.end(); k != kend; ++k)
-	{
-		const auto& obj = obj_proto[k->second.obj_rnum];
-		k->second.is_big_set = SetSystem::is_big_set(obj.get());
-	}
 }
 
 std::string print_solo_list(const std::set<int> &node)
@@ -1185,35 +597,6 @@ void save_unique_mobs()
 	doc.save_file(UNIQUE_MOBS);
 }
 
-void save_drop_table()
-{
-	if (!need_save_drop_table) return;
-
-	pugi::xml_document doc;
-	doc.append_child().set_name("drop_list");
-	pugi::xml_node node_list = doc.child("drop_list");
-
-	pugi::xml_node time_node = node_list.append_child();
-	time_node.set_name("time");
-	time_node.append_attribute("reset") = boost::lexical_cast<std::string>(next_reset_time).c_str();
-
-	for (std::map<int, DropNode>::iterator i = drop_list.begin(),
-		iend = drop_list.end(); i != iend; ++i)
-	{
-		pugi::xml_node mob_node = node_list.append_child();
-		mob_node.set_name("item");
-		mob_node.append_attribute("vnum") = obj_proto[i->second.obj_rnum]->get_vnum();
-		mob_node.append_attribute("mob") = mob_index[i->first].vnum;
-		mob_node.append_attribute("chance") = i->second.chance;
-		mob_node.append_attribute("solo") = i->second.solo ? "true" : "false";
-		mob_node.append_attribute("can_drop") = i->second.can_drop ? "true" : "false";
-	}
-
-	doc.save_file(DROP_TABLE_FILE);
-
-	need_save_drop_table = false;
-}
-
 void reload_by_timer()
 {
 	if (next_reset_time <= time(0))
@@ -1222,33 +605,743 @@ void reload_by_timer()
 	}
 }
 
-void message_for_players()
+namespace
 {
-	for (DESCRIPTOR_DATA *i = descriptor_list; i; i = i->next)
+	class SetsDropReload
 	{
-		if (STATE(i) == CON_PLAYING && i->character)
+	public:
+		void reload(const int zone_vnum);
+
+		void print_stats(const CHAR_DATA* character) const;
+
+		static void save_drop_table();
+
+		// * Инициализация списка сетов на лоад.
+		static void init_obj_list();
+
+		static void init_drop_system();
+		static void init_link_system();
+
+	private:
+		struct SetsDropReloadLabel
 		{
-			send_to_char(i->character.get(), "%s%s%s\r\n",
-				CCICYN(i->character, C_NRM), RESET_MESSAGE,
-				CCNRM(i->character, C_NRM));
+			SetsDropReloadLabel() : timestamp(0) {}
+
+			time_t timestamp;
+			std::unordered_map<std::size_t, double> steps;
+		};
+		using SetsDropStats = LabelledMeasurements<SetsDropReloadLabel>;
+
+		static void clear(const int zone_vnum);
+
+		/**
+		* Генерация предварительного общего списка мобов для последующего
+		* отсева неуникальных по именам внутри одной зоны.
+		* Инится у моба: внум, рун, имя
+		* Отсекаются: мобы без прототипа
+		*             левые зоны: клан-замки, города с рентой, почтой и банком
+		*/
+		static void init_mob_name_list();
+
+		static void add_to_zone_list(std::list<ZoneNode> &cont, MobNode &node);
+
+		// * Инится у зоны: тип
+		static void init_zone_type();
+
+		// * Инится у моба: тип
+		static void init_mob_type();
+
+		/**
+		* С этого момента начинают отсекаться отдельные мобы
+		* Отсекаются: мобы с неуникальным именем внутри одной зоны,
+		*             мобы больше 1 макс.в.мире
+		*             мобы ниже требуемого уровня для данного типа
+		*             мобы с флагами только полнолуние/времена года
+		* Инится у моба: макс.в.мире
+		*/
+		static void filter_dupe_names();
+
+		// * Разделение общего списка мобов на групп- и соло- списки.
+		static void split_mob_name_list();
+
+		/**
+		* Отсекаются: лишние мобы в зонах с самым длинным списком мобов
+		* для более равномерного распределения по разным зонам
+		*/
+		static void filter_extra_mobs(int total, int type);
+
+		// * Генерация финальной таблицы дропа с мобов.
+		static void init_drop_table(int type);
+
+		static void init_linked_mobs(const std::set<int> &node);
+		static void message_for_players();
+
+		SetsDropStats m_stats;
+	};
+
+	void SetsDropReload::reload(const int zone_vnum)
+	{
+		clear(zone_vnum);
+
+		init_obj_list();
+		init_drop_system();
+		init_link_system();
+
+		HelpSystem::reload(HelpSystem::DYNAMIC);
+
+		message_for_players();
+	}
+
+	void SetsDropReload::print_stats(const CHAR_DATA* character) const
+	{
+		send_to_char(character, "Under construction");
+	}
+
+	void SetsDropReload::save_drop_table()
+	{
+		if (!need_save_drop_table) return;
+
+		pugi::xml_document doc;
+		doc.append_child().set_name("drop_list");
+		pugi::xml_node node_list = doc.child("drop_list");
+
+		pugi::xml_node time_node = node_list.append_child();
+		time_node.set_name("time");
+		time_node.append_attribute("reset") = boost::lexical_cast<std::string>(next_reset_time).c_str();
+
+		for (std::map<int, DropNode>::iterator i = drop_list.begin(),
+			iend = drop_list.end(); i != iend; ++i)
+		{
+			pugi::xml_node mob_node = node_list.append_child();
+			mob_node.set_name("item");
+			mob_node.append_attribute("vnum") = obj_proto[i->second.obj_rnum]->get_vnum();
+			mob_node.append_attribute("mob") = mob_index[i->first].vnum;
+			mob_node.append_attribute("chance") = i->second.chance;
+			mob_node.append_attribute("solo") = i->second.solo ? "true" : "false";
+			mob_node.append_attribute("can_drop") = i->second.can_drop ? "true" : "false";
+		}
+
+		doc.save_file(DROP_TABLE_FILE);
+
+		need_save_drop_table = false;
+	}
+
+	void SetsDropReload::init_obj_list()
+	{
+		pugi::xml_document doc;
+		pugi::xml_parse_result result = doc.load_file(CONFIG_FILE);
+		if (!result)
+		{
+			snprintf(buf, MAX_STRING_LENGTH, "...%s", result.description());
+			mudlog(buf, CMP, LVL_IMMORT, SYSLOG, TRUE);
+			return;
+		}
+		pugi::xml_node node_list = doc.child("set_list");
+		if (!node_list)
+		{
+			mudlog("...<set_list> read fail", CMP, LVL_IMMORT, SYSLOG, TRUE);
+			return;
+		}
+		for (pugi::xml_node set_node = node_list.child("set");
+			set_node; set_node = set_node.next_sibling("set"))
+		{
+			HelpNode node;
+
+			node.alias_list = Parse::attr_str(set_node, "help_alias");
+			if (node.alias_list.empty())
+			{
+				mudlog("...bad set attributes (empty help_alias)",
+					CMP, LVL_IMMORT, SYSLOG, TRUE);
+				continue;
+			}
+
+			std::string type = Parse::attr_str(set_node, "type");
+			if (type.empty() || (type != "auto" && type != "manual"))
+			{
+				snprintf(buf, sizeof(buf),
+					"...bad set attributes (type=%s)", type.c_str());
+				mudlog(buf, CMP, LVL_IMMORT, SYSLOG, TRUE);
+				continue;
+			}
+
+			std::set<int> tmp_solo_list;
+
+			if (type == "manual")
+			{
+				for (pugi::xml_node obj_node = set_node.child("obj");
+					obj_node; obj_node = obj_node.next_sibling("obj"))
+				{
+					const int obj_vnum = Parse::attr_int(obj_node, "vnum");
+					const int obj_rnum = real_object(obj_vnum);
+					if (obj_rnum < 0)
+					{
+						snprintf(buf, sizeof(buf),
+							"...bad obj_node attributes (vnum=%d)", obj_vnum);
+						mudlog(buf, CMP, LVL_IMMORT, SYSLOG, TRUE);
+						continue;
+					}
+
+					std::string list_type = Parse::attr_str(obj_node, "list");
+					if (list_type.empty()
+						|| (list_type != "solo" && list_type != "group"))
+					{
+						snprintf(buf, sizeof(buf),
+							"...bad manual obj attributes (list=%s, obj_vnum=%d)",
+							list_type.c_str(), obj_vnum);
+						mudlog(buf, CMP, LVL_IMMORT, SYSLOG, TRUE);
+						continue;
+					}
+
+					if (list_type == "solo")
+					{
+						solo_obj_list.push_back(obj_vnum);
+						// предварительный соло список, который
+						// дальше может быть поделен еще на два
+						tmp_solo_list.insert(obj_vnum);
+					}
+					else
+					{
+						group_obj_list.push_back(obj_vnum);
+						// груп список инится сразу
+						node.group_list.insert(obj_vnum);
+					}
+					// имя сета
+					if (node.title.empty())
+					{
+						if (obj_proto.set_idx(obj_rnum) != static_cast<size_t>(-1))
+						{
+							node.title = obj_sets::get_name(obj_proto.set_idx(obj_rnum));
+						}
+						else
+						{
+							for (const auto& it : OBJ_DATA::set_table)
+							{
+								const auto k = it.second.find(obj_vnum);
+								if (k != it.second.end())
+								{
+									node.title = it.second.get_name();
+								}
+							}
+						}
+					}
+					//create_clone_miniset(obj_vnum);				
+				}
+			}
+			else
+			{
+				// список сета сортированный по макс.активаторам
+				std::multimap<int, int> set_sort_list;
+
+				for (pugi::xml_node obj_node = set_node.child("obj"); obj_node; obj_node = obj_node.next_sibling("obj"))
+				{
+					const int obj_vnum = Parse::attr_int(obj_node, "vnum");
+					if (real_object(obj_vnum) < 0)
+					{
+						snprintf(buf, sizeof(buf),
+							"...bad obj_node attributes (vnum=%d)", obj_vnum);
+						mudlog(buf, CMP, LVL_IMMORT, SYSLOG, TRUE);
+						continue;
+					}
+					// заполнение списка активаторов
+					for (id_to_set_info_map::const_iterator it = OBJ_DATA::set_table.begin(),
+						iend = OBJ_DATA::set_table.end(); it != iend; ++it)
+					{
+						set_info::const_iterator k = it->second.find(obj_vnum);
+						if (k != it->second.end() && !k->second.empty())
+						{
+							// берется последний (максимальный) в списке активатор
+							set_sort_list.insert(
+								std::make_pair(k->second.rbegin()->first, obj_vnum));
+							// имя сета
+							if (node.title.empty())
+							{
+								node.title = it->second.get_name();
+							}
+						}
+					}
+				}
+				// первая половина активаторов в соло-лист, вторая в групп
+				size_t num = 0;
+				size_t total_num = set_sort_list.size();
+				for (std::multimap<int, int>::const_iterator i = set_sort_list.begin(),
+					iend = set_sort_list.end(); i != iend; ++i, ++num)
+				{
+					if (num < total_num / 2)
+					{
+						solo_obj_list.push_back(i->second);
+						tmp_solo_list.insert(i->second);
+					}
+					else
+					{
+						group_obj_list.push_back(i->second);
+						node.group_list.insert(i->second);
+					}
+				}
+			}
+			// деление соло списка на два, если требуется
+			if (tmp_solo_list.size() > 4)
+			{
+				size_t num = 0;
+				size_t total_num = tmp_solo_list.size();
+				for (std::set<int>::const_iterator i = tmp_solo_list.begin(),
+					iend = tmp_solo_list.end(); i != iend; ++i, ++num)
+				{
+					if (num < total_num / 2)
+					{
+						node.solo_list_1.insert(*i);
+					}
+					else
+					{
+						node.solo_list_2.insert(*i);
+					}
+				}
+			}
+			else
+			{
+				node.solo_list_1 = tmp_solo_list;
+			}
+
+			// список алиасов и сетин для справки
+			help_list.push_back(node);
 		}
 	}
-}
 
-void init_drop_system()
-{
-	init_mob_name_list();
-	init_zone_type();
-	init_mob_type();
-	filter_dupe_names();
-	split_mob_name_list();
+	void SetsDropReload::init_drop_system()
+	{
+		init_mob_name_list();
+		init_zone_type();
+		init_mob_type();
+		filter_dupe_names();
+		split_mob_name_list();
 
-	init_drop_table(SOLO_MOB);
-	init_drop_table(GROUP_MOB);
+		init_drop_table(SOLO_MOB);
+		init_drop_table(GROUP_MOB);
 
-	next_reset_time = time(0) + 60 * 60 * RESET_TIMER;
-	need_save_drop_table = true;
-	save_drop_table();
+		next_reset_time = time(0) + 60 * 60 * RESET_TIMER;
+		need_save_drop_table = true;
+		save_drop_table();
+	}
+
+	void SetsDropReload::init_link_system()
+	{
+		// инит DropNode::linked_mobs
+		for (std::vector<HelpNode>::const_iterator i = help_list.begin(),
+			iend = help_list.end(); i != iend; ++i)
+		{
+			init_linked_mobs(i->solo_list_1);
+			init_linked_mobs(i->solo_list_2);
+		}
+		// инит DropNode::is_big_set
+		for (std::map<int, DropNode>::iterator k = drop_list.begin(),
+			kend = drop_list.end(); k != kend; ++k)
+		{
+			const auto& obj = obj_proto[k->second.obj_rnum];
+			k->second.is_big_set = SetSystem::is_big_set(obj.get());
+		}
+	}
+
+	void SetsDropReload::clear(const int zone_vnum)
+	{
+		group_obj_list.clear();
+		solo_obj_list.clear();
+		mob_name_list.clear();
+		group_mob_list.clear();
+		solo_mob_list.clear();
+		drop_list.clear();
+		help_list.clear();
+
+		if (zone_vnum > 0)
+		{
+			mob_stat::clear_zone(zone_vnum);
+		}
+	}
+
+	void SetsDropReload::init_mob_name_list()
+	{
+		std::set<int> bad_zones;
+
+		// клан-замки
+		for (const auto& clan : Clan::ClanList)
+		{
+			bad_zones.insert(clan->GetRent() / 100);
+		}
+
+		// города
+		int curr_zone = 0;
+		bool rent = false, mail = false, banker = false;
+		for (const auto i : world)
+		{
+			if (curr_zone != zone_table[i->zone].number)
+			{
+				if (rent && mail && banker)
+				{
+					bad_zones.insert(curr_zone);
+				}
+				rent = false;
+				mail = false;
+				banker = false;
+				curr_zone = zone_table[i->zone].number;
+			}
+
+			for (const auto ch : i->people)
+			{
+				if (IS_RENTKEEPER(ch))
+				{
+					rent = true;
+				}
+				else if (IS_POSTKEEPER(ch))
+				{
+					mail = true;
+				}
+				else if (IS_BANKKEEPER(ch))
+				{
+					banker = true;
+				}
+			}
+		}
+
+		// тестовые зоны
+		for (int nr = 0; nr <= top_of_zone_table; nr++)
+		{
+			if (zone_table[nr].under_construction)
+			{
+				bad_zones.insert(zone_table[nr].number);
+			}
+		}
+
+		for (auto i = mob_stat::mob_list.cbegin(),
+			iend = mob_stat::mob_list.cend(); i != iend; ++i)
+		{
+			const int rnum = real_mobile(i->first);
+			const int zone = i->first / 100;
+			std::set<int>::const_iterator k = bad_zones.find(zone);
+
+			if (rnum < 0
+				|| zone < 100
+				|| k != bad_zones.end())
+			{
+				continue;
+			}
+
+			MobNode node;
+			node.vnum = i->first;
+			node.rnum = rnum;
+			node.name = mob_proto[rnum].get_name();
+			auto stat = mob_stat::sum_stat(i->second, 4);
+			node.kill_stat = stat.kills;
+
+			add_to_zone_list(mob_name_list, node);
+		}
+	}
+
+	void SetsDropReload::add_to_zone_list(std::list<ZoneNode> &cont, MobNode &node)
+	{
+		int zone = node.vnum / 100;
+		std::list<ZoneNode>::iterator k = std::find_if(cont.begin(), cont.end(),
+			[&](const ZoneNode& zn)
+		{
+			return zn.zone == zone;
+		});
+
+		if (k != cont.end())
+		{
+			k->mobs.push_back(node);
+		}
+		else
+		{
+			ZoneNode tmp_node;
+			tmp_node.zone = zone;
+			tmp_node.mobs.push_back(node);
+			cont.push_back(tmp_node);
+		}
+	}
+
+	void SetsDropReload::init_zone_type()
+	{
+		for (std::list<ZoneNode>::iterator i = mob_name_list.begin(),
+			iend = mob_name_list.end(); i != iend; ++i)
+		{
+			int killed_solo = 0;
+			for (std::list<MobNode>::iterator k = i->mobs.begin(),
+				kend = i->mobs.end(); k != kend; ++k)
+			{
+				int group_cnt = 0;
+				for (int cnt = 2; cnt <= MAX_GROUP_SIZE; ++cnt)
+				{
+					group_cnt += k->kill_stat.at(cnt);
+				}
+				if (k->kill_stat.at(1) > group_cnt)
+				{
+					++killed_solo;
+				}
+			}
+			if (killed_solo >= i->mobs.size() * 0.8)
+			{
+				i->type = SOLO_ZONE;
+			}
+			else
+			{
+				i->type = GROUP_ZONE;
+			}
+		}
+	}
+
+	void SetsDropReload::init_mob_type()
+	{
+		for (std::list<ZoneNode>::iterator i = mob_name_list.begin(),
+			iend = mob_name_list.end(); i != iend; ++i)
+		{
+			for (std::list<MobNode>::iterator k = i->mobs.begin(),
+				kend = i->mobs.end(); k != kend; ++k)
+			{
+				int group_cnt = 0;
+				for (int cnt = 2; cnt <= MAX_GROUP_SIZE; ++cnt)
+				{
+					group_cnt += k->kill_stat.at(cnt);
+				}
+
+				if (i->type == SOLO_ZONE && k->kill_stat.at(1) > group_cnt)
+				{
+					k->type = SOLO_MOB;
+				}
+				else if (i->type == GROUP_ZONE && k->kill_stat.at(1) < group_cnt)
+				{
+					k->type = GROUP_MOB;
+				}
+			}
+		}
+	}
+
+	void SetsDropReload::filter_dupe_names()
+	{
+		int vnum = 0;
+		int level = 0;
+		for (std::list<ZoneNode>::iterator it = mob_name_list.begin(),
+			iend = mob_name_list.end(); it != iend; ++it)
+		{
+			std::list<MobNode> tmp_list;
+			// отсеиваем (включая оригинал) одинаковые имена с разными внумами
+			for (std::list<MobNode>::iterator k = it->mobs.begin(),
+				kend = it->mobs.end(); k != kend; ++k)
+			{
+				// одинаковые имена в пределах зоны
+				bool good = true;
+				for (std::list<MobNode>::iterator l = it->mobs.begin(),
+					lend = it->mobs.end(); l != lend; ++l)
+				{
+					if (k->vnum != l->vnum && k->name == l->name)
+					{
+						good = false;
+						break;
+					}
+				}
+
+				if (!good || k->type == -1)
+				{
+					continue;
+				}
+
+				if (k->type == GROUP_MOB
+					&& mob_proto[k->rnum].get_level() < MIN_GROUP_MOB_LVL)
+				{
+					continue;
+				}
+
+				// редко появляющиеся мобы, мобы без экспы
+				const CHAR_DATA *mob = &mob_proto[k->rnum];
+				if (MOB_FLAGGED(mob, MOB_LIKE_FULLMOON)
+					|| MOB_FLAGGED(mob, MOB_LIKE_WINTER)
+					|| MOB_FLAGGED(mob, MOB_LIKE_SPRING)
+					|| MOB_FLAGGED(mob, MOB_LIKE_SUMMER)
+					|| MOB_FLAGGED(mob, MOB_LIKE_AUTUMN)
+					|| NPC_FLAGGED(mob, NPC_NOSETSDROP)
+					|| mob->get_exp() <= 0)
+				{
+					continue;
+				}
+
+				// пока только уникальные мобы
+				k->miw = calc_max_in_world(k->rnum);
+				if (k->miw != 1)
+				{
+					continue;
+				}
+
+				vnum = mob_index[k->rnum].vnum;
+				level = mob_proto[k->rnum].get_level();
+				unique_mobs.insert(std::make_pair(vnum, level));
+
+				// проверка на левел моба
+				if (k->type == SOLO_MOB
+					&& (mob_proto[k->rnum].get_level() < MIN_SOLO_MOB_LVL
+						|| mob_proto[k->rnum].get_level() > MAX_SOLO_MOB_LVL))
+				{
+					continue;
+				}
+
+				tmp_list.push_back(*k);
+			}
+			it->mobs = tmp_list;
+		}
+	}
+
+	void SetsDropReload::split_mob_name_list()
+	{
+		int total_group_mobs = 0, total_solo_mobs = 0;
+
+		for (std::list<ZoneNode>::iterator it = mob_name_list.begin(),
+			iend = mob_name_list.end(); it != iend; ++it)
+		{
+			for (std::list<MobNode>::iterator k = it->mobs.begin(),
+				kend = it->mobs.end(); k != kend; ++k)
+			{
+				if (k->type == GROUP_MOB)
+				{
+					add_to_zone_list(group_mob_list, *k);
+					++total_group_mobs;
+				}
+				else if (k->type == SOLO_MOB)
+				{
+					add_to_zone_list(solo_mob_list, *k);
+					++total_solo_mobs;
+				}
+			}
+		}
+		mob_name_list.clear();
+
+		filter_extra_mobs(total_group_mobs, GROUP_MOB);
+		filter_extra_mobs(total_solo_mobs, SOLO_MOB);
+	}
+
+	void SetsDropReload::filter_extra_mobs(int total, int type)
+	{
+		std::list<ZoneNode> &cont = (type == GROUP_MOB) ? group_mob_list : solo_mob_list;
+		const size_t obj_total = (type == GROUP_MOB) ? group_obj_list.size() : solo_obj_list.size();
+		// обрезание лишних мобов в самых заполненных зонах
+		int num_del = total - static_cast<int>(obj_total);
+		while (num_del > 0)
+		{
+			size_t max_num = 0;
+			for (std::list<ZoneNode>::iterator it = cont.begin(),
+				iend = cont.end(); it != iend; ++it)
+			{
+				if (it->mobs.size() > max_num)
+				{
+					max_num = it->mobs.size();
+				}
+			}
+			for (std::list<ZoneNode>::iterator it = cont.begin(),
+				iend = cont.end(); it != iend; ++it)
+			{
+				if (it->mobs.size() >= max_num)
+				{
+					std::list<MobNode>::iterator l = it->mobs.begin();
+					std::advance(l, number(0, static_cast<int>(it->mobs.size()) - 1));
+					it->mobs.erase(l);
+					if (it->mobs.empty())
+					{
+						cont.erase(it);
+					}
+					--num_del;
+					break;
+				}
+			}
+		}
+	}
+
+	void SetsDropReload::init_drop_table(int type)
+	{
+		std::list<ZoneNode> &mob_list = (type == GROUP_MOB) ? group_mob_list : solo_mob_list;
+		std::list<int> &obj_list = (type == GROUP_MOB) ? group_obj_list : solo_obj_list;
+
+		while (!obj_list.empty() && !mob_list.empty())
+		{
+			std::list<int>::iterator it = obj_list.begin();
+			std::advance(it, number(0, static_cast<int>(obj_list.size()) - 1));
+			const int obj_rnum = real_object(*it);
+
+			std::list<ZoneNode>::iterator k = mob_list.begin();
+			std::advance(k, number(0, static_cast<int>(mob_list.size()) - 1));
+
+			// по идее чистить надо сразу после удаления последнего
+			// элемента, но тут может получиться ситуация, что на входе
+			// изначально был пустой список после всяких фильтраций
+			if (k->mobs.empty())
+			{
+				mob_list.erase(k);
+				continue;
+			}
+
+			std::list<MobNode>::iterator l = k->mobs.begin();
+			std::advance(l, number(0, static_cast<int>(k->mobs.size()) - 1));
+
+			DropNode tmp_node;
+			tmp_node.obj_rnum = obj_rnum;
+			tmp_node.obj_vnum = *it;
+			tmp_node.chance = calc_drop_chance(l, obj_rnum);
+			tmp_node.solo = (type == GROUP_MOB) ? false : true;
+
+			drop_list.insert(std::make_pair(l->rnum, tmp_node));
+
+			obj_list.erase(it);
+			k->mobs.erase(l);
+		}
+
+		obj_list.clear();
+		mob_list.clear();
+	}
+
+	void SetsDropReload::init_linked_mobs(const std::set<int> &node)
+	{
+		// инит рнумов залинкованных мобов
+		Linked tmp_linked_mobs;
+		for (std::set<int>::const_iterator l = node.begin(),
+			lend = node.end(); l != lend; ++l)
+		{
+			for (std::map<int, DropNode>::iterator k = drop_list.begin(),
+				kend = drop_list.end(); k != kend; ++k)
+			{
+				if (k->second.obj_vnum == *l)
+				{
+					tmp_linked_mobs.add(k->first);
+				}
+			}
+		}
+		// суем сформированный список каждому мобу из этого же списка,
+		// но уже в рабочий DropNode
+		for (std::set<int>::const_iterator l = node.begin(),
+			lend = node.end(); l != lend; ++l)
+		{
+			for (std::map<int, DropNode>::iterator k = drop_list.begin(),
+				kend = drop_list.end(); k != kend; ++k)
+			{
+				if (k->second.obj_vnum == *l)
+				{
+					k->second.linked_mobs = tmp_linked_mobs;
+				}
+			}
+		}
+	}
+
+	void SetsDropReload::message_for_players()
+	{
+		for (DESCRIPTOR_DATA *i = descriptor_list; i; i = i->next)
+		{
+			if (STATE(i) == CON_PLAYING && i->character)
+			{
+				send_to_char(i->character.get(), "%s%s%s\r\n",
+					CCICYN(i->character, C_NRM), RESET_MESSAGE,
+					CCNRM(i->character, C_NRM));
+			}
+		}
+	}
+
+	SetsDropReload& reloader()
+	{
+		static SetsDropReload reloader_object;
+
+		return reloader_object;
+	}
 }
 
 /**
@@ -1258,26 +1351,7 @@ void init_drop_system()
  */
 void reload(int zone_vnum)
 {
-	group_obj_list.clear();
-	solo_obj_list.clear();
-	mob_name_list.clear();
-	group_mob_list.clear();
-	solo_mob_list.clear();
-	drop_list.clear();
-	help_list.clear();
-
-	if (zone_vnum > 0)
-	{
-		mob_stat::clear_zone(zone_vnum);
-	}
-
-	init_obj_list();
-	init_drop_system();
-	init_link_system();
-
-	HelpSystem::reload(HelpSystem::DYNAMIC);
-
-	message_for_players();
+	reloader().reload(zone_vnum);
 }
 
 /**
@@ -1290,15 +1364,15 @@ void reload(int zone_vnum)
  */
 void init()
 {
-	init_obj_list();
+	SetsDropReload::init_obj_list();
 
 	if (!load_drop_table() || !load_unique_mobs())
 	{
-		init_drop_system();
+		SetsDropReload::init_drop_system();
 		save_unique_mobs();
 	}
 
-	init_link_system();
+	SetsDropReload::init_link_system();
 }
 
 
@@ -1429,6 +1503,15 @@ void print_timer_str(CHAR_DATA *ch)
 	send_to_char(out.str().c_str(), ch);
 }
 
+void save_drop_table()
+{
+	SetsDropReload::save_drop_table();
+}
+
+void print_stats(CHAR_DATA *character, char *, int, int)
+{
+	reloader().print_stats(character);
+}
 } // namespace SetsDrop
 
 // vim: ts=4 sw=4 tw=0 noet syntax=cpp :

@@ -7,10 +7,11 @@
 #include "conf.h"
 #include "sysdep.h"
 #include "structs.h"
+
 #include <map>
+
 namespace SetsDrop
 {
-
 // период сохранения списков мобов и таблицы дропа (минуты)
 const int SAVE_PERIOD = 27;
 // лоад списков при старте мада
@@ -29,11 +30,14 @@ void init_xhelp();
 void init_xhelp_full();
 // печать таймера резета таблицы дропа перед страницей справки
 void print_timer_str(CHAR_DATA *ch);
+
 // сейв текущей таблицы дропа и шансов
 void save_drop_table();
+
 void create_clone_miniset(int vnum);
 std::map<int, int> get_unique_mob();
 
+void print_stats(CHAR_DATA *character, char *, int, int);
 } // namespace SetsDrop
 
 #endif // SETS_DROP_HPP_INCLUDED

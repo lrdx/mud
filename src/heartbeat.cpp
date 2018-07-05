@@ -563,56 +563,9 @@ Heartbeat::PulseStep::PulseStep(const std::string& name, const int modulo, const
 {
 }
 
-void Heartbeat::PulseStep::add_measurement(const std::size_t index, const pulse_t pulse, const BasePulseMeasurements::value_t value)
+void Heartbeat::PulseStep::add_measurement(const std::size_t index, const pulse_t pulse, const BasicMeasurements::value_t value)
 {
 	m_measurements.add(index, pulse, value);
 }
-
-BasePulseMeasurements::BasePulseMeasurements():
-	m_sum(0.0),
-	m_global_sum(0.0),
-	m_global_count(0)
-{
-}
-
-void BasePulseMeasurements::add(const measurement_t& measurement)
-{
-	add_measurement(measurement);
-	squeeze();
-}
-
-void BasePulseMeasurements::add_measurement(const measurement_t& measurement)
-{
-	m_measurements.push_front(measurement);
-	m_sum += measurement.second;
-	m_global_sum += measurement.second;
-	++m_global_count;
-
-	m_min.insert(measurement);
-	m_max.insert(measurement);
-}
-
-void BasePulseMeasurements::squeeze()
-{
-	while (m_measurements.size() > window_size())
-	{
-		const auto& last_value = m_measurements.back();
-
-		remove_handler(last_value.first);
-
-		const auto min_i = m_min.find(last_value);
-		m_min.erase(min_i);
-
-		const auto max_i = m_max.find(last_value);
-		m_max.erase(max_i);
-
-		m_sum -= last_value.second;
-
-		m_measurements.pop_back();
-	}
-}
-
-constexpr std::size_t BasePulseMeasurements::WINDOW_SIZE;
-constexpr BasePulseMeasurements::measurement_t BasePulseMeasurements::NO_VALUE;
 
 // vim: ts=4 sw=4 tw=0 noet syntax=cpp :

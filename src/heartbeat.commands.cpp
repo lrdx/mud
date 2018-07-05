@@ -66,13 +66,13 @@ namespace heartbeat
 							<< std::endl;
 					}
 
-					if (stats.global_max().second != BasePulseMeasurements::NO_VALUE)
+					if (stats.global_max().second != BasicMeasurements::NO_VALUE)
 					{
 						os << "\tLongest execution time was on pulse &Y" << stats.global_max().second.first << "&n: "
 							<< "&Y" << stats.global_max().second.second << "&n seconds." << std::endl;
 					}
 
-					if (stats.global_min().second != BasePulseMeasurements::NO_VALUE)
+					if (stats.global_min().second != BasicMeasurements::NO_VALUE)
 					{
 						os << "\tFastest execution time was on pulse &Y" << stats.global_min().second.first << "&n: "
 							<< "&Y" << stats.global_min().second.second << "&n seconds." << std::endl;
@@ -199,7 +199,7 @@ namespace heartbeat
 				{
 					const auto& longest_pulse = stats.global_max();
 					ss << "\tLongest pulse: ";
-					if (longest_pulse.second != BasePulseMeasurements::NO_VALUE)
+					if (longest_pulse.second != BasicMeasurements::NO_VALUE)
 					{
 						ss << "&Y" << longest_pulse.second.first
 							<< "&n; duration: &Y" << longest_pulse.second.second
@@ -216,7 +216,7 @@ namespace heartbeat
 				{
 					const auto& shortest_pulse = stats.global_min();
 					ss << "\tShortest pulse: ";
-					if (shortest_pulse.second != BasePulseMeasurements::NO_VALUE)
+					if (shortest_pulse.second != BasicMeasurements::NO_VALUE)
 					{
 						ss << "&Y" << shortest_pulse.second.first
 							<< "&n; duration: &Y" << shortest_pulse.second.second
