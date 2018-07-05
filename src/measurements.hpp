@@ -2,6 +2,7 @@
 #define __MEASUREMENTS_HPP__
 
 #include <set>
+#include <list>
 #include <unordered_map>
 
 class BasicMeasurements
