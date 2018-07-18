@@ -1996,10 +1996,9 @@ void do_mdamage(CHAR_DATA *ch, char *argument, int/* cmd*/, int/* subcmd*/)
 			return;
 		}
 
-		if (GET_LEVEL(victim) >= LVL_IMMORT && dam > 0)
+		if (IS_IMMORTAL(victim) && dam > 0)
 		{
-			send_to_char
-			("Будучи очень крутым, вы сделали шаг в сторону и не получили повреждений...\r\n", victim);
+			send_to_char("Будучи очень крутым, вы сделали шаг в сторону и не получили повреждений...\r\n", victim);
 			return;
 		}
 		GET_HIT(victim) -= dam;
