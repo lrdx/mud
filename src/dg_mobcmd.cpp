@@ -48,7 +48,6 @@
 #include "features.hpp"
 #include "char.hpp"
 #include "skills.h"
-#include "name_list.hpp"
 #include "room.hpp"
 #include "fight.h"
 #include "fight_hit.hpp"

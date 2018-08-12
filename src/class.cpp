@@ -33,7 +33,6 @@
 #include "pk.h"
 #include "top.h"
 #include "features.hpp"
-#include "im.h"
 #include "char.hpp"
 #include "spam.hpp"
 #include "screen.h"
@@ -47,8 +46,6 @@
 #include "structs.h"
 #include "sysdep.h"
 #include "conf.h"
-
-#include <iostream>
 
 extern int siteok_everyone;
 extern struct spell_create_type spell_create[];
