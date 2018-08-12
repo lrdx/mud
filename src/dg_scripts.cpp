@@ -29,7 +29,6 @@
 #include "features.hpp"
 #include "char.hpp"
 #include "char_player.hpp"
-#include "name_list.hpp"
 #include "modify.h"
 #include "room.hpp"
 #include "named_stuff.hpp"
@@ -37,7 +36,6 @@
 #include "spells.h"
 #include "skills.h"
 #include "noob.hpp"
-#include "genchar.h"
 #include "logger.hpp"
 #include "utils.h"
 #include "structs.h"
@@ -45,10 +43,7 @@
 #include "conf.h"
 #include "dg_db_scripts.hpp"
 #include "bonus.h"
-
-#include "debug.utils.hpp"
 #include "backtrace.hpp"
-#include "coredump.hpp"
 
 #define PULSES_PER_MUD_HOUR     (SECS_PER_MUD_HOUR*PASSES_PER_SEC)
 
@@ -4207,7 +4202,7 @@ int process_foreach_begin(const char* cond, void *go, SCRIPT_DATA * sc, TRIG_DAT
 	return 1;
 }
 
-int process_foreach_done(const char* cond, void *go, SCRIPT_DATA * sc, TRIG_DATA * trig, int type)
+int process_foreach_done(const char* cond, TRIG_DATA * trig)
 {
 	char name[MAX_INPUT_LENGTH];
 	char value[MAX_INPUT_LENGTH];
@@ -5861,7 +5856,7 @@ int script_driver(void *go, TRIG_DATA * trig, int type, int mode)
 				}
 
 				if ((*orig_cmd == 'w' && process_if(orig_cmd + 6, go, sc, trig, type))
-					|| (*orig_cmd == 'f' && process_foreach_done(orig_cmd + 8, go, sc, trig, type)))
+					|| (*orig_cmd == 'f' && process_foreach_done(orig_cmd + 8, trig)))
 				{
 					cl = cl->original;
 					loops++;
