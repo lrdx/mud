@@ -116,6 +116,11 @@ public:
 	virtual void set_ice_currency(int  /* value */) {};
 	virtual void add_ice_currency(int /* value */) {};
 	virtual  void sub_ice_currency(int /* value */) {};
+	virtual int get_hryvn() { return 0; }
+	virtual void set_hryvn(int /* value */) {};
+	virtual void sub_hryvn(int /* value */) {};
+	virtual void dec_hryvn(int /* value */) {};
+	virtual void dquest(int /*id */) {};
 
 	virtual void add_value_cities(bool /* value */) {};
 
@@ -123,7 +128,8 @@ public:
 	std::string cities_to_str() { return ""; };
 	virtual bool check_city(const size_t) { return false; };
 	virtual void mark_city(const size_t) {};
-
+	virtual void touch_stigma(char* buf) {};
+	virtual void add_stigma(int wear, int id_stigma) {}
 	virtual int death_player_count() {
 		return 1;
 	};

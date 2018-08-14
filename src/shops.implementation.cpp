@@ -52,6 +52,10 @@ namespace ShopExt
 		{
 			return ch->get_ice_currency() >= price;
 		}
+		if (currency == "гривны")
+		{
+			return ch->get_hryvn() >= price;
+		}
 
 		return false;
 	}
@@ -449,6 +453,15 @@ namespace ShopExt
 					}
 					ch->sub_ice_currency(price);
 
+				}
+				else if (currency == "гривны")
+				{
+					// книги за гривны, как и за славу, не фейлим
+					if (OBJ_DATA::ITEM_BOOK == GET_OBJ_TYPE(obj))
+					{
+						obj->set_extra_flag(EExtraFlag::ITEM_NO_FAIL);
+					}
+					ch->sub_hryvn(price);
 				}
 				else
 				{

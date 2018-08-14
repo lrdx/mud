@@ -6,3 +6,5 @@ build.ubuntu
 bin
 .vscode
 /.vs
+/project
+

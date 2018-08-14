@@ -1764,10 +1764,11 @@ const CHAR_DATA::morphs_list_t& CHAR_DATA::get_morphs()
 {
 	return morphs_;
 };
-
+// обрезает строку и выдергивает из нее предтитул
+// тестовый комментарий
 std::string CHAR_DATA::get_title()
 {
-	std::string tmp = std::string(this->player_data.title);
+	std::string tmp = this->player_data.title;
 	size_t pos = tmp.find('/');
 	if (pos == std::string::npos)
 	{

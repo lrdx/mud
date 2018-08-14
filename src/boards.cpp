@@ -28,7 +28,7 @@
 #include <sstream>
 #include <iomanip>
 
-namespace Boards
+namespace Boards 
 {
 	// общий список досок
 	using boards_list_t = std::deque<Board::shared_ptr>;
