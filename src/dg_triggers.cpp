@@ -15,13 +15,9 @@
 
 #include "logger.hpp"
 #include "obj.hpp"
-#include "dg_db_scripts.hpp"
 #include "dg_scripts.h"
 #include "comm.h"
-#include "interpreter.h"
-#include "handler.h"
 #include "db.h"
-#include "olc.h"
 #include "char.hpp"
 #include "room.hpp"
 #include "spells.h"
@@ -34,8 +30,6 @@
 
 //extrernal functions
 extern void mob_command_interpreter(CHAR_DATA* ch, char *argument);
-
-extern const char *dirs[];
 
 #ifndef LVL_BUILDER
 #define LVL_BUILDER LVL_GOD
@@ -201,8 +195,8 @@ int is_substring(const char *sub, const char *string)
 
 	if (s)
 	{
-		size_t len = strlen(string);
-		size_t sublen = strlen(sub);
+		const size_t len = strlen(string);
+		const size_t sublen = strlen(sub);
 
 		// check front
 		if ((s == string || a_isspace(*(s - 1)) || ispunct(static_cast<unsigned char>(*(s - 1))))
@@ -882,7 +876,7 @@ void cast_mtrigger(CHAR_DATA *ch, CHAR_DATA *actor, int spellnum)
 			&& (number(1, 100) <= GET_TRIG_NARG(t)))
 		{
 			ADD_UID_CHAR_VAR(local_buf, t, actor, "actor", 0);
-			add_var_cntx(&GET_TRIG_VARS(t), "castnum", boost::lexical_cast<std::string>(spellnum).c_str(), 0);
+			add_var_cntx(&GET_TRIG_VARS(t), "castnum", std::to_string(spellnum).c_str(), 0);
 			add_var_cntx(&GET_TRIG_VARS(t), "castname", spell_info[spellnum].name, 0);
 			script_driver(ch, t, MOB_TRIGGER, TRIG_NEW);
 			return;
@@ -1203,7 +1197,7 @@ int pick_otrigger(OBJ_DATA * obj, CHAR_DATA * actor)
 int open_otrigger(OBJ_DATA * obj, CHAR_DATA * actor, int unlock)
 {
 	char buf[MAX_INPUT_LENGTH];
-	int open_mode = unlock ? OTRIG_UNLOCK : OTRIG_OPEN;
+	const int open_mode = unlock ? OTRIG_UNLOCK : OTRIG_OPEN;
 
 	if (!SCRIPT_CHECK(obj, open_mode) || GET_INVIS_LEV(actor))
 	{
@@ -1228,7 +1222,7 @@ int open_otrigger(OBJ_DATA * obj, CHAR_DATA * actor, int unlock)
 int close_otrigger(OBJ_DATA * obj, CHAR_DATA * actor, int lock)
 {
 	char buf[MAX_INPUT_LENGTH];
-	int close_mode = lock ? OTRIG_LOCK : OTRIG_CLOSE;
+	const int close_mode = lock ? OTRIG_LOCK : OTRIG_CLOSE;
 
 	if (!SCRIPT_CHECK(obj, close_mode) || GET_INVIS_LEV(actor))
 	{
@@ -1447,7 +1441,7 @@ void speech_wtrigger(CHAR_DATA * actor, char *str)
 	if (!actor || !SCRIPT_CHECK(world[IN_ROOM(actor)], WTRIG_SPEECH) || GET_INVIS_LEV(actor))
 		return;
 
-	auto room = world[IN_ROOM(actor)];
+	const auto room = world[IN_ROOM(actor)];
 	for (auto t : SCRIPT(room)->trig_list)
 	{
 		if (!TRIGGER_CHECK(t, WTRIG_SPEECH))
@@ -1485,7 +1479,7 @@ int drop_wtrigger(OBJ_DATA * obj, CHAR_DATA * actor)
 		return 1;
 	}
 
-	auto room = world[IN_ROOM(actor)];
+	const auto room = world[IN_ROOM(actor)];
 	for (auto t : SCRIPT(room)->trig_list)
 	{
 		if (TRIGGER_CHECK(t, WTRIG_DROP)
@@ -1529,7 +1523,7 @@ int pick_wtrigger(ROOM_DATA * room, CHAR_DATA * actor, int dir)
 int open_wtrigger(ROOM_DATA * room, CHAR_DATA * actor, int dir, int unlock)
 {
 	char buf[MAX_INPUT_LENGTH];
-	int open_mode = unlock ? WTRIG_UNLOCK : WTRIG_OPEN;
+	const int open_mode = unlock ? WTRIG_UNLOCK : WTRIG_OPEN;
 
 	if (!SCRIPT_CHECK(room, open_mode)
 		|| GET_INVIS_LEV(actor))
@@ -1555,7 +1549,7 @@ int open_wtrigger(ROOM_DATA * room, CHAR_DATA * actor, int dir, int unlock)
 int close_wtrigger(ROOM_DATA * room, CHAR_DATA * actor, int dir, int lock)
 {
 	char buf[MAX_INPUT_LENGTH];
-	int close_mode = lock ? WTRIG_LOCK : WTRIG_CLOSE;
+	const int close_mode = lock ? WTRIG_LOCK : WTRIG_CLOSE;
 
 	if (!SCRIPT_CHECK(room, close_mode)
 		|| GET_INVIS_LEV(actor))

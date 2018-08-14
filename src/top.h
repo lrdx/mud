@@ -7,7 +7,6 @@
 #ifndef _TOP_H_
 #define _TOP_H_
 
-#include "conf.h"
 #include <string>
 #include <list>
 #include <vector>
@@ -28,7 +27,7 @@ public:
 	static const char * TopFormat[];
 
 	static void Remove(CHAR_DATA * ch);
-	static void Refresh(CHAR_DATA * ch, bool reboot = 0);
+	static void Refresh(CHAR_DATA * ch, bool reboot = false);
 
 private:
 	long unique;      // ÕÉÄ

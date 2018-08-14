@@ -18,16 +18,12 @@
 
 #include "boards.changelog.loaders.hpp"
 #include "boards.constants.hpp"
-#include "interpreter.h"	// alias_data definition for structs.h
 #include "utils.h"
-#include "constants.h"
 #include "char.hpp"
 #include "birth_places.hpp"
 #include "structs.h"
 #include "conf.h"
 #include "sysdep.h"
-
-#include <boost/version.hpp>
 
 #if CIRCLE_UNIX
 #include <sys/stat.h>
@@ -295,7 +291,7 @@ int max_exp_gain_pc(CHAR_DATA * ch)
 	int result = 1;
 	if (!IS_NPC(ch))
 	{
-		int max_per_lev =
+		const int max_per_lev =
 			level_exp(ch, GET_LEVEL(ch) + 1) - level_exp(ch, GET_LEVEL(ch) + 0);
 		result = max_per_lev / (10 + GET_REMORT(ch));
 	}
@@ -309,7 +305,7 @@ int max_exp_loss_pc(CHAR_DATA * ch)
 
 int calc_loadroom(const CHAR_DATA* ch, int bplace_mode /*= BIRTH_PLACE_UNDEFINED*/)
 {
-    if (IS_IMMORTAL(ch))
+	if (IS_IMMORTAL(ch))
 	{
 		return (immort_start_room);
 	}
@@ -319,8 +315,8 @@ int calc_loadroom(const CHAR_DATA* ch, int bplace_mode /*= BIRTH_PLACE_UNDEFINED
 	}
 	else
 	{
-        const int loadroom = BirthPlace::GetLoadRoom(bplace_mode);
-        if (loadroom != BIRTH_PLACE_UNDEFINED)
+		const int loadroom = BirthPlace::GetLoadRoom(bplace_mode);
+		if (loadroom != BIRTH_PLACE_UNDEFINED)
 		{
 			return loadroom;
 		}
@@ -525,7 +521,7 @@ void RuntimeConfiguration::setup_logs()
 
 	for (int i = 0; i < 1 + LAST_LOG; ++i)
 	{
-		EOutputStream stream = static_cast<EOutputStream>(i);
+		const auto stream = static_cast<EOutputStream>(i);
 
 		constexpr int MAX_SRC_PATH_LENGTH = 4096;
 		char src_path[MAX_SRC_PATH_LENGTH];

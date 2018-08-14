@@ -11,7 +11,6 @@
 #include "skills.h"
 #include "structs.h"
 #include "sysdep.h"
-#include "conf.h"
 
 #include <array>
 #include <vector>

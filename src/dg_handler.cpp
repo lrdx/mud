@@ -15,9 +15,7 @@
 
 #include "dg_scripts.h"
 #include "utils.h"
-#include "comm.h"
 #include "db.h"
-#include "handler.h"
 #include "spell_parser.hpp"
 #include "spells.h"
 #include "dg_event.h"
@@ -105,14 +103,14 @@ bool feat_owner(TRIG_DATA* trig, CHAR_DATA * ch, char *feat)
 	if (featnum > 0)
 	{
 		if (HAVE_FEAT(ch, featnum))
-			return 1;
+			return true;
 	}
 	else
 	{
 		sprintf(buf2, "Wrong feat name: %s", feat);
 		trig_log(trig, buf2);
 	}
-	return 0;
+	return false;
 }
 
 const char * spell_count(TRIG_DATA* trig, CHAR_DATA * ch, char *spell)

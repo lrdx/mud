@@ -15,11 +15,9 @@
 #include "parse.hpp"
 #include "constants.h"
 #include "handler.h"
-#include "char_player.hpp"
 #include "skills.h"
 #include "screen.h"
 #include "modify.h"
-#include "spells.h"
 #include "help.hpp"
 #include "sets_drop.hpp"
 
@@ -31,7 +29,6 @@
 #include <map>
 #include <array>
 #include <algorithm>
-#include <sstream>
 #include <unordered_map>
 
 namespace obj_sets
@@ -122,11 +119,11 @@ size_t setidx_by_uid(int uid)
 /// \param set_uid - чтобы не считать свой же сет за дубль
 bool is_duplicate(int set_uid, int vnum)
 {
-	for (size_t i = 0; i < sets_list.size(); ++i)
+	for (const auto& it : sets_list)
 	{
-		if (sets_list.at(i)->uid != set_uid
-			&& sets_list.at(i)->obj_list.find(vnum)
-				!= sets_list.at(i)->obj_list.end())
+		if (it->uid != set_uid
+			&& it->obj_list.find(vnum)
+				!= it->obj_list.end())
 		{
 			return true;
 		}
@@ -448,13 +445,12 @@ void load()
 				xml_apply = xml_apply.next_sibling("apply"))
 			{
 				// заполняются только первые MAX_OBJ_AFFECT
-				for (auto i = tmp_activ.apply.begin();
-					i != tmp_activ.apply.end(); ++i)
+				for (auto& i : tmp_activ.apply)
 				{
-					if (i->location <= 0)
+					if (i.location <= 0)
 					{
-						i->location = static_cast<EApplyLocation>(Parse::attr_int(xml_apply, "loc"));
-						i->modifier = Parse::attr_int(xml_apply, "mod");
+						i.location = static_cast<EApplyLocation>(Parse::attr_int(xml_apply, "loc"));
+						i.modifier = Parse::attr_int(xml_apply, "mod");
 						break;
 					}
 				}
@@ -562,37 +558,37 @@ void save()
 	// obj_sets/messages
 	save_messages(xml_obj_sets, global_msg);
 
-	for (auto i = sets_list.begin(); i != sets_list.end(); ++i)
+	for (const auto& i : sets_list)
 	{
 		// obj_sets/set
 		pugi::xml_node xml_set = xml_obj_sets.append_child("set");
-		if (!(*i)->name.empty())
+		if (!i->name.empty())
 		{
-			xml_set.append_attribute("name") = (*i)->name.c_str();
+			xml_set.append_attribute("name") = i->name.c_str();
 		}
-		if (!(*i)->alias.empty())
+		if (!i->alias.empty())
 		{
-			xml_set.append_attribute("alias") = (*i)->alias.c_str();
+			xml_set.append_attribute("alias") = i->alias.c_str();
 		}
-		if (!(*i)->comment.empty())
+		if (!i->comment.empty())
 		{
-			xml_set.append_attribute("comment") = (*i)->comment.c_str();
+			xml_set.append_attribute("comment") = i->comment.c_str();
 		}
-		if (!(*i)->enabled)
+		if (!i->enabled)
 		{
 			xml_set.append_attribute("enabled") = 0;
 		}
 		// set/messages
-		save_messages(xml_set, (*i)->messages);
+		save_messages(xml_set, i->messages);
 		// set/obj
-		for (auto o = (*i)->obj_list.begin(); o != (*i)->obj_list.end(); ++o)
+		for (auto o = i->obj_list.begin(); o != i->obj_list.end(); ++o)
 		{
 			pugi::xml_node xml_obj = xml_set.append_child("obj");
 			xml_obj.append_attribute("vnum") = o->first;
 			save_messages(xml_obj, o->second);
 		}
 		// set/activ
-		for (auto k = (*i)->activ_list.begin(); k != (*i)->activ_list.end(); ++k)
+		for (auto k = i->activ_list.begin(); k != i->activ_list.end(); ++k)
 		{
 			pugi::xml_node xml_activ = xml_set.append_child("activ");
 			xml_activ.append_attribute("size") = k->first;
@@ -928,7 +924,7 @@ void do_slist(CHAR_DATA *ch)
 		out += buf_;
 		for (auto o = (*i)->obj_list.begin(); o !=  (*i)->obj_list.end(); ++o)
 		{
-			out += boost::lexical_cast<std::string>(o->first) + " ";
+			out += std::to_string(o->first) + " ";
 		}
 		out += "\r\n";
 	}
@@ -1049,9 +1045,9 @@ std::string print_activ_enchant(const std::pair<int, ench_type> &ench)
 std::string print_activ_enchants(const std::map<int, ench_type> &enchants)
 {
 	std::string out;
-	for (auto i = enchants.begin(); i != enchants.end(); ++i)
+	for (const auto& i : enchants)
 	{
-		out += print_activ_enchant(*i);
+		out += print_activ_enchant(i);
 	}
 	return out;
 }
@@ -1092,29 +1088,29 @@ std::string print_activ_help(const set_node &set)
 	out += buf_ + print_obj_list(set) +
 		"--------------------------------------------------------------------------------\r\n";
 
-	for (auto i = set.activ_list.begin(); i != set.activ_list.end(); ++i)
+	for (const auto& i : set.activ_list)
 	{
-		if (i->second.prof.count() != i->second.prof.size())
+		if (i.second.prof.count() != i.second.prof.size())
 		{
 			// активатор на ограниченный список проф (распечатка закладывается
 			// на то, что у валидных сетов списки проф должны быть одинаковые)
 			if (prof_list.empty())
 			{
-				print_bitset(i->second.prof, pc_class_name, ",", prof_list);
+				print_bitset(i.second.prof, pc_class_name, ",", prof_list);
 			}
 			snprintf(buf_, sizeof(buf_), "%d %s (%s)\r\n",
-				i->first, desc_count(i->first, WHAT_OBJECT), prof_list.c_str());
+				i.first, desc_count(i.first, WHAT_OBJECT), prof_list.c_str());
 		}
 		else
 		{
 			snprintf(buf_, sizeof(buf_), "%d %s\r\n",
-				i->first, desc_count(i->first, WHAT_OBJECT));
+				i.first, desc_count(i.first, WHAT_OBJECT));
 		}
 		out += buf_;
 		// аффекты
-		out += print_activ_affects(i->second.affects);
+		out += print_activ_affects(i.second.affects);
 		// свойства
-		out += print_activ_properties(i->second);
+		out += print_activ_properties(i.second);
 	}
 
 	if (set.activ_list.size() > 1)
@@ -1131,21 +1127,21 @@ std::string print_total_activ(const set_node &set)
 	std::string out, prof_list, properties;
 
 	activ_sum summ, prof_summ;
-	for (auto i = set.activ_list.begin(); i != set.activ_list.end(); ++i)
+	for (const auto& i : set.activ_list)
 	{
-		if (i->second.prof.count() != i->second.prof.size())
+		if (i.second.prof.count() != i.second.prof.size())
 		{
 			// активатор на ограниченный список проф (распечатка закладывается
 			// на то, что у валидных сетов списки проф должны быть одинаковые)
 			if (prof_list.empty())
 			{
-				print_bitset(i->second.prof, pc_class_name, ",", prof_list);
+				print_bitset(i.second.prof, pc_class_name, ",", prof_list);
 			}
-			prof_summ += &(i->second);
+			prof_summ += &(i.second);
 		}
 		else
 		{
-			summ += &(i->second);
+			summ += &(i.second);
 		}
 	}
 
@@ -1202,14 +1198,14 @@ void init_xhelp()
 			std::vector<std::string> str_list;
 			boost::split(str_list, sets_list.at(i)->alias,
 				boost::is_any_of(", "), boost::token_compress_on);
-			for (auto k = str_list.begin(); k != str_list.end(); ++k)
+			for (const auto& k : str_list)
 			{
 				if (first)
 				{
-					sets_list.at(i)->help = name + *k;
+					sets_list.at(i)->help = name + k;
 					first = false;
 				}
-				HelpSystem::add_static(name + *k,
+				HelpSystem::add_static(name + k,
 					print_activ_help(*(sets_list.at(i))), lvl, true);
 			}
 		}
@@ -1229,11 +1225,11 @@ std::string get_name(size_t idx)
 /// очистка списка сетин на чаре перед очередным заполнением
 void WornSets::clear()
 {
-	for (auto i = idx_list_.begin(); i != idx_list_.end(); ++i)
+	for (auto& i : idx_list_)
 	{
-		i->set_idx = -1;
-		i->obj_list.clear();
-		i->activated_cnt = 0;
+		i.set_idx = -1;
+		i.obj_list.clear();
+		i.activated_cnt = 0;
 	}
 }
 
@@ -1244,18 +1240,18 @@ void WornSets::add(OBJ_DATA *obj)
 	if (obj && is_set_item(obj))
 	{
 		const size_t cur_idx = obj_proto.set_idx(GET_OBJ_RNUM(obj));
-		for (auto i = idx_list_.begin(); i != idx_list_.end(); ++i)
+		for (auto& i : idx_list_)
 		{
-			if (i->set_idx == static_cast<size_t>(-1))
+			if (i.set_idx == static_cast<size_t>(-1))
 			{
-				i->set_idx = cur_idx;
+				i.set_idx = cur_idx;
 			}
-			if (i->set_idx == cur_idx)
+			if (i.set_idx == cur_idx)
 			{
-				i->obj_list.push_back(obj);
+				i.obj_list.push_back(obj);
 				if (obj->get_activator().first)
 				{
-					i->activated_cnt += 1;
+					i.activated_cnt += 1;
 				}
 				return;
 			}
@@ -1266,44 +1262,44 @@ void WornSets::add(OBJ_DATA *obj)
 /// проверка списка сетов на чаре и применение их активаторов
 void WornSets::check(CHAR_DATA *ch)
 {
-    for (auto i = idx_list_.begin(); i != idx_list_.end(); ++i)
+    for (auto& i : idx_list_)
 	{
-		if (i->set_idx >= sets_list.size()) return;
+		if (i.set_idx >= sets_list.size())
+			return;
 
-		std::shared_ptr<set_node> &cur_set = sets_list.at(i->set_idx);
+		std::shared_ptr<set_node> &cur_set = sets_list.at(i.set_idx);
 
 		int max_activ = 0;
 		if (cur_set->enabled)
 		{
-			for (auto k = cur_set->activ_list.cbegin();
-				k != cur_set->activ_list.cend(); ++k)
+			for (const auto& k : cur_set->activ_list)
 			{
 				const size_t prof_bit = GET_CLASS(ch);
 				// k->first - кол-во для активации,
 				// i->obj_list.size() - одето на чаре
-				if (k->first > i->obj_list.size())
+				if (k.first > i.obj_list.size())
 				{
 						continue;
 				}
 				else if (!IS_NPC(ch)
-					&& prof_bit < k->second.prof.size()
-					&& !k->second.prof.test(prof_bit))
+					&& prof_bit < k.second.prof.size()
+					&& !k.second.prof.test(prof_bit))
 				{
 						continue;
 				}
 				else if (IS_NPC(ch)
-					&& k->second.prof.count() != k->second.prof.size())
+					&& k.second.prof.count() != k.second.prof.size())
 				{
 					continue;
 				}
 				// суммируем все на чаре, потом кому надо - сами дернут
-				ch->obj_bonus() += &(k->second);
-				max_activ = k->first;
-				check_activated(ch, k->first, *i);
+				ch->obj_bonus() += &(k.second);
+				max_activ = k.first;
+				check_activated(ch, k.first, i);
 			}
 		}
 		// на деактивацию проверять надо даже выключенные сеты
-		check_deactivated(ch, max_activ, *i);
+		check_deactivated(ch, max_activ, i);
 	}
 }
 

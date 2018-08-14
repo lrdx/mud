@@ -496,9 +496,9 @@ int CObjectPrototype::get_timer() const
 //заколдование предмета
 void OBJ_DATA::set_enchant(int skill)
 {
-    int i = 0;
+	int i = 0;
 
-    for (i = 0; i < MAX_OBJ_AFFECT; i++)
+	for (i = 0; i < MAX_OBJ_AFFECT; i++)
 	{
 		if (get_affected(i).location != APPLY_NONE)
 		{
@@ -509,30 +509,30 @@ void OBJ_DATA::set_enchant(int skill)
 	set_affected_location(0, APPLY_HITROLL);
 	set_affected_location(1, APPLY_DAMROLL);
 
-    if (skill <= 100)
-    // 4 мортов (скил магия света 100)
-    {
-       set_affected_modifier(0, 1 + number(0, 1));
-	   set_affected_modifier(1, 1 + number(0, 1));
-    }
-    else if (skill <= 125)
-    // 8 мортов (скил магия света 125)
-    {
-	   set_affected_modifier(0, 1 + number(-3, 2));
-	   set_affected_modifier(1, 1 + number(-3, 2));
-    }
-    else if (skill <= 160)
-    // 12 мортов (скил магия света 160)
-    {
-       set_affected_modifier(0, 1 + number(-4, 3));
-       set_affected_modifier(1, 1 + number(-4, 3));
-    }
-    else if (skill <= 200)
-    // 16 мортов (скил магия света 160+)
-    {
-       set_affected_modifier(0, 1 + number(-5, 5));
-       set_affected_modifier(1, 1 + number(-5, 5));
-    }
+	if (skill <= 100)
+		// 4 мортов (скил магия света 100)
+	{
+		set_affected_modifier(0, 1 + number(0, 1));
+		set_affected_modifier(1, 1 + number(0, 1));
+	}
+	else if (skill <= 125)
+		// 8 мортов (скил магия света 125)
+	{
+		set_affected_modifier(0, 1 + number(-3, 2));
+		set_affected_modifier(1, 1 + number(-3, 2));
+	}
+	else if (skill <= 160)
+		// 12 мортов (скил магия света 160)
+	{
+		set_affected_modifier(0, 1 + number(-4, 3));
+		set_affected_modifier(1, 1 + number(-4, 3));
+	}
+	else if (skill <= 200)
+		// 16 мортов (скил магия света 160+)
+	{
+		set_affected_modifier(0, 1 + number(-5, 5));
+		set_affected_modifier(1, 1 + number(-5, 5));
+	}
 	else
 	{
 		set_affected_modifier(0, 1 + number(-4, 5));
@@ -757,12 +757,12 @@ void OBJ_DATA::set_tag(const char* tag)
 
 void OBJ_DATA::attach_triggers(const triggers_list_t& trigs)
 {
-	for (auto it = trigs.begin(); it != trigs.end(); ++it)
+	for (const auto& it : trigs)
 	{
-		int rnum = real_trigger(*it);
+		const auto rnum = real_trigger(it);
 		if (rnum != -1)
 		{
-			auto trig = read_trigger(rnum);
+			const auto trig = read_trigger(rnum);
 			if (!add_trigger(get_script().get(), trig, -1))
 			{
 				extract_trigger(trig);
@@ -953,19 +953,6 @@ void CObjectPrototype::set_ex_description(const char* keyword, const char* descr
 	d->description = strdup(description);
 	m_ex_description = d;
 }
-
-////////////////////////////////////////////////////////////////////////////////
-
-namespace
-{
-
-const float SQRT_MOD = 1.7095f;
-const int AFF_SHIELD_MOD = 30;
-const int AFF_BLINK_MOD = 10;
-
-} // namespace
-
-////////////////////////////////////////////////////////////////////////////////
 
 namespace ObjSystem
 {
@@ -1166,7 +1153,7 @@ void init_ilvl(CObjectPrototype *obj)
 
 void init_item_levels()
 {
-	for (const auto i : obj_proto)
+	for (const auto& i : obj_proto)
 	{
 		init_ilvl(i.get());
 	}
@@ -1310,12 +1297,12 @@ std::string ObjVal::print_to_file() const
 	std::stringstream out;
 	out << "Vals:\n";
 
-	for(auto i = m_values.begin(), iend = m_values.end(); i != iend; ++i)
+	for(const auto& i : m_values)
 	{
-		std::string key_str = TextId::to_str(TextId::OBJ_VALS, to_underlying(i->first));
+		std::string key_str = TextId::to_str(TextId::OBJ_VALS, to_underlying(i.first));
 		if (!key_str.empty())
 		{
-			out << key_str << " " << i->second << "\n";
+			out << key_str << " " << i.second << "\n";
 		}
 	}
 	out << "~\n";
@@ -1377,7 +1364,7 @@ std::string ObjVal::print_to_zone() const
 			return a.first < b.first;
 		});
 
-	for (auto const i : m_val_vec)
+	for (auto const& i : m_val_vec)
 	{
 		out << "V " << i.first << " " << i.second << "\n";
 	}
@@ -1653,16 +1640,14 @@ namespace SetSystem
 	// * Заполнение списка фулл-сетов для последующих сверок.
 	void init_set_list()
 	{
-		for (id_to_set_info_map::const_iterator i = OBJ_DATA::set_table.begin(),
-			iend = OBJ_DATA::set_table.end(); i != iend; ++i)
+		for (const auto& i : OBJ_DATA::set_table)
 		{
-			if (i->second.size() > BIG_SET_ITEMS)
+			if (i.second.size() > BIG_SET_ITEMS)
 			{
 				SetNode node;
-				for (set_info::const_iterator k = i->second.begin(),
-					kend = i->second.end(); k != kend; ++k)
+				for (const auto& k : i.second)
 				{
-					node.set_vnum.insert(k->first);
+					node.set_vnum.insert(k.first);
 				}
 				set_list.push_back(node);
 			}
@@ -1672,23 +1657,21 @@ namespace SetSystem
 	// * Удаление инфы от последнего сверявшегося чара.
 	void reset_set_list()
 	{
-		for (std::vector<SetNode>::iterator i = set_list.begin(),
-			iend = set_list.end(); i != iend; ++i)
+		for (auto& i : set_list)
 		{
-			i->obj_vnum.clear();
+			i.obj_vnum.clear();
 		}
 	}
 
 	// * Проверка шмотки на принадлежность к сетам из set_list.
 	void check_item(int vnum)
 	{
-		for (std::vector<SetNode>::iterator i = set_list.begin(),
-			iend = set_list.end(); i != iend; ++i)
+		for (auto& i : set_list)
 		{
-			std::set<int>::const_iterator k = i->set_vnum.find(vnum);
-			if (k != i->set_vnum.end())
+			const auto k = i.set_vnum.find(vnum);
+			if (k != i.set_vnum.end())
 			{
-				i->obj_vnum.push_back(vnum);
+				i.obj_vnum.push_back(vnum);
 			}
 		}
 	}
@@ -1739,24 +1722,22 @@ namespace SetSystem
 			// рента
 			if (player_table[i].timer)
 			{
-				for (std::vector<save_time_info>::iterator it = player_table[i].timer->time.begin(),
-					it_end = player_table[i].timer->time.end(); it != it_end; ++it)
+				for (const auto& it : player_table[i].timer->time)
 				{
-					if (it->timer >= 0)
+					if (it.timer >= 0)
 					{
-						check_item(it->vnum);
+						check_item(it.vnum);
 					}
 				}
 			}
 			// перс.хран
 			Depot::check_rented(player_table[i].unique);
 			// проверка итогового списка
-			for (std::vector<SetNode>::iterator it = set_list.begin(),
-				iend = set_list.end(); it != iend; ++it)
+			for (const auto& it : set_list)
 			{
-				if (it->obj_vnum.size() == 1)
+				if (it.obj_vnum.size() == 1)
 				{
-					delete_item(i, it->obj_vnum[0]);
+					delete_item(i, it.obj_vnum[0]);
 				}
 			}
 		}
@@ -1808,18 +1789,16 @@ namespace SetSystem
 	void init_vnum_list(int vnum)
 	{
 		vnum_list.clear();
-		for (id_to_set_info_map::const_iterator i = OBJ_DATA::set_table.begin(),
-			iend = OBJ_DATA::set_table.end(); i != iend; ++i)
+		for (const auto& i : OBJ_DATA::set_table)
 		{
-			if (i->second.find(vnum) != i->second.end())
+			if (i.second.find(vnum) != i.second.end())
 				//&& i->second.size() > BIG_SET_ITEMS)
 			{
-				for (set_info::const_iterator k = i->second.begin(),
-					kend = i->second.end(); k != kend; ++k)
+				for (const auto& k : i.second)
 				{
-					if (k->first != vnum)
+					if (k.first != vnum)
 					{
-						vnum_list.insert(k->first);
+						vnum_list.insert(k.first);
 					}
 				}
 			}

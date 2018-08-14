@@ -70,9 +70,9 @@ void ClanExp::save(const std::string &abbrev) const
 	}
 	std::stringstream out;
 	out << buffer_exp_ << "\n";
-	for (ExpListType::const_iterator it = list_.begin(); it != list_.end(); ++it)
+	for (const auto& it : list_)
 	{
-		out << *it << "\n";
+		out << it << "\n";
 	}
 	file << out.rdbuf();
 }
@@ -151,9 +151,9 @@ void ClanPkLog::add(const std::string &text)
 void ClanPkLog::print(CHAR_DATA *ch) const
 {
 	std::string text;
-	for (std::list<std::string>::const_iterator i = pk_log.begin(); i != pk_log.end(); ++i)
+	for (const auto& i : pk_log)
 	{
-		text += *i;
+		text += i;
 	}
 
 	if (!text.empty())
@@ -311,9 +311,9 @@ void ClanExpHistory::save(const std::string &abbrev) const
 		return;
 	}
 
-	for (HistoryExpListType::const_iterator i = list_.begin(); i != list_.end(); ++i)
+	for (const auto& i : list_)
 	{
-		file << i->first << " " << i->second << "\n";
+		file << i.first << " " << i.second << "\n";
 	}
 	file.close();
 }
@@ -374,9 +374,9 @@ bool ClanExpHistory::need_destroy() const
 }
 void ClanExpHistory::fulldelete()
 {
-	for (HistoryExpListType::iterator i = list_.begin(), iend = list_.end(); i != iend; ++i)
+	for (auto& i : list_)
 	{
-		i->second = 0;
+		i.second = 0;
 	}
 }
 void ClanExpHistory::show(CHAR_DATA *ch) const
@@ -384,11 +384,11 @@ void ClanExpHistory::show(CHAR_DATA *ch) const
 	send_to_char(ch, "\r\nОпыт, набранный за три последних календарных месяца без учета минусов:\r\n");
 	size_t size = list_.size();
 	size_t count = 0;
-	for (HistoryExpListType::const_iterator i = list_.begin(), iend = list_.end(); i != iend; ++i, ++count)
+	for (const auto& it : list_)
 	{
 		if (3 + count >= size)
 		{
-			send_to_char(ch, "%s : %14s\r\n", i->first.c_str(), thousands_sep(i->second).c_str());
+			send_to_char(ch, "%s : %14s\r\n", it.first.c_str(), thousands_sep(it.second).c_str());
 		}
 	}
 	send_to_char(ch, "Напоминаем, что в системе автоматической очистки неактивных кланов учитывается\r\n"
@@ -421,10 +421,9 @@ void ClanChestLog::print(CHAR_DATA *ch, std::string &text) const
 	if (text.empty())
 	{
 		out += "История хранилища дружины:\r\n";
-		for (std::list<std::string>::const_iterator i = chest_log_.begin(),
-			iend = chest_log_.end(); i != iend; ++i)
+		for (const auto& i : chest_log_)
 		{
-			out += *i;
+			out += i;
 		}
 		out += "\r\n";
 		page_string(ch->desc, out);
@@ -432,14 +431,13 @@ void ClanChestLog::print(CHAR_DATA *ch, std::string &text) const
 	else
 	{
 		out += "Выборка из истории хранилища дружины (" + text + "):\r\n";
-		for (std::list<std::string>::const_iterator i = chest_log_.begin(),
-			iend = chest_log_.end(); i != iend; ++i)
+		for (const auto& i : chest_log_)
 		{
-			bufer_out = *i;
+			bufer_out = i;
                         utils::remove_colors(bufer_out);
                         if ((bufer_out).find(text) != std::string::npos)
 			{
-				out += *i;
+				out += i;
 			}
 		}
 		out += "\r\n";

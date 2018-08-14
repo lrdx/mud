@@ -13,12 +13,9 @@
 #include "skills.h"
 #include "interpreter.h"
 #include "features.hpp"
-#include "conf.h"
 
 #include <string>
 #include <list>
-#include <iostream>
-#include <fstream>
 
 #define MAX_ITEMS 	9
 

@@ -23,7 +23,6 @@
 #include "spells.h"
 #include "char.hpp"
 #include "char_player.hpp"
-#include "db.h"
 
 const char *genchar_help =
 	"\r\n Сейчас вы должны выбрать себе характеристики. В зависимости от того, как\r\n"
@@ -137,7 +136,7 @@ void genchar_disp_menu(CHAR_DATA * ch)
 	send_to_char(" Ваш выбор: ", ch);
 }
 
-int genchar_parse(CHAR_DATA * ch, char *arg)
+int genchar_parse(CHAR_DATA* ch, const char* arg)
 {
 	int tmp_class;
 	switch (*arg)
@@ -542,7 +541,7 @@ void roll_real_abils(CHAR_DATA * ch)
 // result - результат
 void GetCase(const char *name, const ESex sex, int caseNum, char *result)
 {
-	size_t len = strlen(name);
+	const size_t len = strlen(name);
 
 	if (strchr("цкнгшщзхфвпрлджчсмтб", name[len - 1]) != NULL
 		&& sex == ESex::SEX_MALE)

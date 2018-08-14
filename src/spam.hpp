@@ -5,8 +5,6 @@
 #ifndef SPAM_HPP_INCLUDED
 #define SPAM_HPP_INCLUDED
 
-#include "conf.h"
-#include "sysdep.h"
 #include "structs.h"
 
 namespace SpamSystem

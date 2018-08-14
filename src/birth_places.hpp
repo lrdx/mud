@@ -14,8 +14,6 @@
 #define BIRTH_PLACE_MAIN_TAG "birthplaces"
 #define BIRTH_PLACE_ERROR_STR "...birth places reading fail"
 
-#include "conf.h"
-#include "sysdep.h"
 #include "structs.h"
 
 #include <pugixml.hpp>

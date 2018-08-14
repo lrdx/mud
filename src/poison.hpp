@@ -5,8 +5,6 @@
 #ifndef POISON_HPP_INCLUDED
 #define POISON_HPP_INCLUDED
 
-#include "conf.h"
-#include "sysdep.h"
 #include "structs.h"
 
 void poison_victim(CHAR_DATA * ch, CHAR_DATA * vict, int modifier);

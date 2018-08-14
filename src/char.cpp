@@ -12,10 +12,8 @@
 #include "im.h"
 #include "handler.h"
 #include "interpreter.h"
-#include "boards.h"
 #include "privilege.hpp"
 #include "skills.h"
-#include "constants.h"
 #include "char_player.hpp"
 #include "spells.h"
 #include "comm.h"
@@ -25,11 +23,11 @@
 #include "cache.hpp"
 #include "fight.h"
 #include "house.h"
-#include "help.hpp"
 #include "utils.h"
 #include "msdp.constants.hpp"
 #include "backtrace.hpp"
 #include "dg_scripts.h"
+#include "features.hpp"
 
 #include <boost/format.hpp>
 
@@ -155,67 +153,74 @@ bool CHAR_DATA::in_used_zone() const
 //P_DAMROLL, P_HITROLL, P_CAST, P_MEM_GAIN, P_MOVE_GAIN, P_HIT_GAIN
 float CHAR_DATA::get_cond_penalty(int type) const
 {
-	if (IS_NPC(this)) return 1;
-	if (!(GET_COND_M(this,FULL)||GET_COND_M(this,THIRST))) return 1;
-	
+	if (IS_NPC(this))
+		return 1;
+
+	if (!(GET_COND_M(this, FULL) || GET_COND_M(this, THIRST)))
+		return 1;
+
 	float penalty = 0;
-	
-	if (GET_COND_M(this,FULL)) {
-		int tmp = GET_COND_K(this,FULL); // 0 - 1
+
+	if (GET_COND_M(this, FULL))
+	{
+		const int tmp = GET_COND_K(this, FULL); // 0 - 1
 		switch (type) {
-			case P_DAMROLL://-50%
-				penalty+=tmp/2; 
-				break;
-			case P_HITROLL://-25%
-				penalty+=tmp/4; 
-				break;
-			case P_CAST://-25%
-				penalty+=tmp/4; 
-				break;
-			case P_MEM_GAIN://-25%
-				penalty+=tmp/4;
-				break;
-			case P_MOVE_GAIN://-50%
-				penalty+=tmp/2;
-				break;
-			case P_HIT_GAIN://-50%
-				penalty+=tmp/2;
-				break;
-			case P_AC://-50%
-				penalty+=tmp/2;
-				break;
-			default:
-				break;
+		case P_DAMROLL://-50%
+			penalty += tmp / 2;
+			break;
+		case P_HITROLL://-25%
+			penalty += tmp / 4;
+			break;
+		case P_CAST://-25%
+			penalty += tmp / 4;
+			break;
+		case P_MEM_GAIN://-25%
+			penalty += tmp / 4;
+			break;
+		case P_MOVE_GAIN://-50%
+			penalty += tmp / 2;
+			break;
+		case P_HIT_GAIN://-50%
+			penalty += tmp / 2;
+			break;
+		case P_AC://-50%
+			penalty += tmp / 2;
+			break;
+		default:
+			break;
 		}
 	}
 
-	if (GET_COND_M(this,THIRST)) {
-		int tmp = GET_COND_K(this,THIRST); // 0 - 1
+	if (GET_COND_M(this, THIRST))
+	{
+		const int tmp = GET_COND_K(this, THIRST); // 0 - 1
 		switch (type) {
-			case P_DAMROLL://-25%
-				penalty+=tmp/4; 
-				break;
-			case P_HITROLL://-50%
-				penalty+=tmp/2; 
-				break;
-			case P_CAST://-50%
-				penalty+=tmp/2; 
-				break;
-			case P_MEM_GAIN://-50%
-				penalty+=tmp/2;
-				break;
-			case P_MOVE_GAIN://-25%
-				penalty+=tmp/4;
-				break;
-			case P_AC://-25%
-				penalty+=tmp/4;
-				break;
-			default:
-				break;
+		case P_DAMROLL://-25%
+			penalty += tmp / 4;
+			break;
+		case P_HITROLL://-50%
+			penalty += tmp / 2;
+			break;
+		case P_CAST://-50%
+			penalty += tmp / 2;
+			break;
+		case P_MEM_GAIN://-50%
+			penalty += tmp / 2;
+			break;
+		case P_MOVE_GAIN://-25%
+			penalty += tmp / 4;
+			break;
+		case P_AC://-25%
+			penalty += tmp / 4;
+			break;
+		default:
+			break;
 		}
 	}
-	penalty=100-MIN(MAX(0,penalty),100);
-	penalty/=100.0;
+
+	penalty = 100 - MIN(MAX(0, penalty), 100);
+	penalty /= 100.0;
+
 	return penalty;
 }
 
@@ -275,22 +280,22 @@ void CHAR_DATA::set_abstinent()
 
 	af.location = APPLY_AC;
 	af.modifier = 20;
-	affect_join(this, af, 0, 0, 0, 0);
+	affect_join(this, af, false, false, false, false);
 
 	af.location = APPLY_HITROLL;
 	af.modifier = -2;
-	affect_join(this, af, 0, 0, 0, 0);
+	affect_join(this, af, false, false, false, false);
 
 	af.location = APPLY_DAMROLL;
 	af.modifier = -2;
-	affect_join(this, af, 0, 0, 0, 0);
+	affect_join(this, af, false, false, false, false);
 }
 
 void CHAR_DATA::affect_remove(const char_affects_list_t::iterator& affect_i)
 {
-	int was_lgt = AFF_FLAGGED(this, EAffectFlag::AFF_SINGLELIGHT) ? LIGHT_YES : LIGHT_NO;
-	long was_hlgt = AFF_FLAGGED(this, EAffectFlag::AFF_HOLYLIGHT) ? LIGHT_YES : LIGHT_NO;
-	long was_hdrk = AFF_FLAGGED(this, EAffectFlag::AFF_HOLYDARK) ? LIGHT_YES : LIGHT_NO;
+	const int was_lgt = AFF_FLAGGED(this, EAffectFlag::AFF_SINGLELIGHT) ? LIGHT_YES : LIGHT_NO;
+	const long was_hlgt = AFF_FLAGGED(this, EAffectFlag::AFF_HOLYLIGHT) ? LIGHT_YES : LIGHT_NO;
+	const long was_hdrk = AFF_FLAGGED(this, EAffectFlag::AFF_HOLYDARK) ? LIGHT_YES : LIGHT_NO;
 
 	if (affected.empty())
 	{
@@ -370,7 +375,7 @@ void CHAR_DATA::zero_init()
 	touching_ = 0;
 	fighting_ = 0;
 	serial_num_ = 0;
-	purged_ = 0;
+	purged_ = false;
 	// на плеер-таблицу
 	chclass_ = 0;
 	level_ = 0;
@@ -628,7 +633,7 @@ int CHAR_DATA::get_equipped_skill(const ESkill skill_num) const
 // мобам и тем классам, у которых скилл является родным, учитываем скилл с каждой шмотки полностью,
 // всем остальным -- не более 5% с шмотки
     // Пока что отменим это дело, народ морально не готов отказаться от автосников.
-	int is_native = IS_NPC(this) || skill_info[skill_num].classknow[chclass_][(int) GET_KIN(this)] == KNOW_SKILL;
+	const int is_native = IS_NPC(this) || skill_info[skill_num].classknow[chclass_][(int) GET_KIN(this)] == KNOW_SKILL;
 	//int is_native = true;
 	for (int i = 0; i < NUM_WEARS; ++i)
 	{
@@ -657,7 +662,7 @@ int CHAR_DATA::get_inborn_skill(const ESkill skill_num)
 {
 	if (Privilege::check_skills(this))
 	{
-		CharSkillsType::iterator it = skills.find(skill_num);
+		const auto it = skills.find(skill_num);
 		if (it != skills.end())
 		{
 			return normalize_skill(it->second);
@@ -684,7 +689,7 @@ void CHAR_DATA::set_skill(const ESkill skill_num, int percent)
 		return;
 	}
 
-	CharSkillsType::iterator it = skills.find(skill_num);
+	const auto it = skills.find(skill_num);
 	if (it != skills.end())
 	{
 		if (percent)
@@ -698,15 +703,14 @@ void CHAR_DATA::set_skill(const ESkill skill_num, int percent)
 
 void CHAR_DATA::set_skill(short remort)
 {
-int skill;
-	for (auto it=skills.begin();it!=skills.end();it++)
+	for (auto& it : skills)
 	{
-		skill = get_trained_skill((*it).first) + get_equipped_skill((*it).first);
-		if (skill > 80 + remort*5)
-			it->second = 80 + remort*5;
-		
+		const auto skill = get_trained_skill(it.first) + get_equipped_skill(it.first);
+		if (skill > 80 + remort * 5)
+		{
+			it.second = 80 + remort * 5;
+		}
 	}
-
 }
 
 void CHAR_DATA::set_morphed_skill(const ESkill skill_num, int percent)
@@ -721,12 +725,13 @@ void CHAR_DATA::clear_skills()
 // оберзает все скиллы до максимум на реморт
 void CHAR_DATA::crop_skills()
 {
-	int skill;
-	for (auto it = skills.begin();it != skills.end();it++)
+	for (auto it : skills)
 	{
-		skill = get_trained_skill((*it).first) + get_equipped_skill((*it).first);
+		const auto skill = get_trained_skill(it.first) + get_equipped_skill(it.first);
 		if (skill > 80 + this->get_remort() * 5)
-			it->second = 80 + this->get_remort() * 5;
+		{
+			it.second = 80 + this->get_remort() * 5;
+		}
 	}
 }
 
@@ -1379,7 +1384,7 @@ void CHAR_DATA::set_gold(long num, bool need_log)
 
 	if (need_log && !IS_NPC(this))
 	{
-		long change = num - get_gold();
+		const long change = num - get_gold();
 		if (change > 0)
 		{
 			log("Gold: %s add %ld", get_name().c_str(), change);
@@ -1410,7 +1415,7 @@ void CHAR_DATA::set_bank(long num, bool need_log)
 
 	if (need_log && !IS_NPC(this))
 	{
-		long change = num - get_bank();
+		const long change = num - get_bank();
 		if (change > 0)
 		{
 			log("Gold: %s add %ld", get_name().c_str(), change);
@@ -1489,7 +1494,7 @@ long CHAR_DATA::remove_bank(long num, bool need_log)
  */
 long CHAR_DATA::remove_both_gold(long num, bool need_log)
 {
-	long rest = remove_bank(num, need_log);
+	const long rest = remove_bank(num, need_log);
 	return remove_gold(rest, need_log);
 }
 
@@ -1830,7 +1835,7 @@ std::string CHAR_DATA::clan_for_title()
 {
 	std::string result = std::string();
 
-	bool imm = IS_IMMORTAL(this) || PRF_FLAGGED(this, PRF_CODERINFO);
+	const bool imm = IS_IMMORTAL(this) || PRF_FLAGGED(this, PRF_CODERINFO);
 
 	if (CLAN(this) && !imm)
 		result = result + "(" + GET_CLAN_STATUS(this) + ")";
@@ -1851,7 +1856,7 @@ std::string CHAR_DATA::only_title()
 
 std::string CHAR_DATA::noclan_title()
 {
-	std::string race = this->get_race_name();
+	const std::string race = this->get_race_name();
 	std::string result = this->only_title_noclan();
 
 	if (result == this->get_name())
@@ -1894,7 +1899,7 @@ void CHAR_DATA::set_morph(MorphPtr morph)
 
 void CHAR_DATA::reset_morph()
 {
-	int value = this->get_trained_skill(SKILL_MORPH);
+	const int value = this->get_trained_skill(SKILL_MORPH);
 	send_to_char(str(boost::format(current_morph_->GetMessageToChar()) % "человеком") + "\r\n", this);
 	act(str(boost::format(current_morph_->GetMessageToRoom()) % "человеком").c_str(), TRUE, this, 0, 0, TO_ROOM);
 	this->current_morph_ = GetNormalMorphNew(this);
@@ -2088,7 +2093,7 @@ int CHAR_DATA::get_attacker(CHAR_DATA *ch, unsigned type) const
 	{
 		return -1;
 	}
-	auto i = attackers_.find(ch->get_uid());
+	const auto i = attackers_.find(ch->get_uid());
 	if (i != attackers_.end())
 	{
 		switch(type)
@@ -2118,7 +2123,7 @@ std::pair<int /* uid */, int /* rounds */> CHAR_DATA::get_max_damager_in_room() 
 	{
 		if (!IS_NPC(i) && i->desc)
 		{
-			auto it = attackers_.find(i->get_uid());
+			const auto it = attackers_.find(i->get_uid());
 			if (it != attackers_.end())
 			{
 				if (it->second.damage > max_dmg)

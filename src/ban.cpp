@@ -10,7 +10,6 @@
 #include "comm.h"
 #include "interpreter.h"
 #include "handler.h"
-#include "db.h"
 #include "ban.hpp"
 #include "char.hpp"
 #include "modify.h"
@@ -20,6 +19,7 @@
 #include "sysdep.h"
 #include "conf.h"
 #include "global.objects.hpp"
+#include "diskio.h"
 
 #include <boost/tokenizer.hpp>
 #include <boost/format.hpp>
@@ -29,8 +29,6 @@
 #include <fstream>
 #include <sstream>
 #include <iomanip>
-
-extern DESCRIPTOR_DATA *descriptor_list;
 
 void do_ban(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
 void do_unban(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
@@ -72,8 +70,8 @@ void do_ban(CHAR_DATA *ch, char *argument, int/* cmd*/, int/* subcmd*/)
 				send_to_char(" -I : Sort by banned ip \r\n", ch);
 				return;
 			};
-		std::string banned_ip(site);
-		std::string banner_name(GET_NAME(ch));
+		const std::string banned_ip(site);
+		const std::string banner_name(GET_NAME(ch));
 
 		if (!ban->add_proxy_ban(banned_ip, banner_name))
 		{
@@ -132,9 +130,9 @@ void do_ban(CHAR_DATA *ch, char *argument, int/* cmd*/, int/* subcmd*/)
 		send_to_char("Usage: ban {all | select | new } ip duration [reason]\r\n", ch);
 		return;
 	}
-	std::string banned_ip(site);
-	std::string banner_name(GET_NAME(ch));
-	std::string ban_reason(reason);
+	const std::string banned_ip(site);
+	const std::string banner_name(GET_NAME(ch));
+	const std::string ban_reason(reason);
 	for (int i = BanList::BAN_NEW; i <= BanList::BAN_ALL; i++)
 		if (!str_cmp(flag, BanList::ban_types[i]))
 			ban_type = i;
@@ -157,7 +155,7 @@ void do_unban(CHAR_DATA *ch, char *argument, int/* cmd*/, int/* subcmd*/)
 		send_to_char("A site to unban might help.\r\n", ch);
 		return;
 	}
-	std::string unban_site(site);
+	const std::string unban_site(site);
 	if (!ban->unban(unban_site, ch))
 	{
 		send_to_char("The site is not currently banned.\r\n", ch);
@@ -443,7 +441,7 @@ void do_proxy(CHAR_DATA *ch, char *argument, int/* cmd*/, int/* subcmd*/)
 			send_to_char("Укажите максимальное кол-во коннектов.\r\n", ch);
 			return;
 		}
-		int num = atoi(buffer2.c_str());
+		const int num = atoi(buffer2.c_str());
 		if (num < 2 || num > MAX_PROXY_CONNECT)
 		{
 			send_to_char(ch, "Некорректное число коннектов (2-%d).\r\n", MAX_PROXY_CONNECT);
@@ -465,8 +463,8 @@ void do_proxy(CHAR_DATA *ch, char *argument, int/* cmd*/, int/* subcmd*/)
 		tempIp->num = num;
 		tempIp->textIp = textIp;
 		tempIp->textIp2 = textIp2;
-		unsigned long ip = TxtToIp(textIp);
-		unsigned long ip2 = TxtToIp(textIp2);
+		const unsigned long ip = TxtToIp(textIp);
+		const unsigned long ip2 = TxtToIp(textIp2);
 		if (ip2 && ((ip2 - ip) > 65535))
 		{
 			send_to_char("Слишком широкий диапазон. (Максимум x.x.0.0. до x.x.255.255).\r\n", ch);
@@ -486,7 +484,7 @@ void do_proxy(CHAR_DATA *ch, char *argument, int/* cmd*/, int/* subcmd*/)
 			send_to_char("Укажите удаляемый IP адрес или начало диапазона.\r\n", ch);
 			return;
 		}
-		unsigned long ip = TxtToIp(buffer2);
+		const unsigned long ip = TxtToIp(buffer2);
 		ProxyListType::iterator it;
 		it = proxyList.find(ip);
 		if (it == proxyList.end())
@@ -642,7 +640,7 @@ void BanList::sort_proxy(int sort_algorithm)
 	current_proxy_sort_algorithm = sort_algorithm;
 }
 
-bool BanList::add_ban(std::string BannedIp, std::string BanReason, std::string BannerName, int UnbanDate, int BanType)
+bool BanList::add_ban(const std::string& BannedIp, const std::string& BanReason, const std::string& BannerName, int UnbanDate, int BanType)
 {
 	BanNodePtr temp_node_ptr(new struct BanNode);
 
@@ -650,7 +648,7 @@ bool BanList::add_ban(std::string BannedIp, std::string BanReason, std::string B
 		return false;
 
 	// looking if the ip is already in the ban list
-	std::list<BanNodePtr>::iterator i =
+	const auto i =
 		std::find_if(Ban_List.begin(), Ban_List.end(), [&](const BanNodePtr ptr)
 	{
 		return this->ban_compare(ptr, BAN_IP_COMPARE, &BannedIp);
@@ -711,13 +709,13 @@ bool BanList::add_ban(std::string BannedIp, std::string BanReason, std::string B
 	return true;
 }
 
-bool BanList::add_proxy_ban(std::string BannedIp, std::string BannerName)
+bool BanList::add_proxy_ban(const std::string& BannedIp, const std::string& BannerName)
 {
 	ProxyBanNodePtr temp_node_ptr(new struct ProxyBanNode);
 	if (BannedIp.empty() || BannerName.empty())
 		return false;
 
-	std::list<ProxyBanNodePtr>::iterator i =
+	const auto i =
 		std::find_if(Proxy_Ban_List.begin(), Proxy_Ban_List.end(), [&](const ProxyBanNodePtr ptr)
 	{
 		return this->proxy_ban_compare(ptr, BAN_IP_COMPARE, &BannedIp);
@@ -768,9 +766,9 @@ bool BanList::reload_ban(void)
 	if ((loaded = fopen(ban_filename, "r")))
 	{
 		std::string str_to_parse;
-		boost::char_separator < char >sep(" ");
+		const boost::char_separator<char> sep(" ");
 
-		DiskIo::read_line(loaded, str_to_parse, 1);
+		DiskIo::read_line(loaded, str_to_parse, true);
 		tokenizer tokens(str_to_parse, sep);
 
 		tokenizer::iterator tok_iter = tokens.begin();
@@ -779,7 +777,7 @@ bool BanList::reload_ban(void)
 		{
 			if (++tok_iter == tokens.end())
 			{
-				DiskIo::read_line(loaded, str_to_parse, 1);
+				DiskIo::read_line(loaded, str_to_parse, true);
 				tokens.assign(str_to_parse);
 			}
 		}
@@ -797,7 +795,7 @@ bool BanList::reload_ban(void)
 			}
 			else
 			{
-				DiskIo::read_line(loaded, str_to_parse, 1);
+				DiskIo::read_line(loaded, str_to_parse, true);
 				tokens.assign(str_to_parse);
 				continue;
 			}
@@ -806,13 +804,13 @@ bool BanList::reload_ban(void)
 			{
 				ptr->BannedIp = (*tok_iter);
 				// removing port specification i.e. 129.1.1.1:8080; :8080 is removed
-				std::string::size_type at = ptr->BannedIp.find_first_of(":");
+				const auto at = ptr->BannedIp.find_first_of(':');
 				if (at != std::string::npos)
 					ptr->BannedIp.erase(at);
 			}
 			else
 			{
-				DiskIo::read_line(loaded, str_to_parse, 1);
+				DiskIo::read_line(loaded, str_to_parse, true);
 				tokens.assign(str_to_parse);
 				continue;
 			}
@@ -823,7 +821,7 @@ bool BanList::reload_ban(void)
 			}
 			else
 			{
-				DiskIo::read_line(loaded, str_to_parse, 1);
+				DiskIo::read_line(loaded, str_to_parse, true);
 				tokens.assign(str_to_parse);
 				continue;
 			}
@@ -835,7 +833,7 @@ bool BanList::reload_ban(void)
 			}
 			else
 			{
-				DiskIo::read_line(loaded, str_to_parse, 1);
+				DiskIo::read_line(loaded, str_to_parse, true);
 				tokens.assign(str_to_parse);
 				continue;
 			}
@@ -847,7 +845,7 @@ bool BanList::reload_ban(void)
 			}
 			else
 			{
-				DiskIo::read_line(loaded, str_to_parse, 1);
+				DiskIo::read_line(loaded, str_to_parse, true);
 				tokens.assign(str_to_parse);
 				continue;
 			}
@@ -858,12 +856,12 @@ bool BanList::reload_ban(void)
 			}
 			else
 			{
-				DiskIo::read_line(loaded, str_to_parse, 1);
+				DiskIo::read_line(loaded, str_to_parse, true);
 				tokens.assign(str_to_parse);
 				continue;
 			}
 			Ban_List.push_front(ptr);
-			DiskIo::read_line(loaded, str_to_parse, 1);
+			DiskIo::read_line(loaded, str_to_parse, true);
 			tokens.assign(str_to_parse);
 		}
 		fclose(loaded);
@@ -894,21 +892,20 @@ bool BanList::reload_proxy_ban(int mode)
 	if (loaded)
 	{
 		std::string str_to_parse;
-		boost::char_separator < char >sep(" ");
-		tokenizer::iterator tok_iter;
+		const boost::char_separator<char> sep(" ");
 		tokenizer tokens(str_to_parse, sep);
 
-		while (DiskIo::read_line(loaded, str_to_parse, 1))
+		while (DiskIo::read_line(loaded, str_to_parse, true))
 		{
 			tokens.assign(str_to_parse);
-			tok_iter = tokens.begin();
+			auto tok_iter = tokens.begin();
 			ProxyBanNodePtr ptr(new struct ProxyBanNode);
 			ptr->BannerName = "Undefined";
 			if (tok_iter != tokens.end())
 			{
 				ptr->BannedIp = (*tok_iter);
 				// removing port specification i.e. 129.1.1.1:8080; :8080 is removed
-				std::string::size_type at = ptr->BannedIp.find_first_of(":");
+				const auto at = ptr->BannedIp.find_first_of(':');
 				if (at != std::string::npos)
 					ptr->BannedIp.erase(at);
 			}
@@ -919,7 +916,7 @@ bool BanList::reload_proxy_ban(int mode)
 //skip dupe
 			if (mode == RELOAD_MODE_TMPFILE)
 			{
-				std::list<ProxyBanNodePtr>::iterator i =
+				const auto i =
 					std::find_if(Proxy_Ban_List.begin(), Proxy_Ban_List.end(), [&](const ProxyBanNodePtr p)
 				{
 					return this->proxy_ban_compare(p, BAN_IP_COMPARE, &ptr->BannedIp);
@@ -956,12 +953,12 @@ bool BanList::save_ip(void)
 	FILE *loaded;
 	if ((loaded = fopen(ban_filename, "w")))
 	{
-		for (std::list < BanNodePtr >::iterator i = Ban_List.begin(); i != Ban_List.end(); i++)
+		for (const auto& it : Ban_List)
 		{
 			fprintf(loaded, "%s %s %ld %s %ld %s\n",
-					ban_types[(*i)->BanType], (*i)->BannedIp.c_str(),
-					static_cast<long int>((*i)->BanDate), (*i)->BannerName.c_str(),
-					static_cast<long int>((*i)->UnbanDate), (*i)->BanReason.c_str());
+					ban_types[it->BanType], it->BannedIp.c_str(),
+					static_cast<long int>(it->BanDate), it->BannerName.c_str(),
+					static_cast<long int>(it->UnbanDate), it->BanReason.c_str());
 		}
 		fclose(loaded);
 		return true;
@@ -975,9 +972,9 @@ bool BanList::save_proxy(void)
 	FILE *loaded;
 	if ((loaded = fopen(proxy_ban_filename, "w")))
 	{
-		for (std::list < ProxyBanNodePtr >::iterator i = Proxy_Ban_List.begin(); i != Proxy_Ban_List.end(); i++)
+		for (const auto& it : Proxy_Ban_List)
 		{
-			fprintf(loaded, "%s %s\n", (*i)->BannedIp.c_str(), (*i)->BannerName.c_str());
+			fprintf(loaded, "%s %s\n", it->BannedIp.c_str(), it->BannerName.c_str());
 		}
 		fclose(loaded);
 		return true;
@@ -1007,16 +1004,16 @@ void BanList::ShowBannedIp(int sort_mode, CHAR_DATA * ch)
 			"---------------------------------", "---------------------------------");
 	listbuf = str_add(listbuf, buf);
 
-	for (std::list < BanNodePtr >::iterator i = Ban_List.begin(); i != Ban_List.end(); i++)
+	for (const auto& i : Ban_List)
 	{
-		timestr = asctime(localtime(&((*i)->BanDate)));
+		timestr = asctime(localtime(&(i->BanDate)));
 		*(timestr + 10) = 0;
 		strcpy(to_unban, timestr);
-		sprintf(buff, "%ldh", static_cast<long int>((*i)->UnbanDate - time(NULL)) / 3600);
-		sprintf(buf, format, (*i)->BannedIp.c_str(), ban_types[(*i)->BanType],
-				to_unban, (*i)->BannerName.c_str(), buff);
+		sprintf(buff, "%ldh", static_cast<long int>(i->UnbanDate - time(NULL)) / 3600);
+		sprintf(buf, format, i->BannedIp.c_str(), ban_types[i->BanType],
+				to_unban, i->BannerName.c_str(), buff);
 		listbuf = str_add(listbuf, buf);
-		strcpy(buf, (*i)->BanReason.c_str());
+		strcpy(buf, i->BanReason.c_str());
 		strcat(buf, "\r\n");
 		listbuf = str_add(listbuf, buf);
 	}
@@ -1046,18 +1043,18 @@ void BanList::ShowBannedIpByMask(int sort_mode, CHAR_DATA * ch, const char *mask
 			"---------------------------------", "---------------------------------");
 	listbuf = str_add(listbuf, buf);
 
-	for (std::list < BanNodePtr >::iterator i = Ban_List.begin(); i != Ban_List.end(); i++)
+	for (const auto& i : Ban_List)
 	{
-		if (strncmp((*i)->BannedIp.c_str(), mask, strlen(mask)) == 0)
+		if (strncmp(i->BannedIp.c_str(), mask, strlen(mask)) == 0)
 		{
-			timestr = asctime(localtime(&((*i)->BanDate)));
+			timestr = asctime(localtime(&(i->BanDate)));
 			*(timestr + 10) = 0;
 			strcpy(to_unban, timestr);
-			sprintf(buff, "%ldh", static_cast<long int>((*i)->UnbanDate - time(NULL)) / 3600);
-			sprintf(buf, format, (*i)->BannedIp.c_str(), ban_types[(*i)->BanType],
-					to_unban, (*i)->BannerName.c_str(), buff);
+			sprintf(buff, "%ldh", static_cast<long int>(i->UnbanDate - time(NULL)) / 3600);
+			sprintf(buf, format, i->BannedIp.c_str(), ban_types[i->BanType],
+					to_unban, i->BannerName.c_str(), buff);
 			listbuf = str_add(listbuf, buf);
-			strcpy(buf, (*i)->BanReason.c_str());
+			strcpy(buf, i->BanReason.c_str());
 			strcat(buf, "\r\n");
 			listbuf = str_add(listbuf, buf);
 			is_find = TRUE;
@@ -1091,16 +1088,16 @@ void BanList::ShowBannedProxy(int sort_mode, CHAR_DATA * ch)
 
 	send_to_char(buf, ch);
 
-	for (std::list<ProxyBanNodePtr>::iterator i = Proxy_Ban_List.begin(); i != Proxy_Ban_List.end(); i++)
+	for (const auto& i : Proxy_Ban_List)
 	{
-		sprintf(buf, format, (*i)->BannedIp.c_str(), (*i)->BannerName.c_str());
+		sprintf(buf, format, i->BannedIp.c_str(), i->BannerName.c_str());
 		send_to_char(buf, ch);
 	}
 }
 
-int BanList::is_banned(std::string ip)
+int BanList::is_banned(const std::string& ip)
 {
-	std::list<ProxyBanNodePtr>::iterator i =
+	const auto i =
 		std::find_if(Proxy_Ban_List.begin(), Proxy_Ban_List.end(), [&](const ProxyBanNodePtr ptr)
 	{
 		return this->proxy_ban_compare(ptr, BAN_IP_COMPARE, &ip);
@@ -1109,7 +1106,7 @@ int BanList::is_banned(std::string ip)
 	if (i != Proxy_Ban_List.end())
 		return BAN_ALL;
 
-	std::list < BanNodePtr >::iterator j =
+	const auto j =
 		std::find_if(Ban_List.begin(), Ban_List.end(), [&](const BanNodePtr ptr)
 	{
 		return this->ban_compare(ptr, BAN_IP_COMPARE, &ip);
@@ -1130,9 +1127,9 @@ int BanList::is_banned(std::string ip)
 	return BAN_NO;
 }
 
-bool BanList::unban_ip(std::string ip, CHAR_DATA * ch)
+bool BanList::unban_ip(const std::string& ip, CHAR_DATA * ch)
 {
-	std::list < BanNodePtr >::iterator i =
+	const auto i =
 		std::find_if(Ban_List.begin(), Ban_List.end(), [&](const BanNodePtr ptr)
 	{
 		return this->ban_compare(ptr, BAN_IP_COMPARE, &ip);
@@ -1155,9 +1152,9 @@ bool BanList::unban_ip(std::string ip, CHAR_DATA * ch)
 	return false;
 }
 
-bool BanList::unban_proxy(std::string ip, CHAR_DATA * ch)
+bool BanList::unban_proxy(const std::string& ip, CHAR_DATA * ch)
 {
-	std::list<ProxyBanNodePtr>::iterator i =
+	const auto i =
 		std::find_if(Proxy_Ban_List.begin(), Proxy_Ban_List.end(), [&](const ProxyBanNodePtr ptr)
 	{
 		return this->proxy_ban_compare(ptr, BAN_IP_COMPARE, &ip);
@@ -1178,14 +1175,12 @@ bool BanList::unban_proxy(std::string ip, CHAR_DATA * ch)
 	return false;
 }
 
-bool BanList::unban(std::string Ip, CHAR_DATA * ch)
+bool BanList::unban(const std::string& Ip, CHAR_DATA * ch)
 {
-	bool flag1 = false, flag2 = false;
-	flag1 = unban_ip(Ip, ch);
-	flag2 = unban_proxy(Ip, ch);
-	if (flag1 || flag2)
-		return true;
-	return false;
+	const auto flag1 = unban_ip(Ip, ch);
+	const auto flag2 = unban_proxy(Ip, ch);
+
+	return flag1 || flag2;
 }
 
 bool BanList::empty_ip()
@@ -1221,9 +1216,9 @@ void BanList::purge_obsolete()
 		save_ip();
 }
 
-time_t BanList::getBanDate(std::string ip)
+time_t BanList::getBanDate(const std::string& ip)
 {
-	std::list<ProxyBanNodePtr>::iterator i =
+	const auto i =
 		std::find_if(Proxy_Ban_List.begin(), Proxy_Ban_List.end(), [&](const ProxyBanNodePtr ptr)
 	{
 		return this->proxy_ban_compare(ptr, BAN_IP_COMPARE, &ip);
@@ -1232,7 +1227,7 @@ time_t BanList::getBanDate(std::string ip)
 	if (i != Proxy_Ban_List.end())
 		return -1;	//infinite ban
 
-	std::list<BanNodePtr>::iterator j =
+	const auto j =
 		std::find_if(Ban_List.begin(), Ban_List.end(), [&](const BanNodePtr ptr)
 	{
 		return this->ban_compare(ptr, BAN_IP_COMPARE, &ip);
@@ -1247,11 +1242,9 @@ time_t BanList::getBanDate(std::string ip)
 
 }
 
-void BanList::disconnectBannedIp(std::string Ip)
+void BanList::disconnectBannedIp(const std::string& Ip)
 {
-	DESCRIPTOR_DATA *d;
-
-	for (d = descriptor_list; d; d = d->next)
+	for (auto d = descriptor_list; d; d = d->next)
 	{
 		if (d->host == Ip)
 		{
@@ -1288,7 +1281,7 @@ EmailListType email_list;
 // файл для соъхранения/лоада
 const char* REGISTERED_EMAIL_FILE = LIB_PLRSTUFF"registered-email.lst";
 // т.к. список потенциально может быть довольно большим, то сейвить бум только в случае изменений в add и remove
-bool need_save = 0;
+bool need_save = false;
 
 } // namespace RegisterSystem
 
@@ -1299,11 +1292,11 @@ void RegisterSystem::add(CHAR_DATA* ch, const char* text, const char* reason)
 	if (!text || !reason) return;
 	std::stringstream out;
 	out << GET_NAME(ch) << " -> " << text << " [" << reason << "]";
-	EmailListType::const_iterator it = email_list.find(GET_EMAIL(ch));
+	const auto it = email_list.find(GET_EMAIL(ch));
 	if (it == email_list.end())
 	{
 		email_list[GET_EMAIL(ch)] = out.str();
-		need_save = 1;
+		need_save = true;
 	}
 }
 
@@ -1314,13 +1307,13 @@ void RegisterSystem::add(CHAR_DATA* ch, const char* text, const char* reason)
 void RegisterSystem::remove(CHAR_DATA* ch)
 {
 	PLR_FLAGS(ch).unset(PLR_REGISTERED);
-	EmailListType::iterator it = email_list.find(GET_EMAIL(ch));
+	const auto it = email_list.find(GET_EMAIL(ch));
 	if (it != email_list.end())
 	{
 		email_list.erase(it);
 		if (ch->desc)
-			ch->desc->registered_email = 0;
-		need_save = 1;
+			ch->desc->registered_email = false;
+		need_save = true;
 	}
 }
 
@@ -1331,8 +1324,8 @@ void RegisterSystem::remove(CHAR_DATA* ch)
 bool RegisterSystem::is_registered(CHAR_DATA* ch)
 {
 	if (PLR_FLAGGED(ch, PLR_REGISTERED) || (ch->desc && ch->desc->registered_email))
-		return 1;
-	return 0;
+		return true;
+	return false;
 }
 
 /**
@@ -1341,10 +1334,10 @@ bool RegisterSystem::is_registered(CHAR_DATA* ch)
 */
 bool RegisterSystem::is_registered_email(const std::string& email)
 {
-	EmailListType::const_iterator it = email_list.find(email);
+	const auto it = email_list.find(email);
 	if (it != email_list.end())
-		return 1;
-	return 0;
+		return true;
+	return false;
 }
 
 /**
@@ -1353,7 +1346,7 @@ bool RegisterSystem::is_registered_email(const std::string& email)
 */
 const std::string RegisterSystem::show_comment(const std::string& email)
 {
-	EmailListType::const_iterator it = email_list.find(email);
+	const auto it = email_list.find(email);
 	if (it != email_list.end())
 		return it->second;
 	return "";
@@ -1394,7 +1387,7 @@ void RegisterSystem::save()
 	for (EmailListType::const_iterator it = email_list.begin(); it != email_list.end(); ++it)
 		file << it->first << "\n" << it->second << "\n";
 	file.close();
-	need_save = 0;
+	need_save = false;
 }
 
 // contains list of banned ip's and proxies + interface

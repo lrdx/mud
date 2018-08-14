@@ -10,13 +10,8 @@
 #ifndef __BAN_HPP__
 #define __BAN_HPP__
 
-#include "conf.h"
-#include "diskio.h"
-
 #include <string>
 #include <list>
-#include <algorithm>
-#include <sys/types.h>
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -90,37 +85,28 @@ public:
 
 	BanList();
 //methods
-	time_t getBanDate(std::string Ip);
-	bool add_ban(std::string BannedIp, std::string BanReason, std::string BannerName, int UnbanDate, int BanType);
-	bool add_proxy_ban(std::string BannedIp, std::string BannerName);
-	bool unban(std::string Ip, CHAR_DATA *ch);
-	bool unban_ip(std::string Ip, CHAR_DATA *ch);
-	bool unban_proxy(std::string ProxyIp, CHAR_DATA *ch);
-	int
-	is_banned(std::string Ip);
+	time_t getBanDate(const std::string& Ip);
+	bool add_ban(const std::string& BannedIp, const std::string& BanReason, const std::string& BannerName, int UnbanDate, int BanType);
+	bool add_proxy_ban(const std::string& BannedIp, const std::string& BannerName);
+	bool unban(const std::string& Ip, CHAR_DATA *ch);
+	bool unban_ip(const std::string& Ip, CHAR_DATA *ch);
+	bool unban_proxy(const std::string& ProxyIp, CHAR_DATA *ch);
+	int	is_banned(const std::string& Ip);
 	bool reload_ban();
 	bool reload_proxy_ban(int mode);
 	bool save_ip();
 	bool save_proxy();
-	void
-	sort_ip(int sort_algorithm);
-	void
-	sort_proxy(int sort_algorithm);
+	void sort_ip(int sort_algorithm);
+	void sort_proxy(int sort_algorithm);
 	bool empty_ip();
 	bool empty_proxy();
-	void
-	clear_all();
-	void
-	purge_obsolete();
-	void
-	disconnectBannedIp(std::string Ip);
+	void clear_all();
+	void purge_obsolete();
+	void disconnectBannedIp(const std::string& Ip);
 //////////////////////////////////////////////////////////////////////////////
-	void
-	ShowBannedIp(int sort_mode, CHAR_DATA *ch);
-	void
-	ShowBannedProxy(int sort_mode, CHAR_DATA *ch);
-	void
-	ShowBannedIpByMask(int sort_mode, CHAR_DATA *ch, const char *mask);
+	void ShowBannedIp(int sort_mode, CHAR_DATA *ch);
+	void ShowBannedProxy(int sort_mode, CHAR_DATA *ch);
+	void ShowBannedIpByMask(int sort_mode, CHAR_DATA *ch, const char *mask);
 //////////////////////////////////////////////////////////////////////////////
 private:
 	std::list < BanNodePtr > Ban_List;

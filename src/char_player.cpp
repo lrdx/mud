@@ -9,7 +9,6 @@
 #include "db.h"
 #include "dg_scripts.h"
 #include "handler.h"
-#include "boards.h"
 #include "file_crc.hpp"
 #include "spells.h"
 #include "constants.h"
@@ -17,7 +16,6 @@
 #include "ignores.loader.hpp"
 #include "im.h"
 #include "olc.h"
-#include "comm.h"
 #include "pk.h"
 #include "diskio.h"
 #include "interpreter.h"
@@ -26,7 +24,6 @@
 #include "player_races.hpp"
 #include "morph.hpp"
 #include "features.hpp"
-#include "screen.h"
 #include "ext_money.hpp"
 #include "temp_spells.hpp"
 #include "conf.h"
@@ -221,7 +218,7 @@ void Player::set_last_tell(const char *text)
 
 void Player::str_to_cities(std::string str)
 {
-	decltype(cities) tmp_bitset(str);
+	const decltype(cities) tmp_bitset(str);
 	this->cities = tmp_bitset;
 }
 
@@ -517,9 +514,9 @@ void Player::save_char()
 		fprintf(saved, "NmP : %s\n", GET_PAD(this, 5));
 	if (!this->get_passwd().empty())
 		fprintf(saved, "Pass: %s\n", this->get_passwd().c_str());
-	if (this->get_title() != "")
+	if (!this->get_title().empty())
 		fprintf(saved, "Titl: %s\n", this->player_data.title.c_str());
-	if (this->player_data.description != "")
+	if (!this->player_data.description.empty())
 	{
 		strcpy(buf, this->player_data.description.c_str());
 		kill_ems(buf);
@@ -624,9 +621,9 @@ void Player::save_char()
 	if (GET_LEVEL(this) < LVL_IMMORT && GET_CLASS(this) != CLASS_DRUID)
 	{
 		fprintf(saved, "TSpl:\n");
-		for (auto it = this->temp_spells.begin(); it != this->temp_spells.end(); ++it)
+		for (const auto& it : this->temp_spells)
 		{
-			fprintf(saved, "%d %ld %ld %s\n", it->first, static_cast<long int>(it->second.set_time), static_cast<long int>(it->second.duration), spell_info[it->first].name);
+			fprintf(saved, "%d %ld %ld %s\n", it.first, static_cast<long int>(it.second.set_time), static_cast<long int>(it.second.duration), spell_info[it.first].name);
 		}
 		fprintf(saved, "0 0 0\n");
 	}
@@ -1000,7 +997,7 @@ int Player::load_char_ascii(const char *name, bool reboot, const bool find_id /*
 	GET_EMAIL(this)[0] = 0;
 	PLR_FLAGS(this).from_string("");	// suspicious line: we should clear flags.. Loading from "" does not clear flags.
 
-	bool skip_file = 0;
+	bool skip_file = false;
 
 	do
 	{
@@ -1089,7 +1086,7 @@ int Player::load_char_ascii(const char *name, bool reboot, const bool find_id /*
 			break;
 		case 'R':
 			if (!strcmp(tag, "Rebt"))
-				skip_file = 1;
+				skip_file = true;
 			else if (!strcmp(tag, "Rmrt"))
 			{
 				set_remort(num);
@@ -1421,7 +1418,7 @@ int Player::load_char_ascii(const char *name, bool reboot, const bool find_id /*
 			}
 			else if (!strcmp(tag, "Disp"))
 			{
-				std::bitset<DIS_TOTAL_NUM> tmp_flags(lnum);
+				const std::bitset<DIS_TOTAL_NUM> tmp_flags(lnum);
 				disposable_flags_ = tmp_flags;
 			}
 			else if (!strcmp(tag, "Dex "))
@@ -1603,8 +1600,8 @@ int Player::load_char_ascii(const char *name, bool reboot, const bool find_id /*
 			}
 			else if (!strcmp(tag, "Map "))
 			{
-				std::string str(line);
-				std::bitset<MapSystem::TOTAL_MAP_OPTIONS> tmp(str);
+				const std::string str(line);
+				const std::bitset<MapSystem::TOTAL_MAP_OPTIONS> tmp(str);
 				map_options_.bit_list_ = tmp;
 			}
 			else if (!strcmp(tag, "Move"))
@@ -2070,7 +2067,7 @@ void Player::set_motion(bool flag)
 
 void Player::map_olc()
 {
-	std::shared_ptr<MapSystem::Options> tmp(new MapSystem::Options);
+	const std::shared_ptr<MapSystem::Options> tmp(new MapSystem::Options);
 	this->desc->map_options = tmp;
 
 	*(this->desc->map_options) = map_options_;
@@ -2145,7 +2142,7 @@ void Player::set_ext_money(unsigned type, int num, bool write_log)
 
 int Player::get_today_torc()
 {
-	uint8_t day = get_day_today();
+	const uint8_t day = get_day_today();
 	if (today_torc_.first != day)
 	{
 		today_torc_.first = day;
@@ -2157,7 +2154,7 @@ int Player::get_today_torc()
 
 void Player::add_today_torc(int num)
 {
-	uint8_t day = get_day_today();
+	const uint8_t day = get_day_today();
 	if (today_torc_.first == day)
 	{
 		today_torc_.second += num;
@@ -2230,7 +2227,7 @@ bool Player::add_percent_daily_quest(int id, int percent)
 int Player::death_player_count()
 {
 	const int zone_vnum = zone_table[world[this->in_room]->zone].number;
-	auto it = this->count_death_zone.find(zone_vnum);
+	const auto it = this->count_death_zone.find(zone_vnum);
 	if (it != this->count_death_zone.end())
 	{
 		count_death_zone.at(zone_vnum) += 1;
@@ -2267,7 +2264,7 @@ namespace PlayerSystem
 ///
 int con_natural_hp(CHAR_DATA *ch)
 {
-	double add_hp_per_level = class_app[GET_CLASS(ch)].base_con
+	const double add_hp_per_level = class_app[GET_CLASS(ch)].base_con
 		+ (VPOSI_MOB(ch, 2, ch->get_con()) - class_app[GET_CLASS(ch)].base_con)
 		* class_app[GET_CLASS(ch)].koef_con / 100.0 + 3;
 	return 10 + static_cast<int>(add_hp_per_level * GET_LEVEL(ch));
@@ -2278,7 +2275,7 @@ int con_natural_hp(CHAR_DATA *ch)
 ///
 int con_add_hp(CHAR_DATA *ch)
 {
-	int con_add = MAX(0, GET_REAL_CON(ch) - ch->get_con());
+	const int con_add = MAX(0, GET_REAL_CON(ch) - ch->get_con());
 	return class_app[(int)GET_CLASS(ch)].koef_con * con_add * GET_LEVEL(ch) / 100;
 }
 

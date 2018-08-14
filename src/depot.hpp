@@ -8,7 +8,6 @@
 #include "obj.hpp"
 #include "structs.h"
 #include "sysdep.h"
-#include "conf.h"
 
 #include <string>
 #include <set>
@@ -37,7 +36,7 @@ void enter_char(CHAR_DATA *ch);
 void exit_char(CHAR_DATA *ch);
 void reload_char(long uid, CHAR_DATA *ch);
 
-int print_spell_locate_object(CHAR_DATA *ch, int count, std::string name);
+int print_spell_locate_object(CHAR_DATA *ch, int count, const std::string& name);
 void show_purged_message(CHAR_DATA *ch);
 int print_imm_where_obj(CHAR_DATA *ch, char *arg, int num);
 OBJ_DATA * locate_object(const char *str);

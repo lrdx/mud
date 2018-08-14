@@ -7,10 +7,10 @@
 *  $Revision$                                                     *
 ************************************************************************ */
 
-#include "conf.h"
-#include "sysdep.h"
+#ifndef __LIQUID_HPP__
+#define __LIQUID_HPP__
+
 #include "structs.h"
-#include "interpreter.h"
 
 extern const int LIQ_WATER;
 extern const int LIQ_BEER;
@@ -66,5 +66,7 @@ std::string print_spells(CHAR_DATA *ch, const OBJ_DATA *obj);
 void copy_potion_values(const CObjectPrototype *from_obj, CObjectPrototype *to_obj);
 
 } // namespace drinkcon
+
+#endif	// __LIQUID_HPP__
 
 // vim: ts=4 sw=4 tw=0 noet syntax=cpp :

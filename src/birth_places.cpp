@@ -4,12 +4,9 @@
 #include "conf.h"
 #include "sysdep.h"
 #include "utils.h"
-#include "comm.h"
 #include "interpreter.h"
 #include "birth_places.hpp"
-#include "pugixml.hpp"
 
-#include <algorithm>
 #include <sstream>
 
 const char *DEFAULT_RENT_HELP = "Попроси нашего кладовщика помочь тебе с экипировкой и припасами.";
@@ -59,9 +56,13 @@ void BirthPlace::Load(pugi::xml_node XMLBirthPlaceList)
 BirthPlacePtr BirthPlace::GetBirthPlaceById(short Id)
 {
     BirthPlacePtr BPPtr;
-    for (BirthPlaceListType::iterator it =  BirthPlaceList.begin();it != BirthPlaceList.end();++it)
-        if (Id == (*it)->Id())
-            BPPtr = *it;
+	for (const auto& it : BirthPlaceList)
+	{
+		if (Id == it->Id())
+		{
+			BPPtr = it;
+		}
+	}
 
     return BPPtr;
 };
@@ -80,7 +81,7 @@ int BirthPlace::GetLoadRoom(short Id)
 std::vector<int> BirthPlace::GetItemList(short Id)
 {
     std::vector<int> BirthPlaceItemList;
-    BirthPlacePtr BPPtr = BirthPlace::GetBirthPlaceById(Id);
+	const auto BPPtr = BirthPlace::GetBirthPlaceById(Id);
     if (BPPtr)
         BirthPlaceItemList = BPPtr->ItemsList();
 
@@ -104,9 +105,9 @@ std::string BirthPlace::ShowMenu(std::vector<int> BPList)
     BirthPlacePtr BPPtr;
     std::ostringstream buffer;
     i = 1;
-    for (std::vector<int>::iterator it = BPList.begin();it != BPList.end();++it)
+    for (const auto& it : BPList)
     {
-        BPPtr = BirthPlace::GetBirthPlaceById(*it);
+        BPPtr = BirthPlace::GetBirthPlaceById(it);
         if (BPPtr != NULL)
         {
             buffer << " " << i << ") " << BPPtr->_MenuStr << "\r\n";
@@ -123,10 +124,14 @@ short BirthPlace::ParseSelect(char *arg)
 {
     std::string select = arg;
     lower_convert(select);
-//    std::transform(select.begin(), select.end(), select.begin(), _tolower);
-    for (BirthPlaceListType::iterator it = BirthPlaceList.begin();it != BirthPlaceList.end();++it)
-        if (select == (*it)->Description())
-            return (*it)->Id();
+
+	for (const auto& it : BirthPlaceList)
+	{
+		if (select == it->Description())
+		{
+			return it->Id();
+		}
+	}
 
     return BIRTH_PLACE_UNDEFINED;
 };
@@ -134,7 +139,7 @@ short BirthPlace::ParseSelect(char *arg)
 // Проверка наличия точки входа с указанным ID
 bool BirthPlace::CheckId(short Id)
 {
-    BirthPlacePtr BPPtr = BirthPlace::GetBirthPlaceById(Id);
+	const auto BPPtr = BirthPlace::GetBirthPlaceById(Id);
     if (BPPtr != NULL)
         return true;
 
@@ -143,11 +148,11 @@ bool BirthPlace::CheckId(short Id)
 
 int BirthPlace::GetIdByRoom(int room_vnum)
 {
-    for (auto i = BirthPlaceList.begin(); i != BirthPlaceList.end(); ++i)
+    for (const auto& i : BirthPlaceList)
 	{
-        if ((*i)->LoadRoom() / 100 == room_vnum / 100)
+        if (i->LoadRoom() / 100 == room_vnum / 100)
 		{
-			return (*i)->Id();
+			return i->Id();
 		}
 	}
 	return -1;

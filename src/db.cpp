@@ -36,7 +36,6 @@
 #include "corpse.hpp"
 #include "deathtrap.hpp"
 #include "depot.hpp"
-#include "dg_db_scripts.hpp"
 #include "dg_scripts.h"
 #include "ext_money.hpp"
 #include "fight.h"
@@ -72,6 +71,7 @@
 
 #include <sys/stat.h>
 
+#include <fstream>
 #include <sstream>
 #include <string>
 #include <cmath>
@@ -195,7 +195,6 @@ int mobs_in_room(int m_num, int r_num);
 void new_build_player_index(void);
 void renum_obj_zone(void);
 void renum_mob_zone(void);
-int get_zone_rooms(int, int *, int *);
 void init_guilds(void);
 void init_basic_values(void);
 void init_portals(void);
@@ -205,12 +204,10 @@ void load_guardians();
 
 // external functions
 TIME_INFO_DATA *mud_time_passed(time_t t2, time_t t1);
-void free_alias(struct alias_data *a);
 void load_messages(void);
 void mag_assign_spells(void);
 void sort_commands(void);
 void Read_Invalid_List(void);
-int find_name(const char *name);
 int csort(const void *a, const void *b);
 void prune_crlf(char *txt);
 int Crash_read_timer(const std::size_t index, int temp);
@@ -241,35 +238,36 @@ extern room_vnum frozen_start_room;
 extern room_vnum helled_start_room;
 extern room_vnum named_start_room;
 extern room_vnum unreg_start_room;
-extern DESCRIPTOR_DATA *descriptor_list;
 extern struct month_temperature_type year_temp[];
 extern const char *pc_class_types[];
 extern char *house_rank[];
 extern struct pclean_criteria_data pclean_criteria[];
-extern int class_stats_limit[NUM_PLAYER_CLASSES][6];
 extern void LoadProxyList();
 extern void add_karma(CHAR_DATA * ch, const char * punish , const char * reason);
 
-int strchrn (const char *s, int c) {
-	
- int n=-1;
- while (*s) {
-  n++;
-  if (*s==c) return n;
-  s++;
- }
- return -1;
+int strchrn(const char *s, int c)
+{
+	int n = -1;
+	while (*s) {
+		n++;
+		if (*s == c) return n;
+		s++;
+	}
+	return -1;
 }
 
 
 // поиск подстроки
-int strchrs(const char *s, const char *t) { 
- while (*t) {
-  int r=strchrn(s,*t);
-  if (r>-1) return r;
-  t++;
- }
- return -1;
+int strchrs(const char *s, const char *t)
+{
+	while (*t) 
+	{
+		const int r = strchrn(s, *t);
+		if (r > -1) return r;
+		t++;
+	}
+
+	return -1;
 }
 
 
@@ -473,12 +471,12 @@ bool check_unlimited_timer(const CObjectPrototype* obj)
 	if (obj->get_minimum_remorts() > 0)
 		return false;
 	// проверяем дырки в предмете
-	 if (obj->get_extra_flag(EExtraFlag::ITEM_WITH1SLOT)
-		 || obj->get_extra_flag(EExtraFlag::ITEM_WITH2SLOTS)
-		 || obj->get_extra_flag(EExtraFlag::ITEM_WITH3SLOTS))
-	 {
-		 return false;
-	 }
+	if (obj->get_extra_flag(EExtraFlag::ITEM_WITH1SLOT)
+		|| obj->get_extra_flag(EExtraFlag::ITEM_WITH2SLOTS)
+		|| obj->get_extra_flag(EExtraFlag::ITEM_WITH3SLOTS))
+	{
+		return false;
+	}
 	// если у объекта таймер ноль, то облом. 
 	if (obj->get_timer() == 0)
 	{
@@ -491,27 +489,27 @@ bool check_unlimited_timer(const CObjectPrototype* obj)
 		{
 			sprinttype(obj->get_affected(i).location, apply_types, buf_temp);
 			// проходим по нашей таблице с критериями
-			for (std::map<std::string, double>::iterator it = items_struct[item_wear].params.begin(); it != items_struct[item_wear].params.end(); it++)
+			for (const auto& it : items_struct[item_wear].params)
 			{
-				if (strcmp(it->first.c_str(), buf_temp) == 0)
+				if (strcmp(it.first.c_str(), buf_temp) == 0)
 				{
 					if (obj->get_affected(i).modifier > 0)
 					{
-						sum += it->second * obj->get_affected(i).modifier;
+						sum += it.second * obj->get_affected(i).modifier;
 					}
 				}
 			}
 		}
 	}
 	obj->get_affect_flags().sprintbits(weapon_affects, buf_temp1, ",");
-	
+
 	// проходим по всем аффектам в нашей таблице
-	for(std::map<std::string, double>::iterator it = items_struct[item_wear].affects.begin(); it != items_struct[item_wear].affects.end(); it++) 
+	for (const auto& it : items_struct[item_wear].affects)
 	{
 		// проверяем, есть ли наш аффект на предмете
-		if (strstr(buf_temp1, it->first.c_str()) != NULL)
+		if (strstr(buf_temp1, it.first.c_str()) != NULL)
 		{
-			sum_aff += it->second;
+			sum_aff += it.second;
 		}
 		//std::cout << it->first << " " << it->second << std::endl;
 	}
@@ -546,14 +544,14 @@ float count_koef_obj(const CObjectPrototype *obj,int item_wear)
 		{
 			sprinttype(obj->get_affected(i).location, apply_types, buf_temp);
 			// проходим по нашей таблице с критериями
-			for (std::map<std::string, double>::iterator it = items_struct[item_wear].params.begin(); it != items_struct[item_wear].params.end(); it++)
+			for (const auto& it : items_struct[item_wear].params)
 			{
 
-				if (strcmp(it->first.c_str(), buf_temp) == 0)
+				if (strcmp(it.first.c_str(), buf_temp) == 0)
 				{
 					if (obj->get_affected(i).modifier > 0)
 					{
-						sum += it->second * obj->get_affected(i).modifier;
+						sum += it.second * obj->get_affected(i).modifier;
 					}
 				}
 
@@ -564,12 +562,12 @@ float count_koef_obj(const CObjectPrototype *obj,int item_wear)
 	obj->get_affect_flags().sprintbits(weapon_affects, buf_temp1, ",");
 	
 	// проходим по всем аффектам в нашей таблице
-	for(std::map<std::string, double>::iterator it = items_struct[item_wear].affects.begin(); it != items_struct[item_wear].affects.end(); it++) 
+	for (const auto& it : items_struct[item_wear].affects)
 	{
 		// проверяем, есть ли наш аффект на предмете
-		if (strstr(buf_temp1, it->first.c_str()) != NULL)
+		if (strstr(buf_temp1, it.first.c_str()) != NULL)
 		{
-			sum_aff += it->second;
+			sum_aff += it.second;
 		}
 		//std::cout << it->first << " " << it->second << std::endl;
 	}
@@ -720,7 +718,7 @@ float count_mort_requred(const CObjectPrototype *obj)
 			(obj->get_affected(k).location != APPLY_SAVING_STABILITY) &&
 			(obj->get_affected(k).location != APPLY_SAVING_REFLEX)))
 		{
-			float weight = ObjSystem::count_affect_weight(obj, obj->get_affected(k).location, obj->get_affected(k).modifier);
+			const float weight = ObjSystem::count_affect_weight(obj, obj->get_affected(k).location, obj->get_affected(k).modifier);
 			total_weight += pow(weight, SQRT_MOD);
 		}
 		// савесы которые с минусом должны тогда понижать вес если в +
@@ -730,7 +728,7 @@ float count_mort_requred(const CObjectPrototype *obj)
 			(obj->get_affected(k).location == APPLY_SAVING_STABILITY) ||
 			(obj->get_affected(k).location == APPLY_SAVING_REFLEX)))
 		{
-			float weight = ObjSystem::count_affect_weight(obj, obj->get_affected(k).location, 0 - obj->get_affected(k).modifier);
+			const float weight = ObjSystem::count_affect_weight(obj, obj->get_affected(k).location, 0 - obj->get_affected(k).modifier);
 			total_weight -= pow(weight, -SQRT_MOD);
 		}
 		//Добавленый кусок учет савесов с - значениями
@@ -741,7 +739,7 @@ float count_mort_requred(const CObjectPrototype *obj)
 				(obj->get_affected(k).location == APPLY_SAVING_STABILITY) ||
 				(obj->get_affected(k).location == APPLY_SAVING_REFLEX)))
 		{
-			float weight = ObjSystem::count_affect_weight(obj, obj->get_affected(k).location, obj->get_affected(k).modifier);
+			const float weight = ObjSystem::count_affect_weight(obj, obj->get_affected(k).location, obj->get_affected(k).modifier);
 			total_weight += pow(weight, SQRT_MOD);
 		}
 		//Добавленый кусок учет отрицательного значения но не савесов
@@ -752,7 +750,7 @@ float count_mort_requred(const CObjectPrototype *obj)
 				(obj->get_affected(k).location != APPLY_SAVING_STABILITY) &&
 				(obj->get_affected(k).location != APPLY_SAVING_REFLEX)))
 		{
-			float weight = ObjSystem::count_affect_weight(obj, obj->get_affected(k).location, 0 - obj->get_affected(k).modifier);
+			const float weight = ObjSystem::count_affect_weight(obj, obj->get_affected(k).location, 0 - obj->get_affected(k).modifier);
 			total_weight -= pow(weight, -SQRT_MOD);
 		}
 	}
@@ -794,7 +792,7 @@ float count_mort_requred(const CObjectPrototype *obj)
 
 void Load_Criterion(pugi::xml_node XMLCriterion, const EWearFlag type)
 {
-	int index = exp_two(type);
+	const int index = exp_two(type);
 	pugi::xml_node params, CurNode, affects;
 	params = XMLCriterion.child("params");
 	affects = XMLCriterion.child("affects");
@@ -1209,7 +1207,7 @@ void do_reboot(CHAR_DATA *ch, char *argument, int/* cmd*/, int/* subcmd*/)
 		skip_spaces(&argument);
 		if (*argument)
 		{
-			long uid = GetUniqueByName(std::string(argument));
+			const long uid = GetUniqueByName(std::string(argument));
 			if (uid > 0)
 			{
 				Depot::reload_char(uid, ch);
@@ -1383,7 +1381,7 @@ int convert_drinkcon_skill(CObjectPrototype *obj, bool proto)
 void convert_obj_values()
 {
 	int save = 0;
-	for (const auto i : obj_proto)
+	for (const auto& i : obj_proto)
 	{
 		save = std::max(save, convert_drinkcon_skill(i.get(), true));
 		if (i->get_extra_flag(EExtraFlag::ITEM_1INLAID))
@@ -1632,7 +1630,7 @@ void OBJ_DATA::init_set_table()
 
 		getline(fp, cppstr);
 
-		std::string::size_type i = cppstr.find(';');
+		const auto i = cppstr.find(';');
 		if (i != std::string::npos)
 			cppstr.erase(i);
 		reverse(cppstr.begin(), cppstr.end());
@@ -1694,7 +1692,7 @@ void OBJ_DATA::init_set_table()
 				continue;
 			}
 
-			std::pair< id_to_set_info_map::iterator, bool > p = OBJ_DATA::set_table.insert(std::make_pair(tmpsnum, set_info()));
+			const auto p = OBJ_DATA::set_table.insert(std::make_pair(tmpsnum, set_info()));
 
 			if (!p.second)
 			{
@@ -1801,7 +1799,7 @@ void OBJ_DATA::init_set_table()
 					continue;
 				}
 
-				obj_affected_type tmpafcn(static_cast<EApplyLocation>(tmploc), (sbyte)tmpmodi);
+				const obj_affected_type tmpafcn(static_cast<EApplyLocation>(tmploc), (sbyte)tmpmodi);
 
 				if (!isstream.eof())
 				{
@@ -1898,7 +1896,7 @@ void OBJ_DATA::init_set_table()
 					}
 				}
 
-				std::pair< class_to_act_map::iterator, bool > p = oqty->second.insert(std::make_pair(tmpclss, activation()));
+				const auto p = oqty->second.insert(std::make_pair(tmpclss, activation()));
 
 				if (!p.second)
 				{
@@ -2008,7 +2006,7 @@ void OBJ_DATA::init_set_table()
 					continue;
 				}
 
-				std::pair< qty_to_camap_map::iterator, bool > p = vnum->second.insert(std::make_pair(tmpoqty, class_to_act_map()));
+				const auto p = vnum->second.insert(std::make_pair(tmpoqty, class_to_act_map()));
 
 				if (!p.second)
 				{
@@ -2274,7 +2272,7 @@ bool can_snoop(CHAR_DATA *imm, CHAR_DATA *vict)
 	for (ClanMailType::const_iterator i = clan_list.begin(),
 		iend = clan_list.end(); i != iend; ++i)
 	{
-		std::set<std::string>::const_iterator k = i->second.find(GET_EMAIL(imm));
+		const auto k = i->second.find(GET_EMAIL(imm));
 		if (k != i->second.end() && CLAN(vict)->CheckPolitics(i->first) == POLITICS_WAR)
 		{
 			return false;
@@ -3104,7 +3102,7 @@ int trans_obj_name(OBJ_DATA * obj, CHAR_DATA * ch)
 	for (i = 0; i < CObjectPrototype::NUM_PADS; i++)
 	{
 		std::string obj_pad = GET_OBJ_PNAME(obj_proto[GET_OBJ_RNUM(obj)], i);
-		size_t j = obj_pad.find("@p");
+		const size_t j = obj_pad.find("@p");
 		if (std::string::npos != j && 0 < j)
 		{
 			// Родитель найден прописываем его.
@@ -3413,7 +3411,7 @@ void set_test_data(CHAR_DATA *mob)
 							GET_CAST_SUCCESS(mob) = min_cast;
 						}
 
-						int min_absorbe = calc_boss_value(mob, mob->get_level());
+						const int min_absorbe = calc_boss_value(mob, mob->get_level());
 						if (GET_ABSORBE(mob) < min_absorbe)
 						{
 							GET_ABSORBE(mob) = min_absorbe;
@@ -3463,14 +3461,14 @@ int vnum_object(char *searchname, CHAR_DATA * ch)
 {
 	int found = 0;
 
-	for (size_t nr = 0; nr < obj_proto.size(); nr++)
+	for (const auto& obj : obj_proto)
 	{
-		if (isname(searchname, obj_proto[nr]->get_aliases()))
+		if (isname(searchname, obj->get_aliases()))
 		{
 			++found;
 			sprintf(buf, "%3d. [%5d] %s\r\n",
-				found, obj_proto[nr]->get_vnum(),
-				obj_proto[nr]->get_short_description().c_str());
+				found, obj->get_vnum(),
+				obj->get_short_description().c_str());
 			send_to_char(buf, ch);
 		}
 	}
@@ -3509,7 +3507,7 @@ int vnum_flag(char *searchname, CHAR_DATA * ch)
 
 	if (f)
 	{
-		for (const auto i : obj_proto)
+		for (const auto& i : obj_proto)
 		{
 			if (i->get_extra_flag(plane, 1 << plane_offset))
 			{
@@ -3531,7 +3529,7 @@ int vnum_flag(char *searchname, CHAR_DATA * ch)
 	}
 	if (f)
 	{
-		for (const auto i : obj_proto)
+		for (const auto& i : obj_proto)
 		{
 			for (plane = 0; plane < MAX_OBJ_AFFECT; plane++)
 			{
@@ -3566,7 +3564,7 @@ int vnum_flag(char *searchname, CHAR_DATA * ch)
 	}
 	if (f)
 	{
-		for (const auto i : obj_proto)
+		for (const auto& i : obj_proto)
 		{
 			if (i->get_affect_flags().get_flag(plane, 1 << plane_offset))
 			{
@@ -3590,11 +3588,11 @@ int vnum_flag(char *searchname, CHAR_DATA * ch)
 	}
 	if (f)
 	{
-		for (const auto i : obj_proto)
+		for (const auto& i : obj_proto)
 		{
 			if (i->has_skills())
 			{
-				auto it = i->get_skills().find(static_cast<ESkill>(counter));
+				const auto it = i->get_skills().find(static_cast<ESkill>(counter));
 				if (it != i->get_skills().end())
 				{
 					snprintf(buf, MAX_STRING_LENGTH, "%3d. [%5d] %s : %s,  значение: %d\r\n",
@@ -3737,7 +3735,7 @@ CHAR_DATA *read_mobile(mob_vnum nr, int type)
 			number(mob->points.hit, GET_MEM_TOTAL(mob)));
 	}
 
-	int test_hp = get_test_hp(GET_LEVEL(mob));
+	const int test_hp = get_test_hp(GET_LEVEL(mob));
 	if (GET_EXP(mob) > 0 && mob->points.max_hit < test_hp)
 	{
 //		log("hp: (%s) %d -> %d", GET_NAME(mob), mob->points.max_hit, test_hp);
@@ -3780,7 +3778,7 @@ CHAR_DATA *read_mobile(mob_vnum nr, int type)
 	}
 
 //Polud - поставим флаг стражнику
-	guardian_type::iterator it = guardian_list.find(GET_MOB_VNUM(mob));
+	const auto it = guardian_list.find(GET_MOB_VNUM(mob));
 	if (it != guardian_list.end())
 	{
 		MOB_FLAGS(mob).set(MOB_GUARDIAN);
@@ -4249,21 +4247,18 @@ void log_zone_error(zone_rnum zone, int cmd_no, const char *message)
 
 void process_load_celebrate(Celebrates::CelebrateDataPtr celebrate, int vnum)
 {
-	Celebrates::CelebrateRoomsList::iterator room;
-	Celebrates::LoadList::iterator load, load_in;
-
 	log("Processing celebrate %s load section for zone %d", celebrate->name.c_str(), vnum);
 
 	if (celebrate->rooms.find(vnum) != celebrate->rooms.end())
 	{
-		for (room = celebrate->rooms[vnum].begin();room != celebrate->rooms[vnum].end(); ++room)
+		for (const auto& room : celebrate->rooms[vnum])
 		{
-			room_rnum rn = real_room((*room)->vnum);
+			const auto rn = real_room(room->vnum);
 			if ( rn != NOWHERE)
 			{
-				for (Celebrates::TrigList::iterator it = (*room)->triggers.begin(); it != (*room)->triggers.end(); ++it)
+				for (const auto& it : room->triggers)
 				{
-					auto trig = read_trigger(real_trigger(*it));
+					const auto trig = read_trigger(real_trigger(it));
 					if (!add_trigger(world[rn]->script.get(), trig, -1))
 					{
 						extract_trigger(trig);
@@ -4271,44 +4266,41 @@ void process_load_celebrate(Celebrates::CelebrateDataPtr celebrate, int vnum)
 				}
 			}
 
-			for (load = (*room)->mobs.begin(); load != (*room)->mobs.end(); ++load)
+			for (const auto& load : room->mobs)
 			{
-				CHAR_DATA* mob;
-				int i = real_mobile((*load)->vnum);
+				const int i = real_mobile(load->vnum);
 				if (i > 0
-					&& mob_index[i].number < (*load)->max)
+					&& mob_index[i].number < load->max)
 				{
-					mob = read_mobile(i, REAL);
+					const auto mob = read_mobile(i, REAL);
 					if (mob)
 					{
-						for (Celebrates::TrigList::iterator it = (*load)->triggers.begin();
-							it != (*load)->triggers.end(); ++it)
+						for (const auto& it : load->triggers)
 						{
-							auto trig = read_trigger(real_trigger(*it));
+							const auto trig = read_trigger(real_trigger(it));
 							if (!add_trigger(SCRIPT(mob).get(), trig, -1))
 							{
 								extract_trigger(trig);
 							}
 						}
 						load_mtrigger(mob);
-						char_to_room(mob, real_room((*room)->vnum));
+						char_to_room(mob, real_room(room->vnum));
 						Celebrates::add_mob_to_load_list(mob->id, mob);
-						for (load_in = (*load)->objects.begin(); load_in != (*load)->objects.end(); ++load_in)
+						for (const auto& load_in : load->objects)
 						{
-							obj_rnum rnum = real_object((*load_in)->vnum);
+							const auto rnum = real_object(load_in->vnum);
 
 							if (obj_proto.actual_count(rnum) < obj_proto[rnum]->get_max_in_world())
 							{
-								const auto obj = world_objects.create_from_prototype_by_vnum((*load_in)->vnum);
+								const auto obj = world_objects.create_from_prototype_by_vnum(load_in->vnum);
 								if (obj)
 			 					{
 									obj_to_char(obj.get(), mob);
 									obj->set_zone(world[IN_ROOM(mob)]->zone);
 
-									for (Celebrates::TrigList::iterator it = (*load_in)->triggers.begin();
-											it != (*load_in)->triggers.end(); ++it)
+									for (const auto& it : load_in->triggers)
 									{
-										auto trig = read_trigger(real_trigger(*it));
+										const auto trig = read_trigger(real_trigger(it));
 										if (!add_trigger(obj->get_script().get(), trig, -1))
 										{
 											extract_trigger(trig);
@@ -4320,29 +4312,28 @@ void process_load_celebrate(Celebrates::CelebrateDataPtr celebrate, int vnum)
 								}
 								else
 								{
-									log("{Error] Processing celebrate %s while loading obj %d", celebrate->name.c_str(), (*load_in)->vnum);
+									log("{Error] Processing celebrate %s while loading obj %d", celebrate->name.c_str(), load_in->vnum);
 								}
 							}
 						}
 					}
 					else
 					{
-						log("{Error] Processing celebrate %s while loading mob %d", celebrate->name.c_str(), (*load)->vnum);
+						log("{Error] Processing celebrate %s while loading mob %d", celebrate->name.c_str(), load->vnum);
 					}
 				}
 			}
-			for (load = (*room)->objects.begin(); load != (*room)->objects.end(); ++load)
+			for (const auto& load : room->objects)
 			{
-				OBJ_DATA *obj_room;
-				obj_rnum rnum = real_object((*load)->vnum);
+				const auto rnum = real_object(load->vnum);
 				if (rnum == -1)
 				{
-					log("{Error] Processing celebrate %s while loading obj %d", celebrate->name.c_str(), (*load)->vnum);
+					log("{Error] Processing celebrate %s while loading obj %d", celebrate->name.c_str(), load->vnum);
 					return;
 				}
 				int obj_in_room = 0;
 
-				for (obj_room = world[rn]->contents; obj_room; obj_room = obj_room->get_next_content())
+				for (auto obj_room = world[rn]->contents; obj_room; obj_room = obj_room->get_next_content())
 				{
 					if (rnum == GET_OBJ_RNUM(obj_room))
 					{
@@ -4351,15 +4342,14 @@ void process_load_celebrate(Celebrates::CelebrateDataPtr celebrate, int vnum)
 				}
 
 				if ((obj_proto.actual_count(rnum) < obj_proto[rnum]->get_max_in_world())
-					&& (obj_in_room < (*load)->max))
+					&& (obj_in_room < load->max))
 				{
-					const auto obj = world_objects.create_from_prototype_by_vnum((*load)->vnum);
+					const auto obj = world_objects.create_from_prototype_by_vnum(load->vnum);
 					if (obj)
 					{
-						for (Celebrates::TrigList::iterator it = (*load)->triggers.begin();
-							it != (*load)->triggers.end(); ++it)
+						for (const auto& it : load->triggers)
 						{
-							auto trig = read_trigger(real_trigger(*it));
+							const auto trig = read_trigger(real_trigger(it));
 							if (!add_trigger(obj->get_script().get(), trig, -1))
 							{
 								extract_trigger(trig);
@@ -4368,25 +4358,24 @@ void process_load_celebrate(Celebrates::CelebrateDataPtr celebrate, int vnum)
 						load_otrigger(obj.get());
 						Celebrates::add_obj_to_load_list(obj->get_uid(), obj.get());
 
-						obj_to_room(obj.get(), real_room((*room)->vnum));
+						obj_to_room(obj.get(), real_room(room->vnum));
 
-						for (load_in = (*load)->objects.begin(); load_in != (*load)->objects.end(); ++load_in)
+						for (const auto& load_in : load->objects)
 						{
-							obj_rnum rnum = real_object((*load_in)->vnum);
+							obj_rnum rnum = real_object(load_in->vnum);
 
 							if (obj_proto.actual_count(rnum) < obj_proto[rnum]->get_max_in_world())
 							{
-								const auto obj_in = world_objects.create_from_prototype_by_vnum((*load_in)->vnum);
+								const auto obj_in = world_objects.create_from_prototype_by_vnum(load_in->vnum);
 								if (obj_in
 									&& GET_OBJ_TYPE(obj) == OBJ_DATA::ITEM_CONTAINER)
 			 					{
 									obj_to_obj(obj_in.get(), obj.get());
 									obj_in->set_zone(GET_OBJ_ZONE(obj));
 
-									for (Celebrates::TrigList::iterator it = (*load_in)->triggers.begin();
-											it != (*load_in)->triggers.end(); ++it)
+									for (const auto& it : load_in->triggers)
 									{
-										auto trig = read_trigger(real_trigger(*it));
+										const auto trig = read_trigger(real_trigger(it));
 										if (!add_trigger(obj_in->get_script().get(), trig, -1))
 										{
 											extract_trigger(trig);
@@ -4398,14 +4387,14 @@ void process_load_celebrate(Celebrates::CelebrateDataPtr celebrate, int vnum)
 								}
 								else
 								{
-									log("{Error] Processing celebrate %s while loading obj %d", celebrate->name.c_str(), (*load_in)->vnum);
+									log("{Error] Processing celebrate %s while loading obj %d", celebrate->name.c_str(), load_in->vnum);
 								}
 							}
 						}
 					}
 					else
 					{
-						log("{Error] Processing celebrate %s while loading mob %d", celebrate->name.c_str(), (*load)->vnum);
+						log("{Error] Processing celebrate %s while loading mob %d", celebrate->name.c_str(), load->vnum);
 					}
 				}
 			}
@@ -4422,17 +4411,15 @@ void process_attach_celebrate(Celebrates::CelebrateDataPtr celebrate, int zone_v
 		//поскольку единственным доступным способом получить всех мобов одного внума является
 		//обход всего списка мобов в мире, то будем хотя бы 1 раз его обходить
 		Celebrates::AttachList list = celebrate->mobsToAttach[zone_vnum];
-		for (const auto ch : character_list)
+		for (const auto& ch : character_list)
 		{
 			const auto rnum = ch->get_rnum();
 			if (rnum > 0
 				&& list.find(mob_index[rnum].vnum) != list.end())
 			{
-				for (Celebrates::TrigList::iterator it = list[mob_index[rnum].vnum].begin();
-					it != list[mob_index[rnum].vnum].end();
-					++it)
+				for (const auto& it : list[mob_index[rnum].vnum])
 				{
-					auto trig = read_trigger(real_trigger(*it));
+					const auto trig = read_trigger(real_trigger(it));
 					if (!add_trigger(SCRIPT(ch).get(), trig, -1))
 					{
 						extract_trigger(trig);
@@ -4452,9 +4439,9 @@ void process_attach_celebrate(Celebrates::CelebrateDataPtr celebrate, int zone_v
 		{
 			if (o->get_rnum() > 0 && list.find(o->get_rnum()) != list.end())
 			{
-				for (Celebrates::TrigList::iterator it = list[o->get_rnum()].begin(); it != list[o->get_rnum()].end(); ++it)
+				for (const auto& it : list[o->get_rnum()])
 				{
-					auto trig = read_trigger(real_trigger(*it));
+					const auto trig = read_trigger(real_trigger(it));
 					if (!add_trigger(o->get_script().get(), trig, -1))
 					{
 						extract_trigger(trig);
@@ -4469,9 +4456,9 @@ void process_attach_celebrate(Celebrates::CelebrateDataPtr celebrate, int zone_v
 
 void process_celebrates(int vnum)
 {
-	Celebrates::CelebrateDataPtr mono = Celebrates::get_mono_celebrate();
-	Celebrates::CelebrateDataPtr poly = Celebrates::get_poly_celebrate();
-	Celebrates::CelebrateDataPtr real = Celebrates::get_real_celebrate();
+	const auto mono = Celebrates::get_mono_celebrate();
+	const auto poly = Celebrates::get_poly_celebrate();
+	const auto real = Celebrates::get_real_celebrate();
 
 	if (mono)
 	{
@@ -4936,7 +4923,7 @@ void ZoneReset::reset_zone_essential()
 				// 'T' <flag> <trigger_type> <trigger_vnum> <room_vnum, для WLD_TRIGGER>
 				if (ZCMD.arg1 == MOB_TRIGGER && tmob)
 				{
-					auto trig = read_trigger(real_trigger(ZCMD.arg2));
+					const auto trig = read_trigger(real_trigger(ZCMD.arg2));
 					if (!add_trigger(SCRIPT(tmob).get(), trig, -1))
 					{
 						extract_trigger(trig);
@@ -4945,7 +4932,7 @@ void ZoneReset::reset_zone_essential()
 				}
 				else if (ZCMD.arg1 == OBJ_TRIGGER && tobj)
 				{
-					auto trig = read_trigger(real_trigger(ZCMD.arg2));
+					const auto trig = read_trigger(real_trigger(ZCMD.arg2));
 					if (!add_trigger(tobj->get_script().get(), trig, -1))
 					{
 						extract_trigger(trig);
@@ -4956,7 +4943,7 @@ void ZoneReset::reset_zone_essential()
 				{
 					if (ZCMD.arg3 > NOWHERE)
 					{
-						auto trig = read_trigger(real_trigger(ZCMD.arg2));
+						const auto trig = read_trigger(real_trigger(ZCMD.arg2));
 						if (!add_trigger(world[ZCMD.arg3]->script.get(), trig, -1))
 						{
 							extract_trigger(trig);
@@ -5170,10 +5157,10 @@ int is_empty(zone_rnum zone_nr)
 	}
 
 //Проверим, нет ли в зоне метки для врат, чтоб не абузили.
-    for (auto it = RoomSpells::aff_room_list.begin(); it != RoomSpells::aff_room_list.end(); ++it)
+    for (const auto& it : RoomSpells::aff_room_list)
 	{
-		if ((*it)->zone == zone_nr
-			&& find_room_affect(*it, SPELL_RUNE_LABEL) != (*it)->affected.end())
+		if (it->zone == zone_nr
+			&& find_room_affect(it, SPELL_RUNE_LABEL) != it->affected.end())
 		{
 			// если в зоне метка
 			return 0;
@@ -5802,7 +5789,7 @@ void entrycount(char *name, const bool find_id /*= true*/)
 		Player *short_ch = &t_short_ch;
 		deleted = 1;
 		// персонаж загружается неполностью
-		if (load_char(name, short_ch, 1, find_id) > -1)
+		if (load_char(name, short_ch, true, find_id) > -1)
 		{
 			// если чар удален или им долго не входили, то не создаем для него запись
 			if (!must_be_deleted(short_ch))
@@ -5839,7 +5826,7 @@ void entrycount(char *name, const bool find_id /*= true*/)
 				#endif
 
 				top_idnum = MAX(top_idnum, GET_IDNUM(short_ch));
-				TopPlayer::Refresh(short_ch, 1);
+				TopPlayer::Refresh(short_ch, true);
 
 				log("Adding new player %s", element.name());
 				player_table.append(element);
@@ -5985,7 +5972,7 @@ void delete_char(const char *name)
 {
 	Player t_st;
 	Player *st = &t_st;
-	int id = load_char(name, st);
+	const int id = load_char(name, st);
 
 	if (id >= 0)
 	{
@@ -6028,7 +6015,7 @@ void room_copy(ROOM_DATA * dst, ROOM_DATA * src)
 		struct track_data *track = dst->track;
 		OBJ_DATA *contents = dst->contents;
 		const auto people_backup = dst->people;
-		auto affected = dst->affected;
+		const auto affected = dst->affected;
 
 		// Копирую все поверх
 		*dst = *src;
@@ -6190,7 +6177,7 @@ void load_guardians()
 
 	guardian_list.clear();
 
-	int num_wars_global = atoi(xMainNode.child_value("wars"));
+	const int num_wars_global = atoi(xMainNode.child_value("wars"));
 
 	struct mob_guardian tmp_guard;
 	for (pugi::xml_node xNodeGuard = xMainNode.child("guard");xNodeGuard; xNodeGuard = xNodeGuard.next_sibling("guard"))
@@ -6208,7 +6195,7 @@ void load_guardians()
 		tmp_guard.agro_argressors_in_zones.clear();
 		tmp_guard.agro_killers = true;
 
-		int num_wars = xNodeGuard.attribute("wars").as_int();
+		const int num_wars = xNodeGuard.attribute("wars").as_int();
 
 		if (num_wars && (num_wars != num_wars_global))
 			tmp_guard.max_wars_allow = num_wars;
@@ -6276,7 +6263,7 @@ void load_mobraces()
 			int prob_value = 1;
 			for (pugi::xml_node prob = im.child("prob"); prob; prob = prob.next_sibling("prob"))
 			{
-				int next_lvl = prob.attribute("lvl").as_int();
+				const int next_lvl = prob.attribute("lvl").as_int();
 				if (next_lvl>0)
 				{
 					for (int lvl=cur_lvl; lvl < next_lvl; lvl++)
@@ -6323,7 +6310,7 @@ void set_flag(CHAR_DATA* ch)
 {
 	std::string mail(GET_EMAIL(ch));
 	lower_convert(mail);
-	auto i = std::find(block_list.begin(), block_list.end(), mail);
+	const auto i = std::find(block_list.begin(), block_list.end(), mail);
 	if (i != block_list.end())
 	{
 		PRF_FLAGS(ch).set(PRF_IGVA_PRONA);
@@ -6410,7 +6397,7 @@ void load_speedwalk()
 		speedwalks.push_back(sw);
 
 	}
-	for (const auto ch : character_list)
+	for (const auto& ch : character_list)
 	{
 		for (auto &sw : speedwalks)
 		{
@@ -6497,7 +6484,7 @@ std::size_t PlayersIndex::append(const player_index_element& element)
 
 std::size_t PlayersIndex::get_by_name(const char* name) const
 {
-	name_to_index_t::const_iterator i = m_name_to_index.find(name);
+	const auto i = m_name_to_index.find(name);
 	if (i != m_name_to_index.end())
 	{
 		return i->second;
@@ -6508,7 +6495,7 @@ std::size_t PlayersIndex::get_by_name(const char* name) const
 
 void PlayersIndex::set_name(const std::size_t index, const char* name)
 {
-	name_to_index_t::const_iterator i = m_name_to_index.find(operator[](index).name());
+	const auto i = m_name_to_index.find(operator[](index).name());
 	m_name_to_index.erase(i);
 	operator[](index).set_name(name);
 	add_name_to_index(name, index);

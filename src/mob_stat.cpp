@@ -131,11 +131,11 @@ void log_class_exp()
 	});
 
 	const unsigned long long top_exp_pct = tmp_array.at(0).exp;
-	for (auto i = tmp_array.cbegin(); i != tmp_array.cend(); ++i)
+	for (const auto& i : tmp_array)
 	{
 		log("class_exp: %13s   %15lld   %3llu%%",
-			i->class_name.c_str(), i->exp,
-			top_exp_pct != 0 ? i->exp * 100 / top_exp_pct : i->exp);
+			i.class_name.c_str(), i.exp,
+			top_exp_pct != 0 ? i.exp * 100 / top_exp_pct : i.exp);
 	}
 }
 
@@ -244,24 +244,24 @@ void save()
 	pugi::xml_node xml_mob_list = doc.child("mob_list");
 	char buf_[MAX_INPUT_LENGTH];
 
-	for (auto i = mob_list.cbegin(), iend = mob_list.cend(); i != iend; ++i)
+	for (const auto& i : mob_list)
 	{
 		pugi::xml_node mob_node = xml_mob_list.append_child();
 		mob_node.set_name("mob");
-		mob_node.append_attribute("vnum") = i->first;
+		mob_node.append_attribute("vnum") = i.first;
 		// стата по месяцам
-		for (auto k = i->second.cbegin(), kend = i->second.cend(); k != kend; ++k)
+		for (const auto& k : i.second)
 		{
 			pugi::xml_node time_node = mob_node.append_child();
 			time_node.set_name("t");
-			time_node.append_attribute("m") = k->month;
-			time_node.append_attribute("y") = k->year;
+			time_node.append_attribute("m") = k.month;
+			time_node.append_attribute("y") = k.year;
 			for (int g = 0; g <= MAX_GROUP_SIZE; ++g)
 			{
-				if (k->kills.at(g) > 0)
+				if (k.kills.at(g) > 0)
 				{
 					snprintf(buf_, sizeof(buf_), "n%d", g);
-					time_node.append_attribute(buf_) = k->kills.at(g);
+					time_node.append_attribute(buf_) = k.kills.at(g);
 				}
 			}
 		}
@@ -290,15 +290,15 @@ void show_stats(CHAR_DATA *ch)
 	std::stringstream out;
 	out << "  Всего уникальных мобов в статистике убийств: " << mob_list.size() << "\r\n"
 		<< "  Количество уникальных мобов по месяцам:";
-	for (auto i = count_stats.begin(); i != count_stats.end(); ++i)
+	for (const auto& i : count_stats)
 	{
-		out << " " << std::setw(2) << std::setfill('0') << i->first << ":" << i->second;
+		out << " " << std::setw(2) << std::setfill('0') << i.first << ":" << i.second;
 	}
 
 	out << "\r\n" << "  Количество убитых мобов по месяцам:";
-	for (auto i = kill_stats.begin(); i != kill_stats.end(); ++i)
+	for (const auto& i : kill_stats)
 	{                                                                            
-		out << " " << std::setw(2) << std::setfill('0') << i->first << ":" << i->second;
+		out << " " << std::setw(2) << std::setfill('0') << i.first << ":" << i.second;
 	}
                 
 	out << "\r\n";
@@ -407,12 +407,12 @@ mob_node sum_stat(const std::list<mob_node> &mob_stat, int months)
 void show_zone(CHAR_DATA *ch, int zone_vnum, int months)
 {
 	std::map<int, mob_node> sort_list;
-	for (auto i = mob_list.begin(), iend = mob_list.end(); i != iend; ++i)
+	for (const auto& i : mob_list)
 	{
-		if (i->first/100 == zone_vnum)
+		if (i.first/100 == zone_vnum)
 		{
-			mob_node sum = sum_stat(i->second, months);
-			sort_list.insert(std::make_pair(i->first, sum));
+			mob_node sum = sum_stat(i.second, months);
+			sort_list.insert(std::make_pair(i.first, sum));
 		}
 	}
 
@@ -421,16 +421,16 @@ void show_zone(CHAR_DATA *ch, int zone_vnum, int months)
 		<< ", месяцев: " << months << "\r\n"
 		"   vnum : имя : pk : группа = убийств (n3=100 моба убили 100 раз втроем)\r\n\r\n";
 
-	for (auto i = sort_list.begin(); i != sort_list.end(); ++i)
+	for (const auto i : sort_list)
 	{
-		out << i->first << " : " << std::setw(20)
-			<< print_mob_name(i->first) << " : "
-			<< i->second.kills.at(0) << " :";
+		out << i.first << " : " << std::setw(20)
+			<< print_mob_name(i.first) << " : "
+			<< i.second.kills.at(0) << " :";
 		for (int g = 1; g <= MAX_GROUP_SIZE; ++g)
 		{
-			if (i->second.kills.at(g) > 0)
+			if (i.second.kills.at(g) > 0)
 			{
-				out << " n" << g << "=" << i->second.kills.at(g);
+				out << " n" << g << "=" << i.second.kills.at(g);
 			}
 		}
 		out << "\r\n";

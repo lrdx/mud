@@ -1,6 +1,7 @@
 #ifndef __LOGGER_HPP__
 #define __LOGGER_HPP__
 
+#include "blocking.queue.hpp"
 #include "config.hpp"
 #include "sysdep.h"
 

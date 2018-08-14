@@ -14,14 +14,10 @@
 #include "comm.h"
 #include "handler.h"
 #include "db.h"
-#include "interpreter.h"
 #include "spells.h"
 #include "screen.h"
-#include "dg_scripts.h"
 #include "constants.h"
-#include "im.h"
 #include "features.hpp"
-#include "random.hpp"
 #include "char.hpp"
 #include "room.hpp"
 #include "logger.hpp"
@@ -766,7 +762,7 @@ int calculate_skill(CHAR_DATA * ch, const ESkill skill_no, CHAR_DATA * vict)
 	int skill_is, percent = 0, victim_sav = 0, victim_modi = 0; // текущее значение умения(прокачанность) / вычисляемый итоговый процент / савис жертвы,
 																	// который влияет на прохождение скила / другие модификаторы, влияющие на прохождение
 	int morale = 0, max_percent = 200, bonus = 0, size = 0, fail_limit = 950;  // удача пациента, максимально возможный процент скила, бонус от дополнительных параметров.
-	bool pass_mod = 0; // в данный момент для доп.выстрела, чтобы оставить его как скилл,
+	bool pass_mod = false; // в данный момент для доп.выстрела, чтобы оставить его как скилл,
 	// но не применять к нему левых штрафов и плюсов, плюсуется только от инты немного
 	bool try_morale = false;
 	bool absolute_fail = false;
@@ -1120,7 +1116,7 @@ int calculate_skill(CHAR_DATA * ch, const ESkill skill_no, CHAR_DATA * vict)
 	case SKILL_ADDSHOT:   // дополнительный выстрел
 		if (equip_in_metall(ch))
 			bonus -= 5;
-		pass_mod = 1;
+		pass_mod = true;
 		break;
 
 	case SKILL_NOPARRYHIT:
@@ -1349,7 +1345,7 @@ int calculate_skill(CHAR_DATA * ch, const ESkill skill_no, CHAR_DATA * vict)
 		if (PRF_FLAGGED(vict, PRF_AWAKE))
 			victim_modi -= calculate_awake_mod(ch, vict);
 
-		pass_mod = 1; //Убираем учет удачи
+		pass_mod = true; //Убираем учет удачи
 
 		break;
 	default:

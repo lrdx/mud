@@ -1,6 +1,6 @@
 // Part of Bylins http://www.mud.ru
 
-#ifndef _FIGHT_LOCAL_HPP_
+#ifndef _FIGHT_HIT_HPP_
 #define _FIGHT_HIT_HPP_
 
 #include "fight_constants.hpp"

@@ -26,17 +26,12 @@
 #include "screen.h"
 #include "constants.h"
 #include "dg_scripts.h"
-#include "im.h"
 #include "skills.h"
 #include "features.hpp"
-#include "random.hpp"
 #include "char.hpp"
 #include "char_player.hpp"
-#include "magic.h"
 #include "room.hpp"
-#include "genchar.h"
 #include "sets_drop.hpp"
-#include "olc.h"
 #include "logger.hpp"
 #include "utils.h"
 #include "msdp.constants.hpp"
@@ -47,9 +42,7 @@
 CHAR_DATA *combat_list = NULL;	// head of l-list of fighting chars
 CHAR_DATA *next_combat_list = NULL;
 
-extern int r_helled_start_room;
 extern MobRaceListType mobraces_list;
-extern CHAR_DATA *mob_proto;
 
 // External procedures
 // void do_assist(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
@@ -257,7 +250,7 @@ void set_fighting(CHAR_DATA * ch, CHAR_DATA * vict)
 	// секунды после подножки, чтобы моб всеравно встал только на 3й раунд)
 	if (IS_NPC(ch) && GET_WAIT(ch) > 0)
 	{
-		div_t tmp = div(static_cast<const int>(ch->get_wait()), static_cast<const int>(PULSE_VIOLENCE));
+		const div_t tmp = div(static_cast<const int>(ch->get_wait()), static_cast<const int>(PULSE_VIOLENCE));
 		if (tmp.rem > 0)
 		{
 			WAIT_STATE(ch, (tmp.quot + 1) * PULSE_VIOLENCE);
@@ -940,7 +933,7 @@ CHAR_DATA *find_target(CHAR_DATA *ch)
 	victim = ch->get_fighting();
 
 	// интелект моба
-	int i = GET_REAL_INT(ch);
+	const int i = GET_REAL_INT(ch);
 	// если у моба меньше 20 инты, то моб тупой
 	if (i < INT_STUPID_MOD)
 	{
@@ -1019,7 +1012,7 @@ CHAR_DATA *find_target(CHAR_DATA *ch)
 
 	if (i < INT_MIDDLE_AI)
 	{
-		int rand = number(0, 2);
+		const int rand = number(0, 2);
 		if (caster)
 			best = caster;
 		if ((rand == 0) && (druid))
@@ -1033,7 +1026,7 @@ CHAR_DATA *find_target(CHAR_DATA *ch)
 
 	if (i < INT_HIGH_AI)
 	{
-		int rand = number(0, 1);
+		const int rand = number(0, 1);
 		if (caster)
 			best = caster;
 		if (charmmage)
@@ -1528,7 +1521,7 @@ int calc_initiative(CHAR_DATA *ch, bool mode)
 	int initiative = size_app[GET_POS_SIZE(ch)].initiative;
 	if (mode) //Добавим булевую переменную, чтобы счет все выдавал постоянное значение, а не каждый раз рандом
 	{
-		int i = number(1, 10);
+		const int i = number(1, 10);
 		if (i == 10)
 			initiative -= 1;
 		else
@@ -1677,7 +1670,7 @@ void using_mob_skills(CHAR_DATA *ch)
 			&& (sk_num == SKILL_RESCUE || sk_num == SKILL_PROTECT))
 		{
 			CHAR_DATA *caster = 0, *damager = 0;
-			int dumb_mob = (int)(GET_REAL_INT(ch) < number(5, 20));
+			const int dumb_mob = (int)(GET_REAL_INT(ch) < number(5, 20));
 
 			for (const auto attacker : world[ch->in_room]->people)
 			{

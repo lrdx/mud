@@ -5,7 +5,7 @@
 #include <string>
 #include "quest.hpp"
 
-Quest::Quest(int id, int time_start, int time_end, std::string text_quest, std::string tquest, int var_quest)
+Quest::Quest(int id, int time_start, int time_end, const std::string& text_quest, const std::string& tquest, int var_quest)
 {
 	this->id = id;
 	this->time_start = time_start;

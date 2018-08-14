@@ -5,8 +5,6 @@
 #ifndef NAME_LIST_HPP_INCLUDED
 #define NAME_LIST_HPP_INCLUDED
 
-#include "conf.h"
-#include "sysdep.h"
 #include "structs.h"
 
 // оба списка воткнуты в попытке ускорить работу триггеров на этапе подстановки переменных

@@ -103,7 +103,7 @@ void char_from_room(CHAR_DATA * ch);
 inline void char_from_room(const CHAR_DATA::shared_ptr& ch) { char_from_room(ch.get()); }
 void char_to_room(CHAR_DATA * ch, room_rnum room);
 inline void char_to_room(const CHAR_DATA::shared_ptr& ch, room_rnum room) { char_to_room(ch.get(), room); }
-void extract_char(CHAR_DATA * ch, int clear_objs, bool zone_reset = 0);
+void extract_char(CHAR_DATA * ch, int clear_objs, bool zone_reset = false);
 void room_affect_process_on_entry(CHAR_DATA * ch, room_rnum room);
 
 // find if character can see //

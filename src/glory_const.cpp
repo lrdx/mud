@@ -22,11 +22,9 @@
 #include <boost/format.hpp>
 #include <boost/algorithm/string.hpp>
 
-#include <list>
 #include <map>
 #include <string>
 #include <iomanip>
-#include <vector>
 
 extern void add_karma(CHAR_DATA * ch, const char * punish , const char * reason);
 extern void check_max_hp(CHAR_DATA *ch);
@@ -135,7 +133,7 @@ void transfer_log(const char *format, ...)
 int get_glory(long uid)
 {
 	int glory = 0;
-	GloryListType::iterator it = glory_list.find(uid);
+	const auto it = glory_list.find(uid);
 	if (it != glory_list.end())
 	{
 		glory = it->second->free_glory;
@@ -158,7 +156,7 @@ void add_glory(long uid, int amount)
 	}
 	else
 	{
-		GloryNodePtr temp_node(new glory_node);
+		const GloryNodePtr temp_node(new glory_node);
 		temp_node->free_glory = amount;
 		glory_list[uid] = temp_node;
 	}
@@ -309,7 +307,7 @@ std::string olc_print_stat(CHAR_DATA *ch, int stat)
 		% CCINRM(ch, C_NRM)
 		% add_stat_cost(stat, ch->desc->glory_const)
 		% (ch->desc->glory_const->stat_add[stat] > 0 ? std::string("+")
-			+ boost::lexical_cast<std::string>(ch->desc->glory_const->stat_add[stat]) : "")
+			+ std::to_string(ch->desc->glory_const->stat_add[stat]) : "")
 		% CCNRM(ch, C_NRM));
 }
 
@@ -362,7 +360,7 @@ void olc_del_stat(CHAR_DATA *ch, int stat)
 
 void olc_add_stat(CHAR_DATA *ch, int stat)
 {
-	int need_glory = add_stat_cost(stat, ch->desc->glory_const);
+	const int need_glory = add_stat_cost(stat, ch->desc->glory_const);
 	bool ok = false;
 	switch (stat)
 	{
@@ -422,7 +420,7 @@ int calculate_glory_in_stats(GloryListType::const_iterator &i)
 	return total;
 }
 
-bool parse_spend_glory_menu(CHAR_DATA *ch, char *arg)
+bool parse_spend_glory_menu(CHAR_DATA *ch, const char *arg)
 {
 	switch (LOWER(*arg))
 	{
@@ -516,10 +514,10 @@ bool parse_spend_glory_menu(CHAR_DATA *ch, char *arg)
 				send_to_char("Ошибка сохранения, сообщите Богам!\r\n", ch);
 				ch->desc->glory_const.reset();
 				STATE(ch->desc) = CON_PLAYING;
-				return 1;
+				return true;
 			}
 			// слава перед редактированием (для расчета комиса)
-			int was_glory = it->second->free_glory + calculate_glory_in_stats(it);
+			const int was_glory = it->second->free_glory + calculate_glory_in_stats(it);
 			// обновление вложенных статов
 			it->second->free_glory = ch->desc->glory_const->olc_free_glory;
 			it->second->stats.clear();
@@ -531,7 +529,7 @@ bool parse_spend_glory_menu(CHAR_DATA *ch, char *arg)
 				}
 			}
 			// расчет снятого комиса
-			int now_glory = it->second->free_glory + calculate_glory_in_stats(it);
+			const int now_glory = it->second->free_glory + calculate_glory_in_stats(it);
 			if (was_glory < now_glory)
 			{
 				log("SYSERROR : прибавка постоянной славы после редактирования в олц (%d -> %d) name=%s (%s:%d)",
@@ -548,17 +546,17 @@ bool parse_spend_glory_menu(CHAR_DATA *ch, char *arg)
 			send_to_char("Ваши изменения сохранены.\r\n", ch);
 			ch->save_char();
 			save();
-			return 1;
+			return true;
 		}
 		case 'я':
 			ch->desc->glory_const.reset();
 			STATE(ch->desc) = CON_PLAYING;
 			send_to_char("Редактирование прервано.\r\n", ch);
-			return 1;
+			return true;
 		default:
 			break;
 	}
-	return 0;
+	return false;
 }
 
 const char *GLORY_CONST_FORMAT =
@@ -675,8 +673,8 @@ void do_spend_glory(CHAR_DATA *ch, char *argument, int/* cmd*/, int/* subcmd*/)
 			return;
 		}
 
-		int tax = MAX(MIN_TRANSFER_TAX, amount / 100 * TRANSFER_FEE);
-		int total_amount = amount - tax;
+		const int tax = MAX(MIN_TRANSFER_TAX, amount / 100 * TRANSFER_FEE);
+		const int total_amount = amount - tax;
 
 		remove_glory(GET_UNIQUE(ch), amount);
 		add_glory(GET_UNIQUE(vict), total_amount);
@@ -751,7 +749,7 @@ int remove_glory(long uid, int amount)
 
 bool reset_glory(CHAR_DATA *ch)
 {
-	GloryListType::iterator i = glory_list.find(GET_UNIQUE(ch));
+	const auto i = glory_list.find(GET_UNIQUE(ch));
 	if (glory_list.end() != i)
 	{
 		glory_list.erase(i);
@@ -829,7 +827,7 @@ void do_glory(CHAR_DATA *ch, char *argument, int/* cmd*/, int/* subcmd*/)
 	{
 		case ADD_GLORY:
 		{
-			int amount = atoi((num + 1));
+			const int amount = atoi((num + 1));
 			add_glory(GET_UNIQUE(vict), amount);
 			send_to_char(ch, "%s добавлено %d у.е. постоянной славы (Всего: %d у.е.).\r\n",
 				GET_PAD(vict, 2), amount, get_glory(GET_UNIQUE(vict)));
@@ -844,7 +842,7 @@ void do_glory(CHAR_DATA *ch, char *argument, int/* cmd*/, int/* subcmd*/)
 		}
 		case SUB_GLORY:
 		{
-			int amount = remove_glory(GET_UNIQUE(vict), atoi((num + 1)));
+			const int amount = remove_glory(GET_UNIQUE(vict), atoi((num + 1)));
 			if (amount <= 0)
 			{
 				send_to_char(ch, "У %s нет свободной постоянной славы.\r\n", GET_PAD(vict, 1));
@@ -980,7 +978,7 @@ void load()
 
 		GloryNodePtr tmp_node(new glory_node);
 
-		long free_glory = std::stoi(node.attribute("glory").value(), nullptr, 10);
+		const long free_glory = std::stoi(node.attribute("glory").value(), nullptr, 10);
 		tmp_node->free_glory = free_glory;
 
 		for (pugi::xml_node stat = node.child("stat"); stat; stat = stat.next_sibling("stat"))
@@ -998,7 +996,7 @@ void load()
 				if(stat_num == GLORY_MIND)
 					divider = 7;
 			}
-			int stat_amount = std::stoi(stat.attribute("amount").value(), nullptr, 10)/divider;
+			const int stat_amount = std::stoi(stat.attribute("amount").value(), nullptr, 10) / divider;
 			if (stat_num >= GLORY_TOTAL && stat_num < 0)
 			{
 				log("SYSERROR : невалидный номер влитого стата num=%d, name=%s (%s:%d)",

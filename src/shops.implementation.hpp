@@ -161,7 +161,7 @@ namespace ShopExt
 		unsigned get_item_num(std::string &item_name, int keeper_vnum) const;
 		int can_sell_count(const int item_index) const;
 		void put_item_to_shop(OBJ_DATA* obj);
-		void do_shop_cmd(CHAR_DATA* ch, CHAR_DATA *keeper, OBJ_DATA* obj, std::string cmd);
+		void do_shop_cmd(CHAR_DATA* ch, CHAR_DATA *keeper, OBJ_DATA* obj, const std::string& cmd);
 
 		ItemsList m_items_list;
 		mob_vnums_t m_mob_vnums;

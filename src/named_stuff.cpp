@@ -13,21 +13,15 @@
 #include "db.h"
 #include "handler.h"
 #include "house.h"
-#include "dg_scripts.h"
 #include "pugixml.hpp"
 #include "logger.hpp"
 #include "utils.h"
 #include "structs.h"
 
 #include <list>
-#include <map>
 #include <string>
 #include <iomanip>
 #include <vector>
-
-extern room_rnum r_helled_start_room;
-extern room_rnum r_named_start_room;
-extern room_rnum r_unreg_start_room;
 
 extern void set_wait(CHAR_DATA * ch, int waittime, int victim_in_room);
 
@@ -338,7 +332,7 @@ void nedit_menu(CHAR_DATA * ch)
 	std::ostringstream out;
 	
 	out << CCIGRN(ch, C_SPR) << "1" << CCNRM(ch, C_SPR) << ") Vnum: " << ch->desc->cur_vnum << " Название: " << (real_object(ch->desc->cur_vnum) ? obj_proto[real_object(ch->desc->cur_vnum)]->get_short_description().c_str() : "&Rнеизвестно&n") << "\r\n";
-	out << CCIGRN(ch, C_SPR) << "2" << CCNRM(ch, C_SPR) << ") Владелец: " << GetNameByUnique(ch->desc->named_obj->uid,0) << " e-mail: &S" << ch->desc->named_obj->mail << "&s\r\n";
+	out << CCIGRN(ch, C_SPR) << "2" << CCNRM(ch, C_SPR) << ") Владелец: " << GetNameByUnique(ch->desc->named_obj->uid,false) << " e-mail: &S" << ch->desc->named_obj->mail << "&s\r\n";
 	out << CCIGRN(ch, C_SPR) << "3" << CCNRM(ch, C_SPR) << ") Доступно клану: " << (0 == ch->desc->named_obj->can_clan ? 0 : 1) << "\r\n";
 	out << CCIGRN(ch, C_SPR) << "4" << CCNRM(ch, C_SPR) << ") Доступно альянсу: " << (0 == ch->desc->named_obj->can_alli ? 0 : 1) << "\r\n";
 	out << CCIGRN(ch, C_SPR) << "5" << CCNRM(ch, C_SPR) << ") Сообщение при одевании персу: " << ch->desc->named_obj->wear_msg_v << "\r\n";
@@ -391,23 +385,23 @@ void do_named(CHAR_DATA *ch, char *argument, int cmd, int subcmd)
 	{
 		case SCMD_NAMED_LIST:
 			sprintf(buf1, "Список именных предметов:\r\n");
-			if(stuff_list.size() == 0)
+			if(stuff_list.empty())
 			{
 				out += buf1;
 				out += " Пока что пусто.\r\n";
 			}
 			else
 			{
-				for (StuffListType::iterator it = stuff_list.begin(), iend = stuff_list.end(); it != iend; ++it)
+				for (const auto& it : stuff_list)
 				{
-					if ((r_num = real_object(it->first)) < 0)
+					if ((r_num = real_object(it.first)) < 0)
 					{
-						if ((*buf && strstr(it->second->mail.c_str(), buf))
+						if ((*buf && strstr(it.second->mail.c_str(), buf))
 							|| (uid != -1
-								&& uid == it->second->uid)
+								&& uid == it.second->uid)
 							|| (uid == -1
-								&& it->first >= first
-								&& it->first <= last))  
+								&& it.first >= first
+								&& it.first <= last))  
 						{
 							if (found == 0)
 							{
@@ -415,19 +409,19 @@ void do_named(CHAR_DATA *ch, char *argument, int cmd, int subcmd)
 							}
 							found++;
 							sprintf(buf2, "%6ld) &R*&n%-31s Владелец:%-16s e-mail:&S%s&s\r\n",
-								it->first+1,
+								it.first+1,
 								"Несуществующий предмет",
-								GetNameByUnique(it->second->uid, false).c_str(),
-								str_dup(it->second->mail.c_str())
+								GetNameByUnique(it.second->uid, false).c_str(),
+								str_dup(it.second->mail.c_str())
 							);
 							out+=buf2;
 						}
 					}
 					else
 					{
-						if ((*buf && strstr(it->second->mail.c_str(), buf))
+						if ((*buf && strstr(it.second->mail.c_str(), buf))
 							|| (uid != -1
-								&& uid == it->second->uid)
+								&& uid == it.second->uid)
 							|| (uid == -1
 								&& obj_proto[r_num]->get_vnum() >= first
 								&& obj_proto[r_num]->get_vnum() <= last))
@@ -439,7 +433,7 @@ void do_named(CHAR_DATA *ch, char *argument, int cmd, int subcmd)
 							{
 								sprintf(buf2, "%s Игра:%d Пост:%d Владелец:%-16s e-mail:&S%s&s\r\n", buf2,
 									obj_proto.number(r_num), obj_proto.stored(r_num),
-									GetNameByUnique(it->second->uid, false).c_str(), it->second->mail.c_str());
+									GetNameByUnique(it.second->uid, false).c_str(), it.second->mail.c_str());
 							}
 							else
 							{
@@ -473,36 +467,33 @@ void do_named(CHAR_DATA *ch, char *argument, int cmd, int subcmd)
 				}
 
 				StuffNodePtr tmp_node(new stuff_node);
-				for (
-					StuffListType::iterator it = stuff_list.begin(), iend = stuff_list.end();
-					it != iend;
-					++it)
+				for (const auto& it : stuff_list)
 				{
-					if((uid == -1 && it->first == first) || it->second->uid == uid || !str_cmp(it->second->mail.c_str(), buf))
+					if((uid == -1 && it.first == first) || it.second->uid == uid || !str_cmp(it.second->mail.c_str(), buf))
 					{
-						if (real_object(it->first)<0) {
+						if (real_object(it.first)<0) {
 							if (!have_missed_items) {
 								out+="&RВнимание!!!&n\r\nНесуществующие объекты в списке именых вещей:\r\n";
 								have_missed_items = true;
 							}
 							sprintf(buf2, "vnum:%9ld uid:%9d mail:%s\r\n",
-								it->first,
-								it->second->uid,
-								str_dup(it->second->mail.c_str())
+								it.first,
+								it.second->uid,
+								str_dup(it.second->mail.c_str())
 							);
 							out+=buf2;
 							continue;
 						}
-						ch->desc->old_vnum = it->first;
-						ch->desc->cur_vnum = it->first;
-						tmp_node->uid = it->second->uid;
-						tmp_node->can_clan = it->second->can_clan;
-						tmp_node->can_alli = it->second->can_alli;
-						tmp_node->mail = str_dup(it->second->mail.c_str());
-						tmp_node->wear_msg_v = str_dup(it->second->wear_msg_v.c_str());
-						tmp_node->wear_msg_a = str_dup(it->second->wear_msg_a.c_str());
-						tmp_node->cant_msg_v = str_dup(it->second->cant_msg_v.c_str());
-						tmp_node->cant_msg_a = str_dup(it->second->cant_msg_a.c_str());
+						ch->desc->old_vnum = it.first;
+						ch->desc->cur_vnum = it.first;
+						tmp_node->uid = it.second->uid;
+						tmp_node->can_clan = it.second->can_clan;
+						tmp_node->can_alli = it.second->can_alli;
+						tmp_node->mail = str_dup(it.second->mail.c_str());
+						tmp_node->wear_msg_v = str_dup(it.second->wear_msg_v.c_str());
+						tmp_node->wear_msg_a = str_dup(it.second->wear_msg_a.c_str());
+						tmp_node->cant_msg_v = str_dup(it.second->cant_msg_v.c_str());
+						tmp_node->cant_msg_a = str_dup(it.second->cant_msg_a.c_str());
 						found++;
 						break;
 					}

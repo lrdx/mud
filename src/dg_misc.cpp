@@ -14,9 +14,7 @@
 #include "comm.h"
 #include "interpreter.h"
 #include "handler.h"
-#include "dg_event.h"
 #include "db.h"
-#include "screen.h"
 #include "spells.h"
 #include "char.hpp"
 #include "room.hpp"
@@ -28,15 +26,10 @@
 // copied from spell_parser.c:
 #define SINFO spell_info[spellnum]
 
-extern const char *item_types[];
-extern const char *apply_types[];
-extern const char *affected_bits[];
-
 #define SpINFO spell_info[spellnum]
 extern const char *what_sky_type[];
 extern int what_sky;
 extern const char *what_weapon[];
-extern int pc_duration(CHAR_DATA * ch, int cnst, int level, int level_divisor, int min, int max);
 /*
  * Функция осуществляет поиск цели для DG_CAST
  * Облегченная версия find_cast_target

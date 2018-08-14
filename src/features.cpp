@@ -24,11 +24,6 @@
 #include "screen.h"
 #include "pk.h"
 #include "dg_scripts.h"
-#include "room.hpp"
-#include "house.h"
-#include "screen.h"
-#include "pk.h"
-#include "dg_scripts.h"
 #include "utils.h"
 #include "structs.h"
 #include "sysdep.h"
@@ -44,12 +39,6 @@ extern const char *unused_spellname;
 struct SFeatInfo feat_info[MAX_FEATS];
 
 void unused_feat(int feat);
-void assign_feats(void);
-bool can_use_feat(const CHAR_DATA *ch, int feat);
-bool can_get_feat(CHAR_DATA *ch, int feat);
-bool have_feat_slot(CHAR_DATA *ch, int feat);
-int feature_mod(int feat, int location);
-void check_berserk(CHAR_DATA * ch);
 
 void do_lightwalk(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
 extern void fix_name_feat(char *name);
@@ -1393,16 +1382,15 @@ void do_relocate(CHAR_DATA *ch, char *argument, int/* cmd*/, int/* subcmd*/)
 /// \param flag по дефолту true
 void set_race_feats(CHAR_DATA *ch, bool flag)
 {
-	std::vector<int> feat_list = PlayerRace::GetRaceFeatures((int)GET_KIN(ch),(int)GET_RACE(ch));
-	for (std::vector<int>::iterator i = feat_list.begin(),
-		iend = feat_list.end(); i != iend; ++i)
+	const auto feat_list = PlayerRace::GetRaceFeatures((int)GET_KIN(ch),(int)GET_RACE(ch));
+	for (const auto& i : feat_list)
 	{
-		if (can_get_feat(ch, *i))
+		if (can_get_feat(ch, i))
 		{
 			if (flag)
-				SET_FEAT(ch, *i);
+				SET_FEAT(ch, i);
 			else
-				UNSET_FEAT(ch, *i);
+				UNSET_FEAT(ch, i);
 		}
 	}
 }

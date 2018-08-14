@@ -5,10 +5,7 @@
 #ifndef TITLE_HPP_INCLUDED
 #define TITLE_HPP_INCLUDED
 
-#include "conf.h"
-#include "sysdep.h"
 #include "structs.h"
-#include "interpreter.h"
 
 // * Система титулов: команда титул, ведение списка на одобрение, сохранение, лоад.
 namespace TitleSystem

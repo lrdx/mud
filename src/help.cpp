@@ -17,6 +17,7 @@
 #include "logger.hpp"
 #include "utils.h"
 #include "structs.h"
+#include "interpreter.h"
 
 #include <boost/format.hpp>
 #include <boost/algorithm/string.hpp>
@@ -28,8 +29,6 @@
 #include <map>
 
 extern char *help;
-extern const char *weapon_affects[];
-extern const char *no_bits[];
 extern const char *class_name[];
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -47,7 +46,7 @@ struct dup_node
 
 void sum_skills(CObjectPrototype::skills_t &target, const CObjectPrototype::skills_t &add)
 {
-	for (auto i : add)
+	for (const auto& i : add)
 	{
 		if (i.second != 0)
 		{
@@ -127,7 +126,7 @@ std::string print_skills(const CObjectPrototype::skills_t &skills, bool activ, b
 
 	if (!out.empty() && header)
 	{
-		std::string head = activ ? " + " : "   ";
+		const std::string head = activ ? " + " : "   ";
 		return head + "Меняет умения :\r\n" + out;
 	}
 
@@ -286,17 +285,15 @@ struct activators_obj
 
 void activators_obj::fill_class(set_info::const_iterator k)
 {
-	for (qty_to_camap_map::const_iterator m = k->second.begin(),
-		mend = k->second.end(); m != mend; ++m)
+	for (const auto& m : k->second)
 	{
-		for (class_to_act_map::const_iterator q = m->second.begin(),
-			qend = m->second.end(); q != qend; ++q)
+		for (const auto& q : m.second)
 		{
-			for (int i = 0; i <= NUM_PLAYER_CLASSES * NUM_KIN; ++i)
+			for (auto i = 0; i <= NUM_PLAYER_CLASSES * NUM_KIN; ++i)
 			{
-				if (check_num_in_unique_bit_flag_data(q->first, i))
+				if (check_num_in_unique_bit_flag_data(q.first, i))
 				{
-					struct clss_activ_node tmp_node;
+					const struct clss_activ_node tmp_node;
 					clss_list[i] = tmp_node;
 				}
 			}
@@ -306,31 +303,27 @@ void activators_obj::fill_class(set_info::const_iterator k)
 
 void activators_obj::fill_node(const set_info &set)
 {
-	for (set_info::const_iterator k = set.begin(),
-		kend = set.end(); k != kend; ++k)
+	for (const auto& k : set)
 	{
 		// перебираем полученные ранее профы
-		for (std::map<int, clss_activ_node>::iterator w = clss_list.begin(),
-			wend = clss_list.end(); w != wend; ++w)
+		for (auto& w : clss_list)
 		{
 			// идем по кол-ву активаторов с конца от максимального
-			for (qty_to_camap_map::const_reverse_iterator m = k->second.rbegin(),
-				mend = k->second.rend(); m != mend; ++m)
+			for (auto m = k.second.rbegin(); m != k.second.rend(); ++m)
 			{
 				bool found = false;
 				// до первого совпадения по профе
-				for (class_to_act_map::const_iterator q = m->second.begin(),
-					qend = m->second.end(); q != qend; ++q)
+				for (const auto& q : m->second)
 				{
-					if (check_num_in_unique_bit_flag_data(q->first, w->first))
+					if (check_num_in_unique_bit_flag_data(q.first, w.first))
 					{
 						// суммирование активаторов для данной профы
-						w->second.total_affects += q->second.get_affects();
-						sum_apply(w->second.affected, q->second.get_affected());
+						w.second.total_affects += q.second.get_affects();
+						sum_apply(w.second.affected, q.second.get_affected());
 						// скилы
 						CObjectPrototype::skills_t tmp_skills;
-						q->second.get_skills(tmp_skills);
-						sum_skills(w->second.skills, tmp_skills);
+						q.second.get_skills(tmp_skills);
+						sum_skills(w.second.skills, tmp_skills);
 						found = true;
 						break;
 					}
@@ -348,40 +341,38 @@ std::string activators_obj::print()
 {
 	std::vector<dup_node> dup_list;
 
-	for (std::map<int, clss_activ_node>::iterator cls_it = clss_list.begin(),
-		cls_it_end = clss_list.end(); cls_it != cls_it_end;  ++cls_it)
+	for (auto& cls_it : clss_list)
 	{
 		// распечатка аффектов каждой профы
 		dup_node node;
-		node.clss += cls_it->first < NUM_PLAYER_CLASSES * NUM_KIN ? class_name[cls_it->first] : "чармисы";
+		node.clss += cls_it.first < NUM_PLAYER_CLASSES * NUM_KIN ? class_name[cls_it.first] : "чармисы";
 		// affects
-		cls_it->second.total_affects += native_affects;
-		if (cls_it->second.total_affects.sprintbits(weapon_affects, buf2, ","))
+		cls_it.second.total_affects += native_affects;
+		if (cls_it.second.total_affects.sprintbits(weapon_affects, buf2, ","))
 		{
 			node.afct += " + Аффекты : " + std::string(buf2) + "\r\n";
 		}
 		// affected
-		sum_apply(cls_it->second.affected, native_affected);
+		sum_apply(cls_it.second.affected, native_affected);
 		// сортировка для более удобного сравнения статов по распечатке
-		std::sort(cls_it->second.affected.begin(), cls_it->second.affected.end(),
+		std::sort(cls_it.second.affected.begin(), cls_it.second.affected.end(),
 			[](const obj_affected_type& lrs, const obj_affected_type& rhs)
 		{
 			return lrs.location < rhs.location;
 		});
 
 		std::string tmp_str;
-		for (std::vector<obj_affected_type>::const_iterator i = cls_it->second.affected.begin(),
-			iend = cls_it->second.affected.end(); i != iend; ++i)
+		for (const auto& i : cls_it.second.affected)
 		{
-			tmp_str += " +    " + print_obj_affects(*i);
+			tmp_str += " +    " + print_obj_affects(i);
 		}
 		if (!tmp_str.empty())
 		{
 			node.afct += " + Свойства :\r\n" + tmp_str;
 		}
 		// скилы
-		sum_skills(cls_it->second.skills, native_skills);
-		node.afct += print_skills(cls_it->second.skills, true);
+		sum_skills(cls_it.second.skills, native_skills);
+		node.afct += print_skills(cls_it.second.skills, true);
 
 		// слияние одинаковых по аффектам проф
 		std::vector<dup_node>::iterator i =	std::find_if(dup_list.begin(), dup_list.end(),
@@ -465,26 +456,26 @@ void process()
 		out << it->second.get_name() << "\r\n";
 		out << "---------------------------------------------------------------------------\r\n";
 		out << print_fullset_stats(it->second);
-		for (set_info::const_iterator k = it->second.begin(), kend = it->second.end(); k != kend; ++k)
+		for (const auto& k : it->second)
 		{
 			out << "---------------------------------------------------------------------------\r\n";
 			// k->first = int_obj_vnum, k->second = qty_to_camap_map
-			const int rnum = real_object(k->first);
+			const int rnum = real_object(k.first);
 			if (rnum < 0)
 			{
-				log("SYSERROR: wrong obj vnum: %d (%s %s %d)", k->first, __FILE__, __func__, __LINE__);
+				log("SYSERROR: wrong obj vnum: %d (%s %s %d)", k.first, __FILE__, __func__, __LINE__);
 				continue;
 			}
 
 			const auto& obj = obj_proto[rnum];
 			out << print_obj_affects(obj.get());
 
-			for (qty_to_camap_map::const_iterator m = k->second.begin(); m != k->second.end(); ++m)
+			for (const auto& m : k.second)
 			{
 				// m->first = num_activators, m->second = class_to_act_map
-				for (class_to_act_map::const_iterator q = m->second.begin(); q != m->second.end(); ++q)
+				for (auto q = m.second.begin(); q != m.second.end(); ++q)
 				{
-					out << "Предметов для активации: " << m->first << "\r\n";
+					out << "Предметов для активации: " << m.first << "\r\n";
 					out << print_activator(q, obj.get());
 				}
 			}
@@ -502,11 +493,10 @@ void process()
 			std::string alias = it->second.get_alias();
 			std::vector<std::string> str_list;
 			boost::split(str_list, alias, boost::is_any_of(","));
-			for (std::vector<std::string>::iterator k = str_list.begin(),
-				kend = str_list.end(); k != kend; ++k)
+			for (auto& k : str_list)
 			{
-				k->erase(boost::remove_if(*k, boost::is_any_of(" ,.")), k->end());
-				HelpSystem::add_static(set_name + "сет" + *k, out.str(), 0, true);
+				k.erase(boost::remove_if(k, boost::is_any_of(" ,.")), k.end());
+				HelpSystem::add_static(set_name + "сет" + k, out.str(), 0, true);
 			}
 		}
 	}
@@ -632,7 +622,7 @@ void add_dynamic(const std::string &key, const std::string &entry)
 	dynamic_help.push_back(tmp_node);
 }
 
-void add_sets_drop(const std::string key, const std::string entry)
+void add_sets_drop(const std::string& key, const std::string& entry)
 {
 	if (key.empty() || entry.empty())
 	{
@@ -855,9 +845,9 @@ void UserSearch::search(const std::vector<help_node> &cont)
 		// key_list заполняется в любом случае, если поиск
 		// идет без индекса topic_num, уникальность содержимого
 		// для последующих проверок отражается через diff_keys
-		for (unsigned k = 0; k < key_list.size(); ++k)
+		for (const auto& k : key_list)
 		{
-			if (key_list[k]->entry != i->entry)
+			if (k->entry != i->entry)
 			{
 				diff_keys = true;
 				break;

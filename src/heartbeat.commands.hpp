@@ -2,7 +2,6 @@
 #define __HEARTBEAT_COMMANDS_HPP__
 
 #include "structs.h"
-#include "commands.hpp"
 
 namespace heartbeat
 {

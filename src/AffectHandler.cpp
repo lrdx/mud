@@ -1,9 +1,6 @@
 #include "AffectHandler.hpp"
 #include "handler.h"
 #include "spells.h"
-#include "utils.h"
-
-#include <iostream>
 
 //нужный Handler вызывается в зависимости от типа передаваемых параметров
 void LackyAffectHandler::Handle( DamageActorParameters& params )
@@ -35,7 +32,7 @@ AFFECT_DATA<EApplyLocation>::shared_ptr find_affect(CHAR_DATA* ch, int afftype)
 
 void LackyAffectHandler::Handle(BattleRoundParameters& params)
 {
-	auto af = find_affect(params.ch, SPELL_LACKY);
+	const auto af = find_affect(params.ch, SPELL_LACKY);
 	if (damFromMe_&&!damToMe_)
 	{
 		if (round_<5)
@@ -57,7 +54,7 @@ void LackyAffectHandler::Handle(BattleRoundParameters& params)
 // тест
 void LackyAffectHandler::Handle(StopFightParameters& params)
 {
-	auto af = find_affect(params.ch, SPELL_LACKY);
+	const auto af = find_affect(params.ch, SPELL_LACKY);
 	if (af)
 	{
 		af->modifier = 0;

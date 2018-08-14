@@ -6,7 +6,6 @@
 #include "interpreter.h"
 #include "handler.h"
 #include "spell_parser.hpp"
-#include "spells.h"
 #include "char.hpp"
 #include "comm.h"
 #include "skills.h"
@@ -26,11 +25,11 @@ void perform_remove(CHAR_DATA * ch, int pos);
 std::string AnimalMorph::GetMorphDesc() const
 {
 	std::string desc = "Неведома зверушка";
-	for (DescListType::const_iterator it = descList_.begin(); it != descList_.end(); ++it)
+	for (const auto& it : descList_)
 	{
-		if (it->fromLevel <= ch_->get_level() + ch_->get_remort())
+		if (it.fromLevel <= ch_->get_level() + ch_->get_remort())
 		{
-			desc = it->desc;
+			desc = it.desc;
 		}
 		else
 		{
@@ -152,10 +151,12 @@ std::string GetMorphIdByName(char *arg)
 
 void AnimalMorph::InitSkills(int value)
 {
-	for (CharSkillsType::iterator it = skills_.begin(); it != skills_.end();++it)
+	for (auto& it : skills_)
 	{
 		if (value)
-			it->second = value;
+		{
+			it.second = value;
+		}
 	}
 	skills_[SKILL_MORPH]=value;
 };

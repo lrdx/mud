@@ -3,7 +3,6 @@
 
 #include "structs.h"
 #include "utils.h"
-#include "pugixml.hpp"
 
 namespace xml
 {

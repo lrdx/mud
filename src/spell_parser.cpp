@@ -30,12 +30,10 @@
 #include "im.h"
 #include "privilege.hpp"
 #include "char.hpp"
-#include "name_list.hpp"
 #include "depot.hpp"
 #include "parcel.hpp"
 #include "room.hpp"
 #include "magic.h"
-#include "fight.h"
 #include "fight_hit.hpp"
 #include "world.characters.hpp"
 #include "logger.hpp"
@@ -77,8 +75,6 @@ void do_stun(CHAR_DATA*, char*, int, int);
 void unused_spell(int spl);
 void unused_skill(int spl);
 void mag_assign_spells(void);
-
-int get_zone_rooms(int, int *, int *);
 
 /*
  * This arrangement is pretty stupid, but the number of skills is limited by

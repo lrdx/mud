@@ -5,6 +5,7 @@
 #include "utils.h"
 #include "global.objects.hpp"
 #include "utils.string.hpp"
+#include "commands.hpp"
 
 #include <sstream>
 #include <iomanip>
@@ -296,7 +297,7 @@ namespace heartbeat
 
 			void CommandsHandler::process(CHAR_DATA* character, char* arguments)
 			{
-				AbstractCommand::arguments_t arguments_list(arguments);
+				const AbstractCommand::arguments_t arguments_list(arguments);
 				const auto context = std::make_shared<HeartbeatCommandContext>(character, GlobalObjects::heartbeat());
 				AbstractCommand::arguments_t path;
 				path.push_back(heartbeat::cmd::HEARTBEAT_COMMAND);

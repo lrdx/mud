@@ -5,14 +5,11 @@
 #ifndef MAP_HPP_INCLUDED
 #define MAP_HPP_INCLUDED
 
-#include "conf.h"
-#include <string>
-#include <bitset>
-
-#include "sysdep.h"
 #include "structs.h"
 #include "char.hpp"
-#include "interpreter.h"
+
+#include <string>
+#include <bitset>
 
 void do_map(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
 

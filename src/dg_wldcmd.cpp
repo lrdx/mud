@@ -12,7 +12,6 @@
 #include "world.objects.hpp"
 #include "object.prototypes.hpp"
 #include "obj.hpp"
-#include "screen.h"
 #include "dg_scripts.h"
 #include "comm.h"
 #include "interpreter.h"
@@ -25,7 +24,6 @@
 #include "char.hpp"
 #include "skills.h"
 #include "room.hpp"
-#include "magic.h"
 #include "fight.h"
 #include "features.hpp"
 #include "logger.hpp"
@@ -34,10 +32,6 @@
 #include "sysdep.h"
 #include "conf.h"
 
-extern const char *dirs[];
-extern struct zone_data *zone_table;
-
-void die(CHAR_DATA * ch, CHAR_DATA * killer);
 void sub_write(char *arg, CHAR_DATA * ch, byte find_invis, int targets);
 void send_to_zone(char *messg, int zone_rnum);
 CHAR_DATA *get_char_by_room(ROOM_DATA * room, char *name);
@@ -630,11 +624,6 @@ void do_wload(ROOM_DATA *room, char *argument, int/* cmd*/, int/* subcmd*/)
     }
 }
 
-// increases spells & skills //
-const char *skill_name(int num);
-const char *spell_name(int num);
-int fix_name_and_find_spell_num(char *name);
-
 void do_wdamage(ROOM_DATA *room, char *argument, int/* cmd*/, int/* subcmd*/)
 {
 	char name[MAX_INPUT_LENGTH], amount[MAX_INPUT_LENGTH];
@@ -671,7 +660,7 @@ void do_wdamage(ROOM_DATA *room, char *argument, int/* cmd*/, int/* subcmd*/)
 		}
 
 		update_pos(ch);
-		char_dam_message(dam, ch, ch, 0);
+		char_dam_message(dam, ch, ch, false);
 		if (GET_POS(ch) == POS_DEAD)
 		{
 			if (!IS_NPC(ch))
@@ -1161,7 +1150,7 @@ void wld_command_interpreter(ROOM_DATA * room, char *argument)
 
 	// find the command
 	int cmd = 0;
-	size_t length = strlen(arg);
+	const size_t length = strlen(arg);
 	while (*wld_cmd_info[cmd].command != '\n')
 	{
 		if (!strncmp(wld_cmd_info[cmd].command, arg, length))

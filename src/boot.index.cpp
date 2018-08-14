@@ -4,6 +4,8 @@
 #include "utils.h"
 #include "boot.constants.hpp"
 
+#include <fstream>
+
 class IndexFileImplementation : public IndexFile
 {
 public:

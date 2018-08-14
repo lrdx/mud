@@ -21,12 +21,8 @@
 #include "interpreter.h"
 #include "handler.h"
 #include "db.h"
-#include "spells.h"
 #include "char.hpp"
 #include "room.hpp"
-
-// extern variables
-extern DESCRIPTOR_DATA *descriptor_list;
 
 // local globals
 int number_of_social_messages = -1;
@@ -45,7 +41,7 @@ int find_action(char *cmd)
 
 	bot = 0;
 	top = number_of_social_commands - 1;
-	size_t len = strlen(cmd);
+	const size_t len = strlen(cmd);
 
 	if (top < 0 || !len)
 	{

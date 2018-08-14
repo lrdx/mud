@@ -22,9 +22,7 @@
 #include "handler.h"
 #include "spells.h"
 #include "skills.h"
-#include "constants.h"
 #include "pk.h"
-#include "random.hpp"
 #include "char.hpp"
 #include "house.h"
 #include "room.hpp"
@@ -35,15 +33,12 @@
 #include "structs.h"
 #include "sysdep.h"
 #include "conf.h"
+#include "features.hpp"
 
 // external structs
-extern INDEX_DATA *mob_index;
 extern int no_specials;
-extern TIME_INFO_DATA time_info;
 extern int guild_poly(CHAR_DATA*, void*, int, char*);
 extern guardian_type guardian_list;
-extern struct zone_data * zone_table;
-extern bool check_mighthit_weapon(CHAR_DATA *ch);
 
 void do_get(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
 void go_bash(CHAR_DATA * ch, CHAR_DATA * vict);
@@ -74,7 +69,6 @@ extern void set_wait(CHAR_DATA * ch, int waittime, int victim_in_room);
 bool guardian_attack(CHAR_DATA *ch, CHAR_DATA *vict);
 extern bool is_room_forbidden(ROOM_DATA*room);
 void drop_obj_on_zreset(CHAR_DATA *ch, OBJ_DATA *obj, bool inv, bool zone_reset);
-int remove_otrigger(OBJ_DATA * obj, CHAR_DATA * actor);
 
 // local functions
 CHAR_DATA *try_protect(CHAR_DATA * victim, CHAR_DATA * ch);
@@ -973,10 +967,11 @@ void extract_charmice(CHAR_DATA* ch)
 	if (!objects.empty())
 	{
 		OBJ_DATA* charmice_box = create_charmice_box(ch);
-		for (std::vector<OBJ_DATA*>::iterator it = objects.begin(); it != objects.end(); ++it) {
-			obj_to_obj(*it, charmice_box);
+		for (const auto& it : objects)
+		{
+			obj_to_obj(it, charmice_box);
 		}
-		drop_obj_on_zreset(ch, charmice_box, 1, false);
+		drop_obj_on_zreset(ch, charmice_box, true, false);
 	}
 
 	extract_char(ch, FALSE);
@@ -1507,7 +1502,7 @@ bool guardian_attack(CHAR_DATA *ch, CHAR_DATA *vict)
 
 	if (!IS_NPC(ch) || !vict || !MOB_FLAGGED(ch, MOB_GUARDIAN))
 		return false;
-//на всякий случай проверим, а вдруг моб да подевался куда из списка...
+	//на всякий случай проверим, а вдруг моб да подевался куда из списка...
 	guardian_type::iterator it = guardian_list.find(GET_MOB_VNUM(ch));
 	if (it == guardian_list.end())
 		return false;
@@ -1521,16 +1516,19 @@ bool guardian_attack(CHAR_DATA *ch, CHAR_DATA *vict)
 	if (CLAN(vict))
 	{
 		num_wars_vict = Clan::GetClanWars(vict);
-		int clan_town_vnum = CLAN(vict)->GetOutRent()/100; //Polud подскажите мне другой способ определить vnum зоны
-		int mob_town_vnum = GET_MOB_VNUM(ch)/100;          //по vnum комнаты, не перебирая все комнаты и зоны мира
+		int clan_town_vnum = CLAN(vict)->GetOutRent() / 100; //Polud подскажите мне другой способ определить vnum зоны
+		int mob_town_vnum = GET_MOB_VNUM(ch) / 100;          //по vnum комнаты, не перебирая все комнаты и зоны мира
 		if (num_wars_vict && num_wars_vict > tmp_guard.max_wars_allow &&  clan_town_vnum != mob_town_vnum)
 			return true;
 	}
 	if (AGRESSOR(vict))
-		for (std::vector<zone_vnum>::iterator iter = tmp_guard.agro_argressors_in_zones.begin(); iter != tmp_guard.agro_argressors_in_zones.end();iter++)
+	{
+		for (const auto& iter : tmp_guard.agro_argressors_in_zones)
 		{
-			if (*iter == AGRESSOR(vict)/100) return true;
+			if (iter == AGRESSOR(vict) / 100)
+				return true;
 		}
+	}
 
 	return false;
 }

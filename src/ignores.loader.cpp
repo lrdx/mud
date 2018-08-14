@@ -13,7 +13,7 @@ public:
 	ignore_data::shared_ptr parse();
 
 private:
-	static ignore_data::shared_ptr parse_ignore(std::string buf);
+	static ignore_data::shared_ptr parse_ignore(const std::string& buf);
 	void skip_spaces();
 	bool skip_all_spaces();
 
@@ -34,7 +34,7 @@ ignore_data::shared_ptr IgnoreParser::parse()
 	return result;
 }
 
-ignore_data::shared_ptr IgnoreParser::parse_ignore(std::string buffer)
+ignore_data::shared_ptr IgnoreParser::parse_ignore(const std::string& buffer)
 {
 	auto result = std::make_shared<ignore_data>();
 

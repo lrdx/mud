@@ -13,8 +13,6 @@
 #define _CONSTANTS_H_
 
 #include "structs.h"
-#include "sysdep.h"
-#include "conf.h"
 
 #include <vector>
 #include <array>

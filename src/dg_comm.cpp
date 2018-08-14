@@ -21,8 +21,6 @@
 #include "sysdep.h"
 #include "conf.h"
 
-extern DESCRIPTOR_DATA *descriptor_list;
-
 // same as any_one_arg except that it stops at punctuation 
 char *any_one_name(char *argument, char *first_arg)
 {
@@ -47,8 +45,7 @@ char *any_one_name(char *argument, char *first_arg)
 	return argument;
 }
 
-
-void sub_write_to_char(CHAR_DATA * ch, char *tokens[], void *otokens[], char type[])
+void sub_write_to_char(CHAR_DATA * ch, char *tokens[], void *otokens[], const char type[])
 {
 	char sb[MAX_STRING_LENGTH];
 	int i;
@@ -131,7 +128,7 @@ void sub_write(char *arg, CHAR_DATA * ch, byte find_invis, int targets)
 	void *otokens[MAX_INPUT_LENGTH];
 	OBJ_DATA *obj;
 	int i, tmp;
-	int to_sleeping = 0;	// mainly for windows compiles 
+	const int to_sleeping = 0;	// mainly for windows compiles 
 
 	if (!arg)
 		return;

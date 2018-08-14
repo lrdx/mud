@@ -29,7 +29,6 @@
 extern int invalid_anti_class(CHAR_DATA * ch, const OBJ_DATA * obj);
 extern int invalid_unique(CHAR_DATA * ch, const OBJ_DATA * obj);
 extern int invalid_no_class(CHAR_DATA * ch, const OBJ_DATA * obj);
-extern int invalid_align(CHAR_DATA * ch, OBJ_DATA * obj);
 extern char *diag_weapon_to_char(const CObjectPrototype* obj, int show_wear);
 extern char *diag_timer_to_char(const OBJ_DATA* obj);
 extern void set_wait(CHAR_DATA * ch, int waittime, int victim_in_room);
@@ -456,7 +455,7 @@ bool auction_drive(CHAR_DATA * ch, char *argument)
 		strcat(buf, diag_timer_to_char(obj));
 		obj_info(ch, obj, buf);
 		strcat(buf, "\n");
-		if (invalid_anti_class(ch, obj) || invalid_unique(ch, obj) || NamedStuff::check_named(ch, obj, 0))
+		if (invalid_anti_class(ch, obj) || invalid_unique(ch, obj) || NamedStuff::check_named(ch, obj, false))
 		{
 			sprintf(buf2, "Эта вещь вам недоступна!");
 			strcat(buf, buf2);

@@ -6,7 +6,6 @@
 #include "conf.h"
 
 #include <sstream>
-#include <memory.h>
 
 namespace Boards
 {

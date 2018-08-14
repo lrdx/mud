@@ -12,11 +12,8 @@
 #include "interpreter.h"
 #include "screen.h"
 #include "house.h"
-#include "room.hpp"
 
 #include <boost/format.hpp>
-
-#include <algorithm>
 
 namespace Remember
 {
@@ -132,7 +129,7 @@ std::string get_from_flaged_cont(const RememberWiznetListType &cont, unsigned in
 using namespace Remember;
 
 // * Добавление строки в список (flag).
-void CharRemember::add_str(std::string text, int flag)
+void CharRemember::add_str(const std::string& text, int flag)
 {
 	std::string buffer = time_format();
 	buffer += text;

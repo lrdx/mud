@@ -589,7 +589,7 @@ void pk_thiefs_action(CHAR_DATA * thief, CHAR_DATA * victim)
 	pk_translate_pair(&thief, &victim);
 	if (victim == NULL)
 	{
-//		mudlog("Противник исчез при ПК куда-то! функция 3", CMP, LVL_GOD, SYSLOG, TRUE);
+		//		mudlog("Противник исчез при ПК куда-то! функция 3", CMP, LVL_GOD, SYSLOG, TRUE);
 		return;
 	}
 
@@ -612,8 +612,8 @@ void pk_thiefs_action(CHAR_DATA * thief, CHAR_DATA * victim)
 			pk->next = thief->pk_list;
 			thief->pk_list = pk;
 		}
-                else 
-                   break;
+		else
+			break;
 		if (pk->thief_exp == 0)
 			act("$N получил$G право на ваш отстрел!", FALSE, thief, 0, victim, TO_CHAR);
 		else
@@ -624,6 +624,7 @@ void pk_thiefs_action(CHAR_DATA * thief, CHAR_DATA * victim)
 	}
 	return;
 }
+
 
 void pk_revenge_action(CHAR_DATA * killer, CHAR_DATA * victim)
 {

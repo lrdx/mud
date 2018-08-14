@@ -18,19 +18,10 @@
 #include "structs.h"
 #include "sysdep.h"
 #include "conf.h"
+#include "interpreter.h"
 
 #include <vector>
 
-// * External data structures.
-extern struct zone_data *zone_table;
-extern CHAR_DATA *mob_proto;
-extern INDEX_DATA *mob_index;
-extern char const *equipment_types[];
-extern char const *dirs[];
-
-//MZ.load
-extern struct zone_type * zone_types;
-//-MZ.load
 //------------------------------------------------------------------------
 
 // * Function prototypes.
@@ -53,7 +44,6 @@ void zedit_create_index(int znum, char *type);
 void zedit_new_zone(CHAR_DATA * ch, int vzone_num);
 
 void renum_single_table(int zone);
-int is_number(const char *str);
 //------------------------------------------------------------------------
 
 // Количество команд для отображения без фильтра
@@ -300,7 +290,7 @@ void zedit_scroll_list(DESCRIPTOR_DATA * d, char *arg)
 	pos = d->olc->bitmask & ~OLC_BM_SHOWALLCMD;
 	head = (pzcmd) OLC_ZONE(d)->cmd;
 	last = zedit_count_cmdlist(head);
-	while (1)
+	while (true)
 	{
 		switch (*arg++)
 		{
@@ -1528,7 +1518,7 @@ void zedit_parse(DESCRIPTOR_DATA * d, char *arg)
 			send_to_char("Введите описание к зоне : ", d->character.get());
 			OLC_MODE(d) = ZEDIT_ZONE_DESCRIPTION;
 			break;
-//MZ.load
+			//MZ.load
 		case 's':
 		case 'S':
 			// * Edit zone level.
@@ -1541,7 +1531,7 @@ void zedit_parse(DESCRIPTOR_DATA * d, char *arg)
 			zedit_disp_type_menu(d);
 			OLC_MODE(d) = ZEDIT_ZONE_TYPE;
 			break;
-//-MZ.load
+			//-MZ.load
 
 		case 't':
 		case 'T':
@@ -1562,7 +1552,7 @@ void zedit_parse(DESCRIPTOR_DATA * d, char *arg)
 			else
 			{
 				send_to_char("Введите новую старшую комнату зоны.\r\n"
-							 "Помните, она всегда должны быть равна НомерЗоны*100+99 : ", d->character.get());
+					"Помните, она всегда должны быть равна НомерЗоны*100+99 : ", d->character.get());
 				OLC_MODE(d) = ZEDIT_ZONE_TOP;
 			}
 			break;
@@ -1582,10 +1572,10 @@ void zedit_parse(DESCRIPTOR_DATA * d, char *arg)
 		case 'R':
 			// * Edit zone reset mode.
 			send_to_char("\r\n"
-						 "0) Никогда не очищать\r\n"
-						 "1) Очищать, если в зоне нет игроков\r\n"
-						 "2) Обычная очистка(даже если есть игроки)\r\n"
-						 "3) Общая очистка(комплекс зон)\r\n" "Выберите тип очистки зоны : ", d->character.get());
+				"0) Никогда не очищать\r\n"
+				"1) Очищать, если в зоне нет игроков\r\n"
+				"2) Обычная очистка(даже если есть игроки)\r\n"
+				"3) Общая очистка(комплекс зон)\r\n" "Выберите тип очистки зоны : ", d->character.get());
 			OLC_MODE(d) = ZEDIT_ZONE_RESET;
 			break;
 		case 'a':
@@ -1655,12 +1645,12 @@ void zedit_parse(DESCRIPTOR_DATA * d, char *arg)
 		else
 		{
 			sprintf(buf,
-					"Режимы исполнения команды:\r\n"
-					"  0 - выполняется всегда\r\n"
-					"  1 - выполняется только в случае успешного выполнения предыдущей\r\n"
-					"  2 - выполняется всегда, не изменяет признак успешного выполнения\r\n"
-					"  3 - выполняется только в случае успешного выполнения предыдущей, не изменяет признак успешного выполнения\r\n"
-					"Текущий режим  : %d\r\n" "Выберите режим : ", item->cmd.if_flag);
+				"Режимы исполнения команды:\r\n"
+				"  0 - выполняется всегда\r\n"
+				"  1 - выполняется только в случае успешного выполнения предыдущей\r\n"
+				"  2 - выполняется всегда, не изменяет признак успешного выполнения\r\n"
+				"  3 - выполняется только в случае успешного выполнения предыдущей, не изменяет признак успешного выполнения\r\n"
+				"Текущий режим  : %d\r\n" "Выберите режим : ", item->cmd.if_flag);
 			send_to_char(buf, d->character.get());
 			OLC_MODE(d) = ZEDIT_IF_FLAG;
 		}
@@ -1703,8 +1693,8 @@ void zedit_parse(DESCRIPTOR_DATA * d, char *arg)
 		case 'P':
 		case 'E':
 		case 'G':
-//			CHECK_OBJ(d, pos) zedit_disp_arg2(d);
-//Gorrah: Поскольку у нас теперь max in world хранится в объекте, то редактировать его тут не нужно.
+			//			CHECK_OBJ(d, pos) zedit_disp_arg2(d);
+			//Gorrah: Поскольку у нас теперь max in world хранится в объекте, то редактировать его тут не нужно.
 			CHECK_OBJ(d, pos);
 			if (item->cmd.command == 'G')
 				zedit_disp_arg4(d);
@@ -1930,7 +1920,7 @@ void zedit_parse(DESCRIPTOR_DATA * d, char *arg)
 		OLC_ZONE(d)->number = 1;
 		zedit_disp_menu(d);
 		break;
-//MZ.load
+		//MZ.load
 
 	case ZEDIT_ZONE_LEVEL:
 		// * Parse and add new level and return to main menu.
@@ -1965,7 +1955,7 @@ void zedit_parse(DESCRIPTOR_DATA * d, char *arg)
 			}
 		}
 		break;
-//-MZ.load
+		//-MZ.load
 
 	case ZEDIT_ZONE_RESET:
 		// * Parse and add new reset_mode and return to main menu.
@@ -2006,9 +1996,9 @@ void zedit_parse(DESCRIPTOR_DATA * d, char *arg)
 		else
 		{
 			if (strchr("YyДд", arg[0]))
-				OLC_ZONE(d)->reset_idle = 1;
+				OLC_ZONE(d)->reset_idle = true;
 			else
-				OLC_ZONE(d)->reset_idle = 0;
+				OLC_ZONE(d)->reset_idle = false;
 			OLC_ZONE(d)->number = 1;
 			zedit_disp_menu(d);
 		}
@@ -2029,7 +2019,7 @@ void zedit_parse(DESCRIPTOR_DATA * d, char *arg)
 				{
 					if (OLC_ZONE(d)->typeA_count > 1)
 						CREATE(temp, (OLC_ZONE(d)->typeA_count - 1));
-// копируем в temp с пропуском значения из pos
+					// копируем в temp с пропуском значения из pos
 					for (j = 0; j < i; j++)
 						temp[j] = OLC_ZONE(d)->typeA_list[j];
 					for (j = i; j < (OLC_ZONE(d)->typeA_count - 1); j++)
@@ -2082,7 +2072,7 @@ void zedit_parse(DESCRIPTOR_DATA * d, char *arg)
 					{
 						CREATE(temp, (OLC_ZONE(d)->typeB_count - 1));
 					}
-// копируем в temp с пропуском значения из pos
+					// копируем в temp с пропуском значения из pos
 					for (j = 0; j < i; j++)
 						temp[j] = OLC_ZONE(d)->typeB_list[j];
 					for (j = i; j < (OLC_ZONE(d)->typeB_count - 1); j++)
@@ -2123,7 +2113,7 @@ void zedit_parse(DESCRIPTOR_DATA * d, char *arg)
 			OLC_ZONE(d)->top = MAX(OLC_ZNUM(d) * 100, MIN(99900, atoi(arg)));
 		else
 			OLC_ZONE(d)->top =
-				MAX(OLC_ZNUM(d) * 100, MIN(zone_table[OLC_ZNUM(d) + 1].number * 100, atoi(arg)));
+			MAX(OLC_ZNUM(d) * 100, MIN(zone_table[OLC_ZNUM(d) + 1].number * 100, atoi(arg)));
 		OLC_ZONE(d)->top = (OLC_ZONE(d)->top / 100) * 100 + 99;
 		zedit_disp_menu(d);
 		break;
@@ -2141,12 +2131,12 @@ void zedit_parse(DESCRIPTOR_DATA * d, char *arg)
 	case ZEDIT_ZONE_LOCATION:
 		if (OLC_ZONE(d)->location)
 		{
-		    free(OLC_ZONE(d)->location);
-		    OLC_ZONE(d)->location = NULL;
+			free(OLC_ZONE(d)->location);
+			OLC_ZONE(d)->location = NULL;
 		}
 		if (arg && *arg)
 		{
-		    OLC_ZONE(d)->location = str_dup(arg);
+			OLC_ZONE(d)->location = str_dup(arg);
 		}
 		OLC_ZONE(d)->number = 1;
 		zedit_disp_menu(d);
@@ -2155,12 +2145,12 @@ void zedit_parse(DESCRIPTOR_DATA * d, char *arg)
 	case ZEDIT_ZONE_AUTOR:
 		if (OLC_ZONE(d)->autor)
 		{
-		    free(OLC_ZONE(d)->autor);
-		    OLC_ZONE(d)->autor = NULL;
+			free(OLC_ZONE(d)->autor);
+			OLC_ZONE(d)->autor = NULL;
 		}
 		if (arg && *arg)
 		{
-		    OLC_ZONE(d)->autor = str_dup(arg);
+			OLC_ZONE(d)->autor = str_dup(arg);
 		}
 		OLC_ZONE(d)->number = 1;
 		zedit_disp_menu(d);
@@ -2177,20 +2167,20 @@ void zedit_parse(DESCRIPTOR_DATA * d, char *arg)
 		break;
 
 	case ZEDIT_ZONE_GROUP:
+	{
+		int num = atoi(arg);
+		if (num < 1 || num > 20)
 		{
-			int num = atoi(arg);
-			if (num < 1 || num > 20)
-			{
-				send_to_char("Повторите ввод (от 1 до 20) :", d->character.get());
-			}
-			else
-			{
-				OLC_ZONE(d)->group = num;
-				OLC_ZONE(d)->number = 1;
-				zedit_disp_menu(d);
-			}
-			break;
+			send_to_char("Повторите ввод (от 1 до 20) :", d->character.get());
 		}
+		else
+		{
+			OLC_ZONE(d)->group = num;
+			OLC_ZONE(d)->number = 1;
+			zedit_disp_menu(d);
+		}
+		break;
+	}
 
 	default:
 		// * We should never get here, but just in case...

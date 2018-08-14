@@ -5,11 +5,10 @@
 #ifndef QUESTED_HPP_INCLUDED
 #define QUESTED_HPP_INCLUDED
 
+#include "structs.h"
+
 #include <map>
 #include <string>
-#include "conf.h"
-#include "sysdep.h"
-#include "structs.h"
 
 class Quested
 {

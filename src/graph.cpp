@@ -25,7 +25,6 @@
 #include "spells.h"
 #include "skills.h"
 #include "features.hpp"
-#include "random.hpp"
 #include "char.hpp"
 #include "room.hpp"
 
@@ -34,10 +33,7 @@
 // Externals
 void do_say(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
 void do_sense(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
-extern const char *dirs[];
-extern const char *DirsTo[];
 extern int track_through_doors;
-extern CHAR_DATA *mob_proto;
 int attack_best(CHAR_DATA * ch, CHAR_DATA * vict);
 
 // local functions

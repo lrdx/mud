@@ -8,12 +8,8 @@
 #include "db.h"
 #include "char.hpp"
 #include "comm.h"
-#include "handler.h"
-#include "dg_scripts.h"
-#include "im.h"
 #include "room.hpp"
 #include "pugixml.hpp"
-#include "modify.h"
 #include "house.h"
 #include "screen.h"
 #include "help.hpp"
@@ -28,7 +24,6 @@
 #include <boost/algorithm/string.hpp>
 
 #include <sstream>
-#include <iostream>
 #include <set>
 #include <list>
 #include <map>
@@ -178,10 +173,9 @@ std::map<int, DropNode> drop_list;
 bool Linked::need_reset() const
 {
 	bool flag = false;
-	for (std::set<int>::const_iterator i = mob_list.begin(),
-		iend = mob_list.end(); i != iend; ++i)
+	for (const auto& i : mob_list)
 	{
-		std::map<int, DropNode>::iterator k = drop_list.find(*i);
+		const auto k = drop_list.find(i);
 		if (k != drop_list.end())
 		{
 			const int num = obj_proto.actual_count(k->second.obj_rnum);
@@ -201,10 +195,9 @@ bool Linked::need_reset() const
 
 void Linked::reset()
 {
-	for (std::set<int>::const_iterator i = mob_list.begin(),
-		iend = mob_list.end(); i != iend; ++i)
+	for (const auto& i : mob_list)
 	{
-		std::map<int, DropNode>::iterator k = drop_list.find(*i);
+		const auto k = drop_list.find(i);
 		if (k != drop_list.end())
 		{
 			k->second.reset_chance();
@@ -216,10 +209,9 @@ int Linked::drop_count() const
 {
 	int count = 0;
 
-	for (std::set<int>::const_iterator i = mob_list.begin(),
-		iend = mob_list.end(); i != iend; ++i)
+	for (const auto& i : mob_list)
 	{
-		std::map<int, DropNode>::const_iterator k = drop_list.find(*i);
+		const auto k = drop_list.find(i);
 		if (k != drop_list.end() && k->second.can_drop)
 		{
 			++count;
@@ -512,11 +504,10 @@ void init_mob_name_list()
 		}
 	}
 
-	for (auto i = mob_stat::mob_list.cbegin(),
-		iend = mob_stat::mob_list.cend(); i != iend; ++i)
+	for (const auto& i : mob_stat::mob_list)
 	{
-		const int rnum = real_mobile(i->first);
-		const int zone = i->first/100;
+		const int rnum = real_mobile(i.first);
+		const int zone = i.first/100;
 		std::set<int>::const_iterator k = bad_zones.find(zone);
 
 		if (rnum < 0
@@ -527,10 +518,10 @@ void init_mob_name_list()
 		}
 
 		MobNode node;
-		node.vnum = i->first;
+		node.vnum = i.first;
 		node.rnum = rnum;
 		node.name = mob_proto[rnum].get_name();
-		auto stat = mob_stat::sum_stat(i->second, 4);
+		auto stat = mob_stat::sum_stat(i.second, 4);
 		node.kill_stat = stat.kills;
 
 		add_to_zone_list(mob_name_list, node);
@@ -540,30 +531,28 @@ void init_mob_name_list()
 // * Инится у зоны: тип
 void init_zone_type()
 {
-	for (std::list<ZoneNode>::iterator i = mob_name_list.begin(),
-		iend = mob_name_list.end(); i != iend; ++i)
+	for (auto& i : mob_name_list)
 	{
 		int killed_solo = 0;
-		for (std::list<MobNode>::iterator k = i->mobs.begin(),
-			kend = i->mobs.end(); k != kend; ++k)
+		for (const auto& k : i.mobs)
 		{
 			int group_cnt = 0;
 			for (int cnt = 2; cnt <= MAX_GROUP_SIZE; ++cnt)
 			{
-				group_cnt += k->kill_stat.at(cnt);
+				group_cnt += k.kill_stat.at(cnt);
 			}
-			if (k->kill_stat.at(1) > group_cnt)
+			if (k.kill_stat.at(1) > group_cnt)
 			{
 				++killed_solo;
 			}
 		}
-		if (killed_solo >= i->mobs.size() * 0.8)
+		if (killed_solo >= i.mobs.size() * 0.8)
 		{
-			i->type = SOLO_ZONE;
+			i.type = SOLO_ZONE;
 		}
 		else
 		{
-			i->type = GROUP_ZONE;
+			i.type = GROUP_ZONE;
 		}
 	}
 }
@@ -571,24 +560,22 @@ void init_zone_type()
 // * Инится у моба: тип
 void init_mob_type()
 {
-	for (std::list<ZoneNode>::iterator i = mob_name_list.begin(),
-		iend = mob_name_list.end(); i != iend; ++i)
+	for (auto& i : mob_name_list)
 	{
-		for (std::list<MobNode>::iterator k = i->mobs.begin(),
-			kend = i->mobs.end(); k != kend; ++k)
+		for (auto& k : i.mobs)
 		{
 			int group_cnt = 0;
 			for (int cnt = 2; cnt <= MAX_GROUP_SIZE; ++cnt)
 			{
-				group_cnt += k->kill_stat.at(cnt);
+				group_cnt += k.kill_stat.at(cnt);
 			}
-			if (i->type == SOLO_ZONE && k->kill_stat.at(1) > group_cnt)
+			if (i.type == SOLO_ZONE && k.kill_stat.at(1) > group_cnt)
 			{
-				k->type = SOLO_MOB;
+				k.type = SOLO_MOB;
 			}
-			else if (i->type == GROUP_ZONE && k->kill_stat.at(1) < group_cnt)
+			else if (i.type == GROUP_ZONE && k.kill_stat.at(1) < group_cnt)
 			{
-				k->type = GROUP_MOB;
+				k.type = GROUP_MOB;
 			}
 		}
 	}
@@ -627,36 +614,33 @@ void filter_dupe_names()
 {
 	int vnum = 0;
 	int level = 0;
-	for (std::list<ZoneNode>::iterator it = mob_name_list.begin(),
-		iend = mob_name_list.end(); it != iend; ++it)
+	for (auto& it : mob_name_list)
 	{
 		std::list<MobNode> tmp_list;
 		// отсеиваем (включая оригинал) одинаковые имена с разными внумами
-		for (std::list<MobNode>::iterator k = it->mobs.begin(),
-			kend = it->mobs.end(); k != kend; ++k)
+		for (auto& k : it.mobs)
 		{
 			// одинаковые имена в пределах зоны
 			bool good = true;
-			for (std::list<MobNode>::iterator l = it->mobs.begin(),
-				lend = it->mobs.end(); l != lend; ++l)
+			for (const auto& l : it.mobs)
 			{
-				if (k->vnum != l->vnum && k->name == l->name)
+				if (k.vnum != l.vnum && k.name == l.name)
 				{
 					good = false;
 					break;
 				}
 			}
-			if (!good || k->type == -1)
+			if (!good || k.type == -1)
 			{
 				continue;
 			}			
-			if (k->type == GROUP_MOB
-				&& mob_proto[k->rnum].get_level() < MIN_GROUP_MOB_LVL)
+			if (k.type == GROUP_MOB
+				&& mob_proto[k.rnum].get_level() < MIN_GROUP_MOB_LVL)
 			{
 				continue;
 			}
 			// редко появляющиеся мобы, мобы без экспы
-			const CHAR_DATA *mob = &mob_proto[k->rnum];
+			const CHAR_DATA *mob = &mob_proto[k.rnum];
 			if (MOB_FLAGGED(mob, MOB_LIKE_FULLMOON)
 				|| MOB_FLAGGED(mob, MOB_LIKE_WINTER)
 				|| MOB_FLAGGED(mob, MOB_LIKE_SPRING)
@@ -672,28 +656,28 @@ void filter_dupe_names()
 			
 
 			// пока только уникальные мобы
-			k->miw = calc_max_in_world(k->rnum);
-			if (k->miw != 1)
+			k.miw = calc_max_in_world(k.rnum);
+			if (k.miw != 1)
 			{
 				continue;
 			}
 			
 
-			vnum = mob_index[k->rnum].vnum;
-			level = mob_proto[k->rnum].get_level();
+			vnum = mob_index[k.rnum].vnum;
+			level = mob_proto[k.rnum].get_level();
 			unique_mobs.insert(std::make_pair(vnum, level));
 
 			// проверка на левел моба
-			if (k->type == SOLO_MOB
-				&& (mob_proto[k->rnum].get_level() < MIN_SOLO_MOB_LVL
-					|| mob_proto[k->rnum].get_level() > MAX_SOLO_MOB_LVL))
+			if (k.type == SOLO_MOB
+				&& (mob_proto[k.rnum].get_level() < MIN_SOLO_MOB_LVL
+					|| mob_proto[k.rnum].get_level() > MAX_SOLO_MOB_LVL))
 			{
 				continue;
 			}
 
-			tmp_list.push_back(*k);
+			tmp_list.push_back(k);
 		}
-		it->mobs = tmp_list;
+		it.mobs = tmp_list;
 	}
 }
 
@@ -710,15 +694,14 @@ void filter_extra_mobs(int total, int type)
 	while (num_del > 0)
 	{
 		size_t max_num = 0;
-		for (std::list<ZoneNode>::iterator it = cont.begin(),
-			iend = cont.end(); it != iend; ++it)
+		for (const auto& it : cont)
 		{
-			if (it->mobs.size() > max_num)
+			if (it.mobs.size() > max_num)
 			{
-				max_num = it->mobs.size();
+				max_num = it.mobs.size();
 			}
 		}
-		for (std::list<ZoneNode>::iterator it = cont.begin(),
+		for (auto it = cont.begin(),
 			iend = cont.end(); it != iend; ++it)
 		{
 			if (it->mobs.size() >= max_num)
@@ -742,20 +725,18 @@ void split_mob_name_list()
 {
 	int total_group_mobs = 0, total_solo_mobs = 0;
 
-	for (std::list<ZoneNode>::iterator it = mob_name_list.begin(),
-		iend = mob_name_list.end(); it != iend; ++it)
+	for (auto& it : mob_name_list)
 	{
-		for (std::list<MobNode>::iterator k = it->mobs.begin(),
-			kend = it->mobs.end(); k != kend; ++k)
+		for (auto& k : it.mobs)
 		{
-			if (k->type == GROUP_MOB)
+			if (k.type == GROUP_MOB)
 			{
-				add_to_zone_list(group_mob_list, *k);
+				add_to_zone_list(group_mob_list, k);
 				++total_group_mobs;
 			}
-			else if (k->type == SOLO_MOB)
+			else if (k.type == SOLO_MOB)
 			{
-				add_to_zone_list(solo_mob_list, *k);
+				add_to_zone_list(solo_mob_list, k);
 				++total_solo_mobs;
 			}
 		}
@@ -867,29 +848,25 @@ void init_linked_mobs(const std::set<int> &node)
 {
 	// инит рнумов залинкованных мобов
 	Linked tmp_linked_mobs;
-	for (std::set<int>::const_iterator l = node.begin(),
-		lend = node.end(); l != lend; ++l)
+	for (const auto& l : node)
 	{
-		for (std::map<int, DropNode>::iterator k = drop_list.begin(),
-				kend = drop_list.end(); k != kend; ++k)
+		for (const auto& k : drop_list)
 		{
-			if (k->second.obj_vnum == *l)
+			if (k.second.obj_vnum == l)
 			{
-				tmp_linked_mobs.add(k->first);
+				tmp_linked_mobs.add(k.first);
 			}
 		}
 	}
 	// суем сформированный список каждому мобу из этого же списка,
 	// но уже в рабочий DropNode
-	for (std::set<int>::const_iterator l = node.begin(),
-		lend = node.end(); l != lend; ++l)
+	for (const auto& l : node)
 	{
-		for (std::map<int, DropNode>::iterator k = drop_list.begin(),
-				kend = drop_list.end(); k != kend; ++k)
+		for (auto& k : drop_list)
 		{
-			if (k->second.obj_vnum == *l)
+			if (k.second.obj_vnum == l)
 			{
-				k->second.linked_mobs = tmp_linked_mobs;
+				k.second.linked_mobs = tmp_linked_mobs;
 			}
 		}
 	}
@@ -905,11 +882,10 @@ void init_link_system()
 		init_linked_mobs(i->solo_list_2);
 	}
 	// инит DropNode::is_big_set
-	for (std::map<int, DropNode>::iterator k = drop_list.begin(),
-		kend = drop_list.end(); k != kend; ++k)
+	for (auto& k : drop_list)
 	{
-		const auto& obj = obj_proto[k->second.obj_rnum];
-		k->second.is_big_set = SetSystem::is_big_set(obj.get());
+		const auto& obj = obj_proto[k.second.obj_rnum];
+		k.second.is_big_set = SetSystem::is_big_set(obj.get());
 	}
 }
 
@@ -922,13 +898,11 @@ std::string print_solo_list(const std::set<int> &node)
 	std::vector<std::string> solo_mob_list;
 	int new_line = -1;
 
-	for (std::set<int>::const_iterator l = node.begin(),
-		lend = node.end(); l != lend; ++l)
+	for (const auto& l : node)
 	{
-		for (std::map<int, DropNode>::iterator k = drop_list.begin(),
-				kend = drop_list.end(); k != kend; ++k)
+		for (const auto& k : drop_list)
 		{
-			if (k->second.obj_vnum == *l)
+			if (k.second.obj_vnum == l)
 			{
 				if (new_line == -1)
 				{
@@ -945,12 +919,12 @@ std::string print_solo_list(const std::set<int> &node)
 					solo_obj_names << "\r\n   ";
 					new_line = 0;
 				}
-				solo_obj_names << GET_OBJ_PNAME(obj_proto[k->second.obj_rnum], 0);
+				solo_obj_names << GET_OBJ_PNAME(obj_proto[k.second.obj_rnum], 0);
 				std::stringstream solo_out;
 				solo_out.precision(1);
-				solo_out << "    - " << mob_proto[k->first].get_name()
-					<< " (" << zone_table[mob_index[k->first].zone].name << ")"
-					<< " - " << std::fixed << k->second.chance / 10.0 << "%\r\n";
+				solo_out << "    - " << mob_proto[k.first].get_name()
+					<< " (" << zone_table[mob_index[k.first].zone].name << ")"
+					<< " - " << std::fixed << k.second.chance / 10.0 << "%\r\n";
 				solo_mob_list.push_back(solo_out.str());
 			}
 		}
@@ -1195,18 +1169,17 @@ void save_drop_table()
 
 	pugi::xml_node time_node = node_list.append_child();
 	time_node.set_name("time");
-	time_node.append_attribute("reset") = boost::lexical_cast<std::string>(next_reset_time).c_str();
+	time_node.append_attribute("reset") = std::to_string(next_reset_time).c_str();
 
-	for (std::map<int, DropNode>::iterator i = drop_list.begin(),
-		iend = drop_list.end(); i != iend; ++i)
+	for (const auto& i : drop_list)
 	{
 		pugi::xml_node mob_node = node_list.append_child();
 		mob_node.set_name("item");
-		mob_node.append_attribute("vnum") = obj_proto[i->second.obj_rnum]->get_vnum();
-		mob_node.append_attribute("mob") = mob_index[i->first].vnum;
-		mob_node.append_attribute("chance") = i->second.chance;
-		mob_node.append_attribute("solo") = i->second.solo ? "true" : "false";
-		mob_node.append_attribute("can_drop") = i->second.can_drop ? "true" : "false";
+		mob_node.append_attribute("vnum") = obj_proto[i.second.obj_rnum]->get_vnum();
+		mob_node.append_attribute("mob") = mob_index[i.first].vnum;
+		mob_node.append_attribute("chance") = i.second.chance;
+		mob_node.append_attribute("solo") = i.second.solo ? "true" : "false";
+		mob_node.append_attribute("can_drop") = i.second.can_drop ? "true" : "false";
 	}
 
 	doc.save_file(DROP_TABLE_FILE);
@@ -1387,16 +1360,15 @@ void renumber_obj_rnum(const int mob_rnum)
 	if (mob_rnum > -1)
 	{
 		std::map<int, DropNode> tmp_list;
-		for (std::map<int, DropNode>::iterator it = drop_list.begin(),
-			iend = drop_list.end(); it != iend; ++it)
+		for (const auto& it : drop_list)
 		{
-			if (it->first >= mob_rnum)
+			if (it.first >= mob_rnum)
 			{
-				tmp_list.insert(std::make_pair(it->first + 1, it->second));
+				tmp_list.insert(std::make_pair(it.first + 1, it.second));
 			}
 			else
 			{
-				tmp_list.insert(std::make_pair(it->first, it->second));
+				tmp_list.insert(std::make_pair(it.first, it.second));
 			}
 		}
 		drop_list = tmp_list;

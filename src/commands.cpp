@@ -4,11 +4,9 @@
 #include "char.hpp"
 #include "levenshtein.hpp"
 #include "compact.trie.hpp"
-#include "utils.string.hpp"
 
 #include <sstream>
 #include <iomanip>
-#include <cstring>
 
 namespace commands
 {
@@ -384,7 +382,7 @@ namespace commands
 		{
 			while (*arguments)
 			{
-				auto next_argument = first_argument(arguments);
+				const auto next_argument = first_argument(arguments);
 				if (*next_argument)
 				{
 					push_back(next_argument);

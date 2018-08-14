@@ -5,8 +5,6 @@
 #define OBJ_SETS_HPP_INCLUDED
 
 #include "obj.hpp"
-#include "features.hpp"
-#include "interpreter.h"
 #include "structs.h"
 #include "sysdep.h"
 #include "conf.h"

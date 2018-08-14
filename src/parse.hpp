@@ -4,11 +4,8 @@
 #ifndef PARSE_HPP_INCLUDED
 #define PARSE_HPP_INCLUDED
 
-#include "conf.h"
 #include "pugixml.hpp"
-#include "sysdep.h"
 #include "structs.h"
-#include "comm.h"
 
 #include <string>
 

@@ -48,7 +48,7 @@ long get_lastlogon_by_unique(long unique);
 long get_ptable_by_unique(long unique);
 int get_zone_rooms(int, int *, int *);
 
-int load_char(const char *name, CHAR_DATA * char_element, bool reboot = 0, const bool find_id = true);
+int load_char(const char *name, CHAR_DATA * char_element, bool reboot = false, const bool find_id = true);
 CHAR_DATA *read_mobile(mob_vnum nr, int type);
 mob_rnum real_mobile(mob_vnum vnum);
 int vnum_mobile(char *searchname, CHAR_DATA * ch);

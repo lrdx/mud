@@ -60,17 +60,7 @@ int last_trig_vnum=0;
 
 // other external vars
 
-extern void add_trig_to_owner(int vnum_owner, int vnum_trig, int vnum);
-extern CHAR_DATA *combat_list;
-extern const char *item_types[];
-extern const char *genders[];
 extern const char *pc_class_types[];
-//extern const char *race_types[];
-extern const char *exit_bits[];
-extern INDEX_DATA *mob_index;
-extern TIME_INFO_DATA time_info;
-extern struct zone_data *zone_table;
-const char *spell_name(int num);
 
 extern int can_take_obj(CHAR_DATA * ch, OBJ_DATA * obj);
 extern void split_or_clan_tax(CHAR_DATA *ch, long amount);
@@ -80,7 +70,6 @@ room_rnum find_target_room(CHAR_DATA * ch, char *rawroomstr, int trig);
 void free_varlist(struct trig_var_data *vd);
 int obj_room(OBJ_DATA * obj);
 int is_empty(int zone_nr);
-TRIG_DATA *read_trigger(int nr);
 OBJ_DATA *get_object_in_equip(CHAR_DATA * ch, char *name);
 void extract_trigger(TRIG_DATA * trig);
 int eval_lhs_op_rhs(const char *expr, char *result, void *go, SCRIPT_DATA * sc, TRIG_DATA * trig, int type);
@@ -366,7 +355,7 @@ int gcount_char_vnum(long n)
 {
 	int count = 0;
 
-	for (const auto ch : character_list)
+	for (const auto& ch : character_list)
 	{
 		if (n == GET_MOB_VNUM(ch))
 		{
@@ -445,7 +434,7 @@ ROOM_DATA *find_room(long n)
 int find_char_vnum(long n, int num = 0)
 {
 	int count = 0;
-	for (const auto ch : character_list)
+	for (const auto& ch : character_list)
 	{
 		if (n == GET_MOB_VNUM(ch) && ch->in_room != NOWHERE)
 		{
@@ -811,7 +800,7 @@ void script_trigger_check()
 	{
 		if (SCRIPT(ch)->has_triggers())
 		{
-			auto sc = SCRIPT(ch).get();
+			const auto sc = SCRIPT(ch).get();
 
 			if (IS_SET(SCRIPT_TYPES(sc), MTRIG_RANDOM)
 				&& (!is_empty(world[ch->in_room]->zone)
@@ -833,7 +822,7 @@ void script_trigger_check()
 		}
 		else if (obj->get_script()->has_triggers())
 		{
-			auto sc = obj->get_script().get();
+			const auto sc = obj->get_script().get();
 			if (IS_SET(SCRIPT_TYPES(sc), OTRIG_RANDOM))
 			{
 				random_otrigger(obj.get());
@@ -845,8 +834,8 @@ void script_trigger_check()
 	{
 		if (SCRIPT(world[nr])->has_triggers())
 		{
-			auto room = world[nr];
-			auto sc = SCRIPT(room).get();
+			const auto room = world[nr];
+			const auto sc = SCRIPT(room).get();
 
 			if (IS_SET(SCRIPT_TYPES(sc), WTRIG_RANDOM)
 				&& (!is_empty(room->zone)
@@ -866,7 +855,7 @@ void script_timechange_trigger_check(const int time)
 	{
 		if (SCRIPT(ch)->has_triggers())
 		{
-			auto sc = SCRIPT(ch).get();
+			const auto sc = SCRIPT(ch).get();
 
 			if (IS_SET(SCRIPT_TYPES(sc), MTRIG_TIMECHANGE)
 				&& (!is_empty(world[ch->in_room]->zone)
@@ -881,7 +870,7 @@ void script_timechange_trigger_check(const int time)
 	{
 		if (obj->get_script()->has_triggers())
 		{
-			auto sc = obj->get_script().get();
+			const auto sc = obj->get_script().get();
 			if (IS_SET(SCRIPT_TYPES(sc), OTRIG_TIMECHANGE))
 			{
 				timechange_otrigger(obj.get(), time);
@@ -893,8 +882,8 @@ void script_timechange_trigger_check(const int time)
 	{
 		if (SCRIPT(world[nr])->has_triggers())
 		{
-			auto room = world[nr];
-			auto sc = SCRIPT(room).get();
+			const auto room = world[nr];
+			const auto sc = SCRIPT(room).get();
 
 			if (IS_SET(SCRIPT_TYPES(sc), WTRIG_TIMECHANGE)
 				&& (!is_empty(room->zone)
@@ -1646,7 +1635,6 @@ int text_processed(char *field, char *subfield, struct trig_var_data *vd, char *
 	{
 		// NOTE: you may need to replace "cmd_info" with "complete_cmd_info",
 		// depending on what patches you've got applied.
-		extern const struct command_info cmd_info[];
 		// on older source bases:    extern struct command_info *cmd_info;
 		int cmd = 0;
 		const size_t length = strlen(vd->value);
@@ -2493,14 +2481,14 @@ void find_replacement(void* go, SCRIPT_DATA* sc, TRIG_DATA* trig, int type, char
 		else if ((!str_cmp(field, "restore")) || (!str_cmp(field, "fullrestore")))
 		{
 			/* Так, тупо, но иначе ругается, мол слишком много блоков*/
-			 if (!str_cmp(field, "fullrestore"))
+			if (!str_cmp(field, "fullrestore"))
 			{
-				do_arena_restore(c, (char *) c->get_name().c_str(), 0, SCMD_RESTORE_TRIGGER);
+				do_arena_restore(c, (char *)c->get_name().c_str(), 0, SCMD_RESTORE_TRIGGER);
 				trig_log(trig, "был произведен вызов do_arena_restore!");
 			}
 			else
 			{
-				do_restore(c, (char *) c->get_name().c_str(), 0, SCMD_RESTORE_TRIGGER);
+				do_restore(c, (char *)c->get_name().c_str(), 0, SCMD_RESTORE_TRIGGER);
 				trig_log(trig, "был произведен вызов do_restore!");
 			}
 		}
@@ -2804,7 +2792,7 @@ void find_replacement(void* go, SCRIPT_DATA* sc, TRIG_DATA* trig, int type, char
 		}
 		else if (!str_cmp(field, "room"))
 		{
-			int n = find_room_uid(world[IN_ROOM(c)]->number);
+			const int n = find_room_uid(world[IN_ROOM(c)]->number);
 			if (n >= 0)
 				sprintf(str, "%c%d", UID_ROOM, n);
 		}
@@ -3078,7 +3066,7 @@ void find_replacement(void* go, SCRIPT_DATA* sc, TRIG_DATA* trig, int type, char
 				{
 					continue;
 				}
-				int n = snprintf (tmp, MAX_INPUT_LENGTH, "%c%ld ", UID_CHAR, GET_ID(t));
+				const int n = snprintf (tmp, MAX_INPUT_LENGTH, "%c%ld ", UID_CHAR, GET_ID(t));
 				if (str_length + n < MAX_INPUT_LENGTH) // not counting the terminating null character
 				{
 					strcpy(str + str_length, tmp);
@@ -3113,7 +3101,7 @@ void find_replacement(void* go, SCRIPT_DATA* sc, TRIG_DATA* trig, int type, char
 			size_t str_length = strlen(str);
 			for (obj = c->carrying; obj; obj = obj->get_next_content())
 			{
-				int n = snprintf (tmp, MAX_INPUT_LENGTH, "%c%ld ", UID_OBJ, obj->get_id());
+				const int n = snprintf (tmp, MAX_INPUT_LENGTH, "%c%ld ", UID_OBJ, obj->get_id());
 				if (str_length + n < MAX_INPUT_LENGTH) // not counting the terminating null character
 				{
 					strcpy(str + str_length, tmp);
@@ -3159,7 +3147,7 @@ void find_replacement(void* go, SCRIPT_DATA* sc, TRIG_DATA* trig, int type, char
 						&& !IS_CHARMED(rndm)
 						&& *field == 'n'))
 				   {
-					int n = snprintf(tmp, MAX_INPUT_LENGTH, "%c%ld ", UID_CHAR, GET_ID(rndm));
+					const int n = snprintf(tmp, MAX_INPUT_LENGTH, "%c%ld ", UID_CHAR, GET_ID(rndm));
 					if (str_length + n < MAX_INPUT_LENGTH) // not counting the terminating null character
 					{
 						strcpy(str + str_length, tmp);
@@ -3528,7 +3516,7 @@ void find_replacement(void* go, SCRIPT_DATA* sc, TRIG_DATA* trig, int type, char
 						&& !IS_CHARMED(rndm)
 						&& *field == 'n'))
 				{
-					int n = snprintf (tmp, MAX_INPUT_LENGTH, "%c%ld ", UID_CHAR, GET_ID(rndm));
+					const int n = snprintf (tmp, MAX_INPUT_LENGTH, "%c%ld ", UID_CHAR, GET_ID(rndm));
 					if (str_length + n < MAX_INPUT_LENGTH) // not counting the terminating null character
 					{
 						strcpy(str + str_length, tmp);
@@ -3723,7 +3711,7 @@ void find_replacement(void* go, SCRIPT_DATA* sc, TRIG_DATA* trig, int type, char
 						&& !IS_CHARMED(rndm)
 						&& *field == 'n'))
 				{
-					int n = snprintf (tmp, MAX_INPUT_LENGTH, "%c%ld ", UID_CHAR, GET_ID(rndm));
+					const int n = snprintf (tmp, MAX_INPUT_LENGTH, "%c%ld ", UID_CHAR, GET_ID(rndm));
 					if (str_length + n < MAX_INPUT_LENGTH) // not counting the terminating null character
 					{
 						strcpy(str + str_length, tmp);
@@ -3753,7 +3741,7 @@ void find_replacement(void* go, SCRIPT_DATA* sc, TRIG_DATA* trig, int type, char
 			size_t str_length = strlen(str);
 			for (obj = world[inroom]->contents; obj; obj = obj->get_next_content())
 			{
-				int n = snprintf (tmp, MAX_INPUT_LENGTH, "%c%ld ", UID_OBJ, obj->get_id());
+				const int n = snprintf (tmp, MAX_INPUT_LENGTH, "%c%ld ", UID_OBJ, obj->get_id());
 				if (str_length + n < MAX_INPUT_LENGTH) // not counting the terminating null character
 				{
 					strcpy(str + str_length, tmp);
@@ -3876,7 +3864,7 @@ void var_subst(void* go, SCRIPT_DATA* sc, TRIG_DATA* trig, int type, const char*
 			find_replacement(go, sc, trig, type, var, field, subfield, repl_str);
 
 			strncat(buf, repl_str, left);
-			size_t len = std::min(strlen(repl_str), left);
+			const size_t len = std::min(strlen(repl_str), left);
 			buf += len;
 			left -= len;
 		}
@@ -4478,8 +4466,6 @@ void process_wait(void *go, TRIG_DATA * trig, int type, char *cmd, const cmdlist
 	long time = 0, hr, min, ntime;
 	char c;
 
-	extern TIME_INFO_DATA time_info;
-
 	if (trig->get_attach_type() == MOB_TRIGGER
 		&& IS_SET(GET_TRIG_TYPE(trig), MTRIG_DEATH))
 	{
@@ -5075,7 +5061,7 @@ void charuid_var(void* /*go*/, SCRIPT_DATA* /*sc*/, TRIG_DATA * trig, char *cmd)
 {
 	char arg[MAX_INPUT_LENGTH], varname[MAX_INPUT_LENGTH];
 	char who[MAX_INPUT_LENGTH], uid[MAX_INPUT_LENGTH];
-	char uid_type = UID_CHAR;
+	const char uid_type = UID_CHAR;
 
 	int result = -1;
 
@@ -5095,7 +5081,7 @@ void charuid_var(void* /*go*/, SCRIPT_DATA* /*sc*/, TRIG_DATA * trig, char *cmd)
 		return;
 	}
 
-	for (const auto tch : character_list)
+	for (const auto& tch : character_list)
 	{
 		if (IS_NPC(tch)
 			|| !HERE(tch)
@@ -5127,7 +5113,7 @@ void charuid_var(void* /*go*/, SCRIPT_DATA* /*sc*/, TRIG_DATA * trig, char *cmd)
 bool find_all_char_vnum(long n, char *str)
 {
 	int count = 0;
-	for (const auto ch : character_list)
+	for (const auto& ch : character_list)
 	{
 		if (n == GET_MOB_VNUM(ch) && ch->in_room != NOWHERE && count < 25)
 		{
@@ -6100,24 +6086,24 @@ void do_tlist(CHAR_DATA *ch, char *argument, int/* cmd*/, int/* subcmd*/)
 		send_to_char(buf, ch);
 	}
 
-	 if (first >= last)
-        {
-                send_to_char("Второе значение должно быть больше первого.\n\r", ch);
-                return;
-        }
+	if (first >= last)
+	{
+		send_to_char("Второе значение должно быть больше первого.\n\r", ch);
+		return;
+	}
 
-        if (first + 200 < last)
-        {
-                send_to_char("Максимальный показываемый промежуток - 200.\n\r", ch);
-                return;
-        }
+	if (first + 200 < last)
+	{
+		send_to_char("Максимальный показываемый промежуток - 200.\n\r", ch);
+		return;
+	}
 
 
 	for (nr = 0; nr < top_of_trigt && (trig_index[nr]->vnum <= last); nr++)
 	{
 		if (trig_index[nr]->vnum >= first)
 		{
-			std::string out = "";
+			std::string out;
 			if (trig_index[nr]->proto->get_attach_type() == MOB_TRIGGER)
 			{
 				out += "[MOB_TRIG]";
@@ -6132,7 +6118,7 @@ void do_tlist(CHAR_DATA *ch, char *argument, int/* cmd*/, int/* subcmd*/)
 			{
 				out += "[WLD_TRIG]";
 			}
-			
+
 			sprintf(buf, "%5d. [%5d] %s\r\nПрикрепленные триггеры: ", ++found, trig_index[nr]->vnum, trig_index[nr]->proto->get_name().c_str());
 			out += buf;
 			if (!owner_trig[trig_index[nr]->vnum].empty())
@@ -6140,9 +6126,9 @@ void do_tlist(CHAR_DATA *ch, char *argument, int/* cmd*/, int/* subcmd*/)
 				for (auto it = owner_trig[trig_index[nr]->vnum].begin(); it != owner_trig[trig_index[nr]->vnum].end(); ++it)
 				{
 					out += "[";
-					std::string  out_tmp = "";
+					std::string  out_tmp;
 					for (const auto trigger_vnum : it->second)
-					{						
+					{
 						sprintf(buf, " [%d]", trigger_vnum);
 						out_tmp += buf;
 					}
@@ -6152,9 +6138,9 @@ void do_tlist(CHAR_DATA *ch, char *argument, int/* cmd*/, int/* subcmd*/)
 						out += std::to_string(it->first) + " : ";
 					}
 
-					out += out_tmp + "]";				
+					out += out_tmp + "]";
 				}
-				
+
 				out += "\r\n";
 			}
 			else
@@ -6705,7 +6691,7 @@ void SCRIPT_DATA::clear_global_vars()
 {
 	for (auto i = global_vars; i;)
 	{
-		auto j = i;
+		const auto j = i;
 		i = i->next;
 		if (j->name)
 			free(j->name);
@@ -6807,7 +6793,7 @@ void TRIG_DATA::clear_var_list()
 {
 	for (auto i = var_list; i;)
 	{
-		auto j = i;
+		const auto j = i;
 		i = i->next;
 		if (j->name)
 			free(j->name);

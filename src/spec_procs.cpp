@@ -46,9 +46,6 @@
 #include <string>
 
 //   external vars
-extern DESCRIPTOR_DATA *descriptor_list;
-extern INDEX_DATA *mob_index;
-extern TIME_INFO_DATA time_info;
 extern struct spell_create_type spell_create[];
 extern int guild_info[][3];
 
@@ -63,8 +60,7 @@ int has_key(CHAR_DATA * ch, obj_vnum key);
 int find_first_step(room_rnum src, room_rnum target, CHAR_DATA * ch);
 void do_doorcmd(CHAR_DATA * ch, OBJ_DATA * obj, int door, int scmd);
 void ASSIGNMASTER(mob_vnum mob, special_f, int learn_info);
-int has_key(CHAR_DATA * ch, obj_vnum key);
-int ok_pick(CHAR_DATA * ch, obj_vnum keynum, OBJ_DATA* obj, int door, int scmd);
+bool ok_pick(CHAR_DATA * ch, obj_vnum keynum, OBJ_DATA* obj, int door, int scmd);
 
 // local functions
 char *how_good(CHAR_DATA * ch, int percent);
@@ -86,7 +82,6 @@ int fido(CHAR_DATA *ch, void *me, int cmd, char* argument);
 int janitor(CHAR_DATA *ch, void *me, int cmd, char* argument);
 int cityguard(CHAR_DATA *ch, void *me, int cmd, char* argument);
 int pet_shops(CHAR_DATA *ch, void *me, int cmd, char* argument);
-int bank(CHAR_DATA *ch, void *me, int cmd, char* argument);
 
 
 // ********************************************************************

@@ -29,7 +29,6 @@
 #include "im.h"
 #include "interpreter.h"
 #include "liquid.hpp"
-#include "magic.h"
 #include "named_stuff.hpp"
 #include "objsave.h"
 #include "pk.h"
@@ -37,7 +36,6 @@
 #include "room.hpp"
 #include "skills.h"
 #include "spells.h"
-#include "mobmax.hpp"
 #include "meat.maker.hpp"
 #include "structs.h"
 #include "sysdep.h"
@@ -46,7 +44,6 @@
 
 #include <boost/format.hpp>
 // extern variables
-extern CHAR_DATA *mob_proto;
 extern struct house_control_rec house_control[];
 extern std::array<int, MAX_MOB_LEVEL / 11 + 1> animals_levels;
 // from act.informative.cpp
@@ -56,7 +53,6 @@ char *find_exdesc(char *word, const EXTRA_DESCR_DATA::shared_ptr& list);
 int can_take_obj(CHAR_DATA * ch, OBJ_DATA * obj);
 void get_check_money(CHAR_DATA *ch, OBJ_DATA *obj, OBJ_DATA *cont);
 int perform_get_from_room(CHAR_DATA * ch, OBJ_DATA * obj);
-void get_from_room(CHAR_DATA * ch, char *arg, int amount);
 void perform_give_gold(CHAR_DATA * ch, CHAR_DATA * vict, int amount);
 void perform_give(CHAR_DATA * ch, CHAR_DATA * vict, OBJ_DATA * obj);
 int perform_drop(CHAR_DATA * ch, OBJ_DATA * obj, byte mode, const int sname, room_rnum RDR);
@@ -64,15 +60,13 @@ void perform_drop_gold(CHAR_DATA * ch, int amount, byte mode, room_rnum RDR);
 CHAR_DATA *give_find_vict(CHAR_DATA * ch, char *arg);
 void weight_change_object(OBJ_DATA * obj, int weight);
 int perform_put(CHAR_DATA * ch, OBJ_DATA::shared_ptr obj, OBJ_DATA * cont);
-void get_from_container(CHAR_DATA * ch, OBJ_DATA * cont, char *arg, int mode, int amount, bool autoloot);
 void perform_wear(CHAR_DATA * ch, OBJ_DATA * obj, int where);
 int find_eq_pos(CHAR_DATA * ch, OBJ_DATA * obj, char *arg);
 bool perform_get_from_container(CHAR_DATA * ch, OBJ_DATA * obj, OBJ_DATA * cont, int mode);
 void perform_remove(CHAR_DATA * ch, int pos);
 int invalid_anti_class(CHAR_DATA * ch, const OBJ_DATA * obj);
 void feed_charmice(CHAR_DATA * ch, char *arg);
-int get_player_charms(CHAR_DATA * ch, int spellnum);
-OBJ_DATA *create_skin(CHAR_DATA * mob);
+OBJ_DATA *create_skin(CHAR_DATA * mob, CHAR_DATA* ch);
 int invalid_unique(CHAR_DATA * ch, const OBJ_DATA * obj);
 bool unique_stuff(const CHAR_DATA *ch, const OBJ_DATA *obj);
 
@@ -86,15 +80,11 @@ void do_put(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
 void do_get(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
 void do_drop(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
 void do_give(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
-void do_drink(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
 void do_eat(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
-void do_drunkoff(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
-void do_pour(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
 void do_wear(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
 void do_wield(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
 void do_grab(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
 void do_upgrade(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
-void do_fry(CHAR_DATA *ch, char *argument, int/* cmd*/);
 void do_refill(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
 
 // чтобы словить невозможность положить в клан-сундук,
@@ -654,7 +644,7 @@ void do_refill(CHAR_DATA *ch, char *argument, int/* cmd*/, int/* subcmd*/)
 		send_to_char("И как вы себе это представляете?\r\n", ch);
 		return;
 	}
- 	if (GET_OBJ_VAL(from_obj, 1) == 0)
+	if (GET_OBJ_VAL(from_obj, 1) == 0)
 	{
 		act("Пусто.", FALSE, ch, from_obj, 0, TO_CHAR);
 		return;
@@ -674,48 +664,43 @@ void do_refill(CHAR_DATA *ch, char *argument, int/* cmd*/, int/* subcmd*/)
 		send_to_char("Вы не сможете в это сложить стрелы.\r\n", ch);
 		return;
 	}
-       
+
 	if (to_obj == from_obj)
 	{
 		send_to_char("Нечем заняться? На печи ездить еще не научились?\r\n", ch);
 		return;
 	}
-        
+
 	if (GET_OBJ_VAL(to_obj, 2) >= GET_OBJ_VAL(to_obj, 1))
 	{
 		send_to_char("Там нет места.\r\n", ch);
 		return;
 	}
-        else //вроде прошли все проверки. начинаем перекладывать
-        {
-            if (GET_OBJ_VAL(from_obj, 0) != GET_OBJ_VAL(to_obj, 0))
-            {
-                    send_to_char("Хамово ремесло еще не известно на руси.\r\n", ch);
-                    return;
-            }
-            int t1 = GET_OBJ_VAL(from_obj, 3);  // количество зарядов
-            int t2 = GET_OBJ_VAL(to_obj, 3);
-            int delta = (GET_OBJ_VAL(to_obj, 2) - GET_OBJ_VAL(to_obj, 3));
-            if (delta >= t1) //объем колчана больше пучка
-            {
-                to_obj->add_val(2, t1);
-		send_to_char("Вы аккуратно сложили стрелы в колчан.\r\n", ch);
-		extract_obj(from_obj);
-		return;
-            }
-            else
-            {
-                to_obj->add_val(2, (t2-GET_OBJ_VAL(to_obj, 2)));
-		send_to_char("Вы аккуратно переложили несколько стрел в колчан.\r\n", ch);
-		from_obj->add_val(2, (GET_OBJ_VAL(to_obj, 2)-t2));
-		return;
-            }
-        }
-        
-        
-	send_to_char("С таким успехом надо пополнять соседние камни, для разговоров по ним.\r\n", ch);
-	return ;
-	
+	else //вроде прошли все проверки. начинаем перекладывать
+	{
+		if (GET_OBJ_VAL(from_obj, 0) != GET_OBJ_VAL(to_obj, 0))
+		{
+			send_to_char("Хамово ремесло еще не известно на руси.\r\n", ch);
+			return;
+		}
+		const int t1 = GET_OBJ_VAL(from_obj, 3);  // количество зарядов
+		const int t2 = GET_OBJ_VAL(to_obj, 3);
+		const int delta = (GET_OBJ_VAL(to_obj, 2) - GET_OBJ_VAL(to_obj, 3));
+		if (delta >= t1) //объем колчана больше пучка
+		{
+			to_obj->add_val(2, t1);
+			send_to_char("Вы аккуратно сложили стрелы в колчан.\r\n", ch);
+			extract_obj(from_obj);
+			return;
+		}
+		else
+		{
+			to_obj->add_val(2, (t2 - GET_OBJ_VAL(to_obj, 2)));
+			send_to_char("Вы аккуратно переложили несколько стрел в колчан.\r\n", ch);
+			from_obj->add_val(2, (GET_OBJ_VAL(to_obj, 2) - t2));
+			return;
+		}
+	}
 }
 
 
@@ -746,7 +731,7 @@ int can_take_obj(CHAR_DATA * ch, OBJ_DATA * obj)
 		act("$p: Эта вещь не предназначена для вас!", FALSE, ch, obj, 0, TO_CHAR);
 		return (0);
 	}
-	else if (NamedStuff::check_named(ch, obj, 0))
+	else if (NamedStuff::check_named(ch, obj, false))
 	{
 		if(!NamedStuff::wear_msg(ch, obj))
 			act("$p: Эта вещь не предназначена для вас!", FALSE, ch, obj, 0, TO_CHAR);
@@ -790,7 +775,7 @@ void split_or_clan_tax(CHAR_DATA *ch, long amount)
 	}
 	else
 	{
-		long tax = ClanSystem::do_gold_tax(ch, amount);
+		const long tax = ClanSystem::do_gold_tax(ch, amount);
 		ch->remove_gold(tax);
 	}
 }
@@ -899,18 +884,18 @@ bool perform_get_from_container(CHAR_DATA * ch, OBJ_DATA * obj, OBJ_DATA * cont,
 		{
 			if (!Clan::TakeChest(ch, obj, cont))
 			{
-				return 0;
+				return false;
 			}
-			return 1;
+			return true;
 		}
 		// клан-хранилище ингров
 		if (ClanSystem::is_ingr_chest(cont))
 		{
 			if (!Clan::take_ingr_chest(ch, obj, cont))
 			{
-				return 0;
+				return false;
 			}
-			return 1;
+			return true;
 		}
 		obj_from_obj(obj);
 		obj_to_char(obj, ch);
@@ -928,7 +913,7 @@ bool perform_get_from_container(CHAR_DATA * ch, OBJ_DATA * obj, OBJ_DATA * cont,
 			get_check_money(ch, obj, cont);
 		}
 	}
-	return 1;
+	return true;
 }
 
 // *\param autoloot - true только при взятии шмоток из трупа в режиме автограбежа
@@ -1360,7 +1345,7 @@ void perform_drop_gold(CHAR_DATA * ch, int amount, byte mode, room_rnum RDR)
 			}
 			else
 			{
-				int result = drop_wtrigger(obj.get(), ch);
+				const int result = drop_wtrigger(obj.get(), ch);
 
 				if (!result)
 				{
@@ -1453,7 +1438,7 @@ int perform_drop(CHAR_DATA * ch, OBJ_DATA * obj, byte mode, const int sname, roo
 void do_drop(CHAR_DATA *ch, char* argument, int/* cmd*/, int subcmd)
 {
 	OBJ_DATA *obj, *next_obj;
-	room_rnum RDR = 0;
+	const room_rnum RDR = 0;
 	byte mode = SCMD_DROP;
 	int dotmode, amount = 0, multi;
 	int sname;
@@ -2092,7 +2077,7 @@ void perform_wear(CHAR_DATA * ch, OBJ_DATA * obj, int where)
 		"У вас уже что-то надето на запястья.\r\n",
 		"Вы уже что-то держите в правой руке.\r\n",
 		"Вы уже что-то держите в левой руке.\r\n",
-		"Вы уже держите оружие в обеих руках.\r\n"
+		"Вы уже держите оружие в обеих руках.\r\n",
 		"Вы уже используете колчан.\r\n"
 	};
 
@@ -2865,13 +2850,13 @@ void do_upgrade(CHAR_DATA *ch, char *argument, int/* cmd*/, int/* subcmd*/)
 		send_to_char(buf, ch);
 		return;
 	}
-	bool change_weight = 1;
+	bool change_weight = true;
 	//Заточить повторно можно, но это уменьшает таймер шмотки на 16%
 	if (OBJ_FLAGGED(obj, EExtraFlag::ITEM_SHARPEN))
 	{
-		int timer = obj->get_timer() - MAX(1000, obj->get_timer() / 6); // абуз, таймер меньше 6 вычитается 0 бесконечная прокачка умелки
+		const int timer = obj->get_timer() - MAX(1000, obj->get_timer() / 6); // абуз, таймер меньше 6 вычитается 0 бесконечная прокачка умелки
 		obj->set_timer(timer);
-		change_weight = 0;
+		change_weight = false;
 	}
 	else
 	{
@@ -3299,8 +3284,8 @@ void do_firstaid(CHAR_DATA *ch, char *argument, int/* cmd*/, int/* subcmd*/)
 		{
 			if (!PRF_FLAGGED(ch, PRF_TESTER))
 			{
-				int dif = GET_REAL_MAX_HIT(vict) - GET_HIT(vict);
-				int add = MIN(dif, (dif * (prob - percent) / 100) + 1);
+				const int dif = GET_REAL_MAX_HIT(vict) - GET_HIT(vict);
+				const int add = MIN(dif, (dif * (prob - percent) / 100) + 1);
 				GET_HIT(vict) += add;
 			}
 			else
@@ -3321,7 +3306,7 @@ void do_firstaid(CHAR_DATA *ch, char *argument, int/* cmd*/, int/* subcmd*/)
 		count = (GET_SKILL(ch, SKILL_AID) - 20) / 30;
 		send_to_char(ch, "Снимаю %d аффектов\r\n", count);
 
-		auto remove_count = vict->remove_random_affects(count);
+		const auto remove_count = vict->remove_random_affects(count);
 		send_to_char(ch, "Снято %d аффектов\r\n", remove_count);
 
 		//
@@ -3424,7 +3409,7 @@ void do_poisoned(CHAR_DATA *ch, char *argument, int/* cmd*/, int/* subcmd*/)
 
 	OBJ_DATA *weapon = 0;
 	CHAR_DATA *dummy = 0;
-	int result = generic_find(arg, FIND_OBJ_INV | FIND_OBJ_EQUIP, ch, &dummy, &weapon);
+	const int result = generic_find(arg, FIND_OBJ_INV | FIND_OBJ_EQUIP, ch, &dummy, &weapon);
 
 	if (!weapon || !result)
 	{
@@ -3459,7 +3444,7 @@ void do_poisoned(CHAR_DATA *ch, char *argument, int/* cmd*/, int/* subcmd*/)
 		return;
 	}
 
-	int cost = MIN(GET_OBJ_VAL(cont, 1), GET_LEVEL(ch) <= 10 ? 1 : GET_LEVEL(ch) <= 20 ? 2 : 3);
+	const int cost = MIN(GET_OBJ_VAL(cont, 1), GET_LEVEL(ch) <= 10 ? 1 : GET_LEVEL(ch) <= 20 ? 2 : 3);
 	cont->set_val(1, cont->get_val(1) - cost);
 	weight_change_object(cont, -cost);
 	if (!GET_OBJ_VAL(cont, 1))
@@ -3726,17 +3711,17 @@ void do_makefood(CHAR_DATA *ch, char *argument, int/* cmd*/, int/* subcmd*/)
 			}
 		}
 		entrails.push_back(try_make_ingr(mob, 1000 - ch->get_skill(SKILL_MAKEFOOD) * 2, 100));  // ингры со всех
-		for (std::vector<OBJ_DATA*>::iterator it = entrails.begin(); it != entrails.end(); ++it)
+		for (const auto& it : entrails)
 		{
-			if (*it)
+			if (it)
 			{
 				if (obj->get_carried_by() == ch)
 				{
-					can_carry_obj(ch, *it);
+					can_carry_obj(ch, it);
 				}
 				else
 				{
-					obj_to_room(*it, ch->in_room);
+					obj_to_room(it, ch->in_room);
 				}
 			}
 		}
@@ -3923,7 +3908,7 @@ void do_custom_label(CHAR_DATA *ch, char *argument, int/* cmd*/, int/* subcmd*/)
 					if (labels[i] == '~')
 						labels[i] = '-';
 
-				std::shared_ptr<custom_label> label(new custom_label());
+				const std::shared_ptr<custom_label> label(new custom_label());
 				label->label_text = str_dup(labels);
 				label->author = ch->get_idnum();
 				label->author_mail = str_dup(GET_EMAIL(ch));

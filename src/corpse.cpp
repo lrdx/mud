@@ -16,11 +16,8 @@
 #include "im.h"
 #include "room.hpp"
 #include "pugixml.hpp"
-#include "modify.h"
-#include "house.h"
 #include "parse.hpp"
 #include "obj.hpp"
-#include "random.hpp"
 
 #include <fstream>
 #include <map>
@@ -113,9 +110,9 @@ void table_drop::reload_table()
 // возвратит true, если моб найден в таблице и прошел шанс
 bool table_drop::check_mob(int vnum)
 {
-	for (size_t i = 0; i < this->drop_mobs.size(); i++)
+	for (const auto& mob : this->drop_mobs)
 	{
-		if (this->drop_mobs[i] == vnum)
+		if (mob == vnum)
 		{
 			if (number(0, 1000) < this->chance)
 				return true;
@@ -130,9 +127,9 @@ int table_drop::get_vnum()
 
 void reload_tables()
 {
-	for (size_t i = 0; i < tables_drop.size(); i++)
+	for (auto& td : tables_drop)
 	{
-		tables_drop[i].reload_table();
+		td.reload_table();
 	}
 }
 
@@ -167,22 +164,22 @@ void init()
     }
 	for (pugi::xml_node node = node_list.child("tdrop"); node; node = node.next_sibling("tdrop"))
 	{
-		int chance = Parse::attr_int(node, "chance");
-		int count_mobs = Parse::attr_int(node, "count_mobs");
-		int vnum_obj = Parse::attr_int(node, "obj_vnum");
+		const int chance = Parse::attr_int(node, "chance");
+		const int count_mobs = Parse::attr_int(node, "count_mobs");
+		const int vnum_obj = Parse::attr_int(node, "obj_vnum");
 		std::vector<int> list_mobs;
 		for (pugi::xml_node node_ = node.child("mobs"); node_; node_ = node_.next_sibling("mobs"))
 		{
 			list_mobs.push_back(Parse::attr_int(node_, "vnum"));
 		}
-		table_drop tmp(list_mobs, chance, count_mobs, vnum_obj);
+		const table_drop tmp(list_mobs, chance, count_mobs, vnum_obj);
 		tables_drop.push_back(tmp);			
 	}
 	for (pugi::xml_node node = node_list.child("freedrop_obj"); node; node = node.next_sibling("freedrop_obj"))
 	{
 		global_drop_obj tmp;
-		int obj_vnum = Parse::attr_int(node, "obj_vnum");
-		int chance =  Parse::attr_int(node, "chance");
+		const int obj_vnum = Parse::attr_int(node, "obj_vnum");
+		const int chance =  Parse::attr_int(node, "chance");
 		int day_start = Parse::attr_int_t(node, "day_start"); // если не определено в файле возвращаем -1
 		int day_end = Parse::attr_int_t(node, "day_end");
 		if (day_start == -1)
@@ -205,10 +202,10 @@ void init()
 	}
 	for (pugi::xml_node node = node_list.child("drop"); node; node = node.next_sibling("drop"))
 	{
-		int obj_vnum = Parse::attr_int(node, "obj_vnum");
-		int mob_lvl = Parse::attr_int(node, "mob_lvl");
-		int max_mob_lvl = Parse::attr_int(node, "max_mob_lvl");
-		int count_mob = Parse::attr_int(node, "count_mob");
+		const int obj_vnum = Parse::attr_int(node, "obj_vnum");
+		const int mob_lvl = Parse::attr_int(node, "mob_lvl");
+		const int max_mob_lvl = Parse::attr_int(node, "max_mob_lvl");
+		const int count_mob = Parse::attr_int(node, "count_mob");
 		int day_start = Parse::attr_int_t(node, "day_start"); // если не определено в файле возвращаем -1
 		int day_end = Parse::attr_int_t(node, "day_end");
 		int race_mob = Parse::attr_int_t(node, "race_mob"); 
@@ -247,7 +244,7 @@ void init()
 
 		if (obj_vnum >= 0)
 		{
-			int obj_rnum = real_object(obj_vnum);
+			const int obj_rnum = real_object(obj_vnum);
 			if (obj_rnum < 0)
 			{
 				snprintf(buf, MAX_STRING_LENGTH, "...incorrect obj_vnum=%d", obj_vnum);
@@ -270,7 +267,7 @@ void init()
 					return;
 				}
 				// проверяем шмотку
-				int item_rnum = real_object(item_vnum);
+				const int item_rnum = real_object(item_vnum);
 				if (item_rnum < 0)
 				{
 					snprintf(buf, MAX_STRING_LENGTH, "...incorrect item_vnum=%d", item_vnum);
@@ -299,11 +296,11 @@ void init()
 	int vnum, mobs;
 	while (file >> vnum >> mobs)
 	{
-		for (DropListType::iterator i = drop_list.begin(); i != drop_list.end(); ++i)
+		for (auto& i : drop_list)
 		{
-			if (i->vnum == vnum)
+			if (i.vnum == vnum)
 			{
-				i->mobs = mobs;
+				i.mobs = mobs;
 			}
 		}
 	}
@@ -317,9 +314,9 @@ void save()
 		log("SYSERROR: не удалось открыть файл на запись: %s", STAT_FILE);
 		return;
 	}
-	for (DropListType::iterator i = drop_list.begin(); i != drop_list.end(); ++i)
+	for (const auto& i : drop_list)
 	{
-		file << i->vnum << " " << i->mobs << "\n";
+		file << i.vnum << " " << i.mobs << "\n";
 	}
 }
 
@@ -339,7 +336,7 @@ int get_obj_to_drop(DropListType::iterator &i)
 	}
 	if (!tmp_list.empty())
 	{
-		int rnd = number(0, static_cast<int>(tmp_list.size() - 1));
+		const int rnd = number(0, static_cast<int>(tmp_list.size() - 1));
 		return tmp_list.at(rnd);
 	}
 	return -1;
@@ -353,14 +350,15 @@ bool check_mob(OBJ_DATA *corpse, CHAR_DATA *mob)
 {
 	if (MOB_FLAGGED(mob, MOB_MOUNTING))
 		return false;
-	for (size_t i = 0; i < tables_drop.size(); i++)
+
+	for (auto& td : tables_drop)
 	{
-		if (tables_drop[i].check_mob(GET_MOB_VNUM(mob)))
-		{			
+		if (td.check_mob(GET_MOB_VNUM(mob)))
+		{
 			int rnum;
-			if ((rnum = real_object(tables_drop[i].get_vnum())) < 0)
+			if ((rnum = real_object(td.get_vnum())) < 0)
 			{
-				log("Ошибка tdrop. Внум: %d", tables_drop[i].get_vnum());
+				log("Ошибка tdrop. Внум: %d", td.get_vnum());
 				return true;
 			}
 			act("&GГде-то высоко-высоко раздался мелодичный звон бубенчиков.&n", FALSE, mob, 0, 0, TO_ROOM);
@@ -371,17 +369,19 @@ bool check_mob(OBJ_DATA *corpse, CHAR_DATA *mob)
 			return true;
 		}
 	}
-	for (DropListType::iterator i = drop_list.begin(), iend = drop_list.end(); i != iend; ++i)
-	{ int day = time_info.month * DAYS_PER_MONTH + time_info.day + 1;
-		if (GET_LEVEL(mob) >= i->mob_lvl 				   
-		    &&	(!i->max_mob_lvl
+
+	for (auto i = drop_list.begin(), iend = drop_list.end(); i != iend; ++i)
+	{
+		int day = time_info.month * DAYS_PER_MONTH + time_info.day + 1;
+		if (GET_LEVEL(mob) >= i->mob_lvl
+			&& (!i->max_mob_lvl
 				|| GET_LEVEL(mob) <= i->max_mob_lvl) 		// моб в диапазоне уровней
-		    && ((i->race_mob < 0)
+			&& ((i->race_mob < 0)
 				|| (GET_RACE(mob) == i->race_mob)
 				|| (get_virtual_race(mob) == i->race_mob)) 		// совпадает раса или для всех
-		    && (i->day_start <= day && i->day_end >= day)			// временной промежуток
-		    && (!NPC_FLAGGED(mob, NPC_NOSETSDROP))  //нет флага не падать сетам
-		    && (!mob->has_master()
+			&& (i->day_start <= day && i->day_end >= day)			// временной промежуток
+			&& (!NPC_FLAGGED(mob, NPC_NOSETSDROP))  //нет флага не падать сетам
+			&& (!mob->has_master()
 				|| IS_NPC(mob->get_master()))) // не чармис	
 
 		{
@@ -392,7 +392,7 @@ bool check_mob(OBJ_DATA *corpse, CHAR_DATA *mob)
 				if (obj_rnum == -1)
 				{
 					i->mobs = 0;
-					continue;					
+					continue;
 				}
 				if (number(1, 1000) <= i->chance
 					&& ((GET_OBJ_MIW(obj_proto[obj_rnum]) == OBJ_DATA::UNLIMITED_GLOBAL_MAXIMUM)
@@ -405,11 +405,11 @@ bool check_mob(OBJ_DATA *corpse, CHAR_DATA *mob)
 						obj_proto[obj_rnum]->get_vnum(),
 						GET_NAME(mob),
 						GET_MOB_VNUM(mob));
-					mudlog(buf,  CMP, LVL_GRGOD, SYSLOG, TRUE);
+					mudlog(buf, CMP, LVL_GRGOD, SYSLOG, TRUE);
 					obj_to_corpse(corpse, mob, obj_rnum, false);
 				}
 				i->mobs = 0;
-//				return true; пусть после фридропа дроп вещей продолжается
+				//				return true; пусть после фридропа дроп вещей продолжается
 			}
 		}
 	}

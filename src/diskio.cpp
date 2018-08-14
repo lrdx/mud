@@ -267,7 +267,7 @@ size_t fbclose_for_write(FBFILE * fbfl)
 		return 0;
 	}
 
-	size_t len = strlen(fbfl->buf);
+	const size_t len = strlen(fbfl->buf);
 	if (0 == len)
 	{
 		free(tname);
@@ -398,7 +398,7 @@ bool read_line(FILE * fl, string & line, bool cut_cr_lf)
 	{
 		is_first = false;
 		line.append(buf);
-		string::size_type sz = line.size();
+		const string::size_type sz = line.size();
 		if (sz > 0 && line[sz - 1] != '\n')
 			continue;
 		break;
@@ -408,7 +408,7 @@ bool read_line(FILE * fl, string & line, bool cut_cr_lf)
 
 	if (cut_cr_lf)
 	{
-		string::size_type at = line.find_last_not_of("\r\n");
+		const string::size_type at = line.find_last_not_of("\r\n");
 		if (at == string::npos)
 			line.erase();
 		else

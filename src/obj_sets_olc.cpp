@@ -8,13 +8,11 @@
 #include "obj_sets_stuff.hpp"
 #include "structs.h"
 #include "obj.hpp"
-#include "db.h"
 #include "constants.h"
 #include "handler.h"
 #include "char_player.hpp"
 #include "skills.h"
 #include "screen.h"
-#include "modify.h"
 #include "spells.h"
 #include "utils.h"
 
@@ -183,7 +181,7 @@ std::string main_menu_objlist(CHAR_DATA *ch, const set_node &set, int menu)
 	size_t l_max_name = 0, l_max_vnum = 0;
 	bool left = true;
 
-	for (const auto i : set.obj_list)
+	for (const auto& i : set.obj_list)
 	{
 		const int rnum = real_object(i.first);
 		if (rnum < 0
@@ -327,16 +325,16 @@ void sedit::show_main(CHAR_DATA *ch)
 	snprintf(buf_, sizeof(buf_), "%s%2d%s) Добавить активатор\r\n",
 		CCGRN(ch, C_NRM), i++, CCNRM(ch, C_NRM));
 	out += buf_;
-	for (auto k = olc_set.activ_list.begin(); k != olc_set.activ_list.end(); ++k)
+	for (const auto& k : olc_set.activ_list)
 	{
-		if (k->second.prof.count() != k->second.prof.size())
+		if (k.second.prof.count() != k.second.prof.size())
 		{
 			std::string prof;
-			print_bitset(k->second.prof, pc_class_name, ",", prof);
+			print_bitset(k.second.prof, pc_class_name, ",", prof);
 			snprintf(buf_, sizeof(buf_),
 				"%s%2d%s) Редактировать активатор: %s%d (%s)%s\r\n",
 				CCGRN(ch, C_NRM), i++, CCNRM(ch, C_NRM),
-				CCCYN(ch, C_NRM), k->first, prof.c_str(),
+				CCCYN(ch, C_NRM), k.first, prof.c_str(),
 				CCNRM(ch, C_NRM));
 		}
 		else
@@ -344,7 +342,7 @@ void sedit::show_main(CHAR_DATA *ch)
 			snprintf(buf_, sizeof(buf_),
 				"%s%2d%s) Редактировать активатор: %s%d%s\r\n",
 				CCGRN(ch, C_NRM), i++, CCNRM(ch, C_NRM),
-				CCCYN(ch, C_NRM), k->first,  CCNRM(ch, C_NRM));
+				CCCYN(ch, C_NRM), k.first,  CCNRM(ch, C_NRM));
 		}
 		out += buf_;
 	}
@@ -450,13 +448,13 @@ void sedit::show_activ_edit(CHAR_DATA *ch)
 	out += buf_;
 
 	int cnt = 5;
-	for (auto i = activ.apply.begin(); i != activ.apply.end(); ++i)
+	for (const auto& i : activ.apply)
 	{
-		if (i->location > 0)
+		if (i.location > 0)
 		{
 			snprintf(buf_, sizeof(buf_), "%s%2d%s) Наводимый аффект : %s",
 				CCGRN(ch, C_NRM), cnt++, CCNRM(ch, C_NRM),
-				print_obj_affects(*i).c_str());
+				print_obj_affects(i).c_str());
 		}
 		else
 		{
@@ -1270,9 +1268,9 @@ void sedit::parse_obj_add(CHAR_DATA *ch, const char *arg)
 	std::vector<std::string> vnum_list;
 	boost::split(vnum_list, arg, boost::is_any_of(" "),
 		boost::token_compress_on);
-	for (auto i = vnum_list.begin(); i != vnum_list.end(); ++i)
+	for (const auto& i : vnum_list)
 	{
-		const int vnum = atoi(i->c_str());
+		const int vnum = atoi(i.c_str());
 		const int rnum = real_object(vnum);
 		if (olc_set.obj_list.size() >= MAX_OBJ_LIST)
 		{

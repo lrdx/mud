@@ -18,6 +18,7 @@
 #include "logger.hpp"
 #include "char.hpp"
 #include "utils.h"
+#include "interpreter.h"
 
 void write_aliases(CHAR_DATA * ch);
 void read_aliases(CHAR_DATA * ch);
@@ -45,8 +46,8 @@ void write_aliases(CHAR_DATA * ch)
 
 	for (temp = GET_ALIASES(ch); temp; temp = temp->next)
 	{
-		size_t aliaslen = strlen(temp->alias);
-		size_t repllen = strlen(temp->replacement) - 1;
+		const size_t aliaslen = strlen(temp->alias);
+		const size_t repllen = strlen(temp->replacement) - 1;
 
 		fprintf(file, "%d\n%s\n"	// Alias
 				"%d\n%s\n"	// Replacement

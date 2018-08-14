@@ -2,7 +2,6 @@
 #include "global.objects.hpp"
 #include "logger.hpp"
 #include "obj.hpp"
-#include "comm.h"
 #include "db.h"
 #include "dg_db_scripts.hpp"
 #include "dg_scripts.h"
@@ -16,8 +15,6 @@
 #include "backtrace.hpp"
 
 #include <boost/lexical_cast.hpp>
-
-#include <algorithm>
 
 extern void extract_trigger(TRIG_DATA * trig);
 
@@ -107,14 +104,14 @@ std::string add_rest(CelebrateList::iterator it, CelebrateDataPtr celebrate)
 			--days_count;
 			hours = 24 + hours;
 		}
-		return ". До окончания - дней: " + boost::lexical_cast<std::string>(days_count) + 
-				", часов: " +boost::lexical_cast<std::string>(hours);
+		return ". До окончания - дней: " + std::to_string(days_count) + 
+				", часов: " +std::to_string(hours);
 }
 
 std::string get_name_real(int day)
 {
-	CelebrateList::iterator it = real_celebrates.find(day);
-	std::string result="";
+	const auto it = real_celebrates.find(day);
+	std::string result;
 	if (it != real_celebrates.end())
 	{
 		if (real_celebrates[day]->start_at <= get_real_hour() && real_celebrates[day]->finish_at >= get_real_hour())
@@ -140,8 +137,8 @@ void parse_trig_list(pugi::xml_node node, TrigList* triggers)
 
 void parse_load_data(pugi::xml_node node, LoadPtr node_data)
 {
-	int vnum = node.attribute("vnum").as_int();
-	int max = node.attribute("max").as_int();
+	const int vnum = node.attribute("vnum").as_int();
+	const int max = node.attribute("max").as_int();
 	if (!vnum || !max)
 	{
 		snprintf(buf, MAX_STRING_LENGTH, "...celebrates - bad data (node = %s)", node.name());
@@ -156,7 +153,7 @@ void parse_load_section(pugi::xml_node node, CelebrateDataPtr holiday)
 {
 	for (pugi::xml_node room=node.child("room"); room; room = room.next_sibling("room"))
 	{
-		int vnum = room.attribute("vnum").as_int();
+		const int vnum = room.attribute("vnum").as_int();
 		if (!vnum)
 		{
 			snprintf(buf, MAX_STRING_LENGTH, "...celebrates - bad room (celebrate = %s)", node.attribute("name").value());
@@ -199,9 +196,9 @@ void parse_load_section(pugi::xml_node node, CelebrateDataPtr holiday)
 }
 void parse_attach_section(pugi::xml_node node, CelebrateDataPtr holiday)
 {
-	pugi::xml_node attaches=node.child("attaches");
+	pugi::xml_node attaches = node.child("attaches");
 	int vnum;
-	for (pugi::xml_node mob=attaches.child("mob"); mob; mob = mob.next_sibling("mob"))
+	for (pugi::xml_node mob = attaches.child("mob"); mob; mob = mob.next_sibling("mob"))
 	{
 		vnum = mob.attribute("vnum").as_int();
 		if (!vnum)
@@ -210,9 +207,9 @@ void parse_attach_section(pugi::xml_node node, CelebrateDataPtr holiday)
 			mudlog(buf, CMP, LVL_IMMORT, SYSLOG, TRUE);
 			return;
 		}
-		parse_trig_list(mob, &holiday->mobsToAttach[vnum/100][vnum]);
+		parse_trig_list(mob, &holiday->mobsToAttach[vnum / 100][vnum]);
 	}
-	for (pugi::xml_node obj=attaches.child("obj"); obj; obj = obj.next_sibling("obj"))
+	for (pugi::xml_node obj = attaches.child("obj"); obj; obj = obj.next_sibling("obj"))
 	{
 		vnum = obj.attribute("vnum").as_int();
 		if (!vnum)
@@ -221,7 +218,7 @@ void parse_attach_section(pugi::xml_node node, CelebrateDataPtr holiday)
 			mudlog(buf, CMP, LVL_IMMORT, SYSLOG, TRUE);
 			return;
 		}
-		parse_trig_list(obj, &holiday->objsToAttach[vnum/100][vnum]);
+		parse_trig_list(obj, &holiday->objsToAttach[vnum / 100][vnum]);
 	}
 }
 
@@ -253,8 +250,8 @@ void load_celebrates(pugi::xml_node node_list, CelebrateList &celebrates, bool i
 {
 	for (pugi::xml_node node = node_list.child("celebrate"); node; node = node.next_sibling("celebrate"))
 	{
-		int day = node.attribute("day").as_int();
-		int month = node.attribute("month").as_int();
+		const int day = node.attribute("day").as_int();
+		const int month = node.attribute("month").as_int();
 		int start = node.attribute("start").as_int();
 		int end = node.attribute("end").as_int();
 		std::string name = node.attribute("name").value();
@@ -329,11 +326,11 @@ void load()
 		mudlog(buf, CMP, LVL_IMMORT, SYSLOG, TRUE);
 		return;
 	}
-	pugi::xml_node mono_node_list = node_list.child("celebratesMono");//православные праздники
+	const pugi::xml_node mono_node_list = node_list.child("celebratesMono");//православные праздники
 	load_celebrates(mono_node_list, mono_celebrates, false);
-	pugi::xml_node poly_node_list = node_list.child("celebratesPoly");//языческие праздники
+	const pugi::xml_node poly_node_list = node_list.child("celebratesPoly");//языческие праздники
 	load_celebrates(poly_node_list, poly_celebrates, false);
-	pugi::xml_node real_node_list = node_list.child("celebratesReal");//Российские праздники
+	const pugi::xml_node real_node_list = node_list.child("celebratesReal");//Российские праздники
 	load_celebrates(real_node_list, real_celebrates, true);
 }
 
@@ -353,8 +350,8 @@ int get_real_day()
 
 bool is_active(CelebrateList::iterator it, bool is_real)
 {
-	int hours = is_real ? get_real_hour() : time_info.hours;
-	int day = is_real ? get_real_day() : get_mud_day();
+	const int hours = is_real ? get_real_hour() : time_info.hours;
+	const int day = is_real ? get_real_day() : get_mud_day();
 	CelebrateList::const_iterator celebrate;
 	if (is_real)
 	{
@@ -382,7 +379,7 @@ bool is_active(CelebrateList::iterator it, bool is_real)
 
 CelebrateDataPtr get_mono_celebrate()
 {
-	int day = get_mud_day();
+	const int day = get_mud_day();
 	CelebrateDataPtr result = CelebrateDataPtr();
 	if (mono_celebrates.find(day) != mono_celebrates.end())
 		if (is_active(mono_celebrates.find(day), false))
@@ -396,7 +393,7 @@ CelebrateDataPtr get_mono_celebrate()
 
 CelebrateDataPtr get_poly_celebrate()
 {
-	int day = get_mud_day();
+	const int day = get_mud_day();
 	CelebrateDataPtr result = CelebrateDataPtr();
 	if (poly_celebrates.find(day) != poly_celebrates.end())
 		if (is_active(poly_celebrates.find(day), false))
@@ -409,7 +406,7 @@ CelebrateDataPtr get_poly_celebrate()
 
 CelebrateDataPtr get_real_celebrate()
 {
-	int day = get_real_day();
+	const int day = get_real_day();
 	CelebrateDataPtr result = CelebrateDataPtr();
 	if (real_celebrates.find(day) != real_celebrates.end())
 		if (is_active(real_celebrates.find(day), true))
@@ -505,7 +502,7 @@ void remove_from_obj_lists(long uid)
 
 void remove_from_mob_lists(long uid)
 {
-	CelebrateMobs::iterator it = attached_mobs.find(uid);
+	auto it = attached_mobs.find(uid);
 	if (it != attached_mobs.end())
 		attached_mobs.erase(it);
 	it = loaded_mobs.find(uid);
@@ -514,19 +511,16 @@ void remove_from_mob_lists(long uid)
 }
 
 bool make_clean(CelebrateDataPtr celebrate)
-{
-	CelebrateObjs::iterator obj_it;
-	CelebrateMobs::iterator mob_it;
-	
-	for (mob_it = attached_mobs.begin(); mob_it != attached_mobs.end(); ++mob_it)
+{	
+	for (auto mob_it = attached_mobs.begin(); mob_it != attached_mobs.end(); ++mob_it)
 	{
 		const auto rnum = mob_it->second->get_rnum();
-		int vnum = mob_index[rnum].vnum;	
-		for (AttachZonList::iterator it = celebrate->mobsToAttach.begin(); it != celebrate->mobsToAttach.end();++it)
+		const auto vnum = mob_index[rnum].vnum;	
+		for (auto& it : celebrate->mobsToAttach)
 		{
-			if (it->second.find(vnum) != it->second.end())
+			if (it.second.find(vnum) != it.second.end())
 			{
-				remove_triggers(it->second[vnum], mob_it->second->script.get());
+				remove_triggers(it.second[vnum], mob_it->second->script.get());
 			}
 		}
 
@@ -537,14 +531,14 @@ bool make_clean(CelebrateDataPtr celebrate)
 		}
 	}
 
-	for (obj_it = attached_objs.begin(); obj_it != attached_objs.end(); ++obj_it)
+	for (auto obj_it = attached_objs.begin(); obj_it != attached_objs.end(); ++obj_it)
 	{
 		int vnum = obj_it->second->get_rnum();	
-		for (AttachZonList::iterator it = celebrate->objsToAttach.begin(); it != celebrate->objsToAttach.end();++it)
+		for (auto& it : celebrate->objsToAttach)
 		{
-			if (it->second.find(vnum) != it->second.end())
+			if (it.second.find(vnum) != it.second.end())
 			{
-				remove_triggers(it->second[vnum], obj_it->second->get_script().get());
+				remove_triggers(it.second[vnum], obj_it->second->get_script().get());
 			}
 		}
 
@@ -562,13 +556,13 @@ bool make_clean(CelebrateDataPtr celebrate)
 	{
 		const auto rnum = mob->get_rnum();
 		const int vnum = mob_index[rnum].vnum;	
-		for (CelebrateZonList::iterator rooms = celebrate->rooms.begin(); rooms != celebrate->rooms.end();++rooms)
+		for (const auto& rooms : celebrate->rooms)
 		{
-			for (CelebrateRoomsList::iterator room = rooms->second.begin(); room != rooms->second.end(); ++room)
+			for (const auto& room : rooms.second)
 			{
-				for (LoadList::iterator it = (*room)->mobs.begin(); it != (*room)->mobs.end();++it)
+				for (const auto& it : room->mobs)
 				{
-					if ((*it)->vnum == vnum)
+					if (it->vnum == vnum)
 					{
 						// This function is very bad because modifies global variable loaded_mobs
 						// Initially loop was over this global variable. Therefore this loop constantly crashed.
@@ -580,16 +574,16 @@ bool make_clean(CelebrateDataPtr celebrate)
 		}
 	}
 
-	for (obj_it = loaded_objs.begin(); obj_it != loaded_objs.end(); ++obj_it)
+	for (auto obj_it = loaded_objs.begin(); obj_it != loaded_objs.end(); ++obj_it)
 	{
 		const int vnum = obj_it->second->get_rnum();	
-		for (CelebrateZonList::iterator rooms = celebrate->rooms.begin(); rooms != celebrate->rooms.end();++rooms)
+		for (const auto& rooms : celebrate->rooms)
 		{
-			for (CelebrateRoomsList::iterator room = rooms->second.begin(); room != rooms->second.end(); ++room)
+			for (const auto& room : rooms.second)
 			{
-				for (LoadList::iterator it = (*room)->objects.begin(); it != (*room)->objects.end();++it)
+				for (const auto& it : room->objects)
 				{
-					if ((*it)->vnum == vnum)
+					if (it->vnum == vnum)
 					{
 						extract_obj(obj_it->second);
 					}
@@ -603,14 +597,14 @@ bool make_clean(CelebrateDataPtr celebrate)
 		}
 	}
 
-	for (CelebrateZonList::iterator rooms = celebrate->rooms.begin(); rooms != celebrate->rooms.end();++rooms)
+	for (const auto& rooms : celebrate->rooms)
 	{
-		for (CelebrateRoomsList::iterator room = rooms->second.begin(); room != rooms->second.end(); ++room)
+		for (const auto& room : rooms.second)
 		{
-			if (!(*room)->triggers.empty())
+			if (!room->triggers.empty())
 			{
-				const int rnum = real_room((*room)->vnum);
-				remove_triggers((*room)->triggers, world[rnum]->script.get());
+				const int rnum = real_room(room->vnum);
+				remove_triggers(room->triggers, world[rnum]->script.get());
 			}
 		}
 	}

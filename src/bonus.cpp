@@ -13,11 +13,9 @@
 #include "char_player.hpp"
 #include "utils.h"
 #include "logger.hpp"
-#include "structs.h"
 
 #include <boost/algorithm/string/replace.hpp>
 
-#include <iostream>
 #include <fstream>
 
 namespace Bonus
@@ -116,7 +114,7 @@ namespace Bonus
 		switch (result)
 		{
 		case ArgumentsParser::ER_ERROR:
-			reporter->report(bonus.error_message().c_str());
+			reporter->report(bonus.error_message());
 			break;
 
 		case ArgumentsParser::ER_START:
@@ -267,7 +265,7 @@ namespace Bonus
 	// выводит весь лог в обратном порядке
 	void show_log(CHAR_DATA *ch)
 	{
-		if (bonus_log.size() == 0)
+		if (bonus_log.empty())
 		{
 			send_to_char(ch, "Лог пустой!\r\n");
 			return;

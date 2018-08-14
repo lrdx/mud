@@ -17,8 +17,6 @@
 #include "screen.h"
 #include "char_player.hpp"
 #include "mail.h"
-#include "name_list.hpp"
-#include "room.hpp"
 #include "objsave.h"
 
 #include <map>
@@ -27,10 +25,7 @@
 #include <sstream>
 #include <iomanip>
 #include <vector>
-
-extern room_rnum r_helled_start_room;
-extern room_rnum r_named_start_room;
-extern room_rnum r_unreg_start_room;
+#include <fstream>
 
 extern CHAR_DATA *get_player_of_name(const char *name);
 extern int get_buf_line(char **source, char *target);
@@ -48,8 +43,8 @@ const int RETURNED_TIMER = -1; // при развороте посылки идет двойной таймер шмот
 const char *FILE_NAME = LIB_DEPOT"parcel.db";
 
 // для возврата посылки отправителю
-const bool RETURN_WITH_MONEY = 1;
-const bool RETURN_NO_MONEY = 0;
+const bool RETURN_WITH_MONEY = true;
+const bool RETURN_NO_MONEY = false;
 
 // доставленные с ребута посылки
 static int was_sended = 0;
@@ -188,26 +183,26 @@ bool can_send(CHAR_DATA *ch, CHAR_DATA *mailman, OBJ_DATA *obj, long vict_uid)
 		snprintf(buf, MAX_STRING_LENGTH, "$n сказал$g вам : '%s - мы не отправляем такие вещи!'\r\n",
 			obj->get_PName(0).c_str());
 		act(buf, FALSE, mailman, 0, ch, TO_VICT);
-		return 0;
+		return false;
 	}
 	else if (GET_OBJ_TYPE(obj) == OBJ_DATA::ITEM_CONTAINER
 		&& obj->get_contains())
 	{
 		snprintf(buf, MAX_STRING_LENGTH, "$n сказал$g вам : 'В %s что-то лежит.'\r\n", obj->get_PName(5).c_str());
 		act(buf, FALSE, mailman, 0, ch, TO_VICT);
-		return 0;
+		return false;
 	}
 	else if (SetSystem::is_big_set(obj))
 	{
 		snprintf(buf, MAX_STRING_LENGTH, "$n сказал$g вам : '%s является частью большого набора предметов.'\r\n",
 			obj->get_PName(0).c_str());
 		act(buf, FALSE, mailman, 0, ch, TO_VICT);
-		return 0;
+		return false;
 	}
 	Player t_vict;
 	if (load_char(GetNameByUnique(vict_uid).c_str(), &t_vict) < 0)
 	{
-		return 0;
+		return false;
 	}
 	if (invalid_anti_class(&t_vict, obj))
 	{
@@ -227,23 +222,23 @@ bool can_send(CHAR_DATA *ch, CHAR_DATA *mailman, OBJ_DATA *obj, long vict_uid)
 				act("$n сказал$g вам : 'Знаю я сие чудо бесполое - эта вещь явно на него не налезет.'\r\n",
 					FALSE, mailman, 0, ch, TO_VICT);
 		}
-		return 0;
+		return false;
 	}
-	return 1;
+	return true;
 }
 
 // получаем все объекты, которые были отправлены чару
 std::vector<int> get_objs(long char_uid)
 {
 	std::vector<int> buf_vector;
-	for (ParcelListType::const_iterator it = parcel_list.begin(); it != parcel_list.end(); ++it)
+	for (const auto& it : parcel_list)
 	{
-		SenderListType::const_iterator it2 = it->second.find(char_uid);
-		if (it2 != it->second.end())
+		const auto it2 = it.second.find(char_uid);
+		if (it2 != it.second.end())
 		{
-			for (std::list<Node>::const_iterator it3 = it2->second.begin(); it3 != it2->second.end(); ++it3)
+			for (const auto& it3 : it2->second)
 			{
-				buf_vector.push_back((*it3).obj_->get_vnum());
+				buf_vector.push_back(it3.obj_->get_vnum());
 			}
 		}
 	}
@@ -464,13 +459,13 @@ void print_sending_stuff(CHAR_DATA *ch)
 }
 
 // * Для учитывания предметов на почте в локейте.
-int print_spell_locate_object(CHAR_DATA *ch, int count, std::string name)
+int print_spell_locate_object(CHAR_DATA *ch, int count, const std::string& name)
 {
-	for (ParcelListType::const_iterator it = parcel_list.begin(); it != parcel_list.end(); ++it)
+	for (const auto& it : parcel_list)
 	{
-		for (SenderListType::const_iterator it2 = it->second.begin(); it2 != it->second.end(); ++it2)
+		for (const auto& it2 : it.second)
 		{
-			for (std::list<Node>::const_iterator it3 = it2->second.begin(); it3 != it2->second.end(); ++it3)
+			for (const auto& it3 : it2.second)
 			{
 				if (IS_GOD(ch))
 				{
@@ -479,20 +474,20 @@ int print_spell_locate_object(CHAR_DATA *ch, int count, std::string name)
 						continue;
 					}
 
-					if (it3->obj_->get_extra_flag(EExtraFlag::ITEM_NOLOCATE)
+					if (it3.obj_->get_extra_flag(EExtraFlag::ITEM_NOLOCATE)
 						&& !IS_GOD(ch))
 					{
 						continue;
 					}
 				}
 
-				if (!isname(name.c_str(), it3->obj_->get_aliases()))
+				if (!isname(name.c_str(), it3.obj_->get_aliases()))
 				{
 					continue;
 				}
 
 				snprintf(buf, MAX_STRING_LENGTH, "%s наход%sся у почтового голубя в инвентаре.\r\n",
-					it3->obj_->get_short_description().c_str(), GET_OBJ_POLY_1(ch, it3->obj_));
+					it3.obj_->get_short_description().c_str(), GET_OBJ_POLY_1(ch, it3.obj_));
 //				CAP(buf); issue #59
 				send_to_char(buf, ch);
 
@@ -550,7 +545,7 @@ void return_money(std::string const &name, int money, bool add)
 }
 
 // * Экстра-описание на самой посылке при получении.
-void fill_ex_desc(CHAR_DATA *ch, OBJ_DATA *obj, std::string sender)
+void fill_ex_desc(CHAR_DATA *ch, OBJ_DATA *obj, const std::string& sender)
 {
 	size_t size = std::max(strlen(GET_NAME(ch)), sender.size());
 	std::stringstream out;
@@ -613,19 +608,19 @@ void receive(CHAR_DATA *ch, CHAR_DATA *mailman)
 		return;
 	}
 
-	ParcelListType::iterator it = parcel_list.find(GET_UNIQUE(ch));
+	auto it = parcel_list.find(GET_UNIQUE(ch));
 	if (it != parcel_list.end())
 	{
-		for (SenderListType::iterator it2 = it->second.begin(); it2 != it->second.end(); ++it2)
+		for (auto& it2 : it->second)
 		{
-			std::string name = GetNameByUnique(it2->first);
+			std::string name = GetNameByUnique(it2.first);
 			name_convert(name);
 
 			OBJ_DATA *obj = create_parcel();
 			fill_ex_desc(ch, obj, name);
 
 			int money = 0;
-			for (std::list<Node>::iterator it3 = it2->second.begin(); it3 != it2->second.end(); ++it3)
+			for (auto it3 = it2.second.begin(); it3 != it2.second.end(); ++it3)
 			{
 				money += it3->money_ - calculate_timer_cost(it3);
 				// добавляем в глоб.список и кладем в посылку
@@ -679,13 +674,13 @@ void prepare_return(const long uid, const std::list<Node>::iterator &it)
 // * Возврат предметов из временного списка (перекидывание их в основной список посылок).
 void return_parcel()
 {
-	for (SenderListType::iterator it = return_list.begin(); it != return_list.end(); ++it)
+	for (const auto& it : return_list)
 	{
-		for (std::list<Node>::iterator it2 = it->second.begin(); it2 != it->second.end(); ++it2)
+		for (const auto& it2 : it.second)
 		{
-			Node tmp_node(it2->money_, it2->obj_);
+			Node tmp_node(it2.money_, it2.obj_);
 			tmp_node.timer_ = RETURNED_TIMER;
-			add_parcel(it->first, it->first, tmp_node);
+			add_parcel(it.first, it.first, tmp_node);
 		}
 	}
 	return_list.clear();
@@ -932,16 +927,16 @@ void update_timers()
 void show_stats(CHAR_DATA *ch)
 {
 	int targets = 0, returned = 0, objs = 0, reserved_money = 0;
-	for (ParcelListType::const_iterator it = parcel_list.begin(); it != parcel_list.end(); ++it)
+	for (const auto& it : parcel_list)
 	{
 		++targets;
-		for (SenderListType::const_iterator it2 = it->second.begin(); it2 != it->second.end(); ++it2)
+		for (const auto& it2 : it.second)
 		{
-			for (std::list<Node>::const_iterator it3 = it2->second.begin(); it3 != it2->second.end(); ++it3)
+			for (const auto& it3 : it2.second)
 			{
 				++objs;
-				reserved_money += it3->money_;
-				if (it3->timer_ == RETURNED_TIMER)
+				reserved_money += it3.money_;
+				if (it3.timer_ == RETURNED_TIMER)
 					++returned;
 			}
 		}
@@ -952,15 +947,15 @@ void show_stats(CHAR_DATA *ch)
 int delete_obj(int vnum)
 {
 	int num = 0;
-	for (ParcelListType::const_iterator it = parcel_list.begin(); it != parcel_list.end(); ++it)
+	for (const auto& it : parcel_list)
 	{
-		for (SenderListType::const_iterator it2 = it->second.begin(); it2 != it->second.end(); ++it2)
+		for (const auto& it2 : it.second)
 		{
-			for (std::list<Node>::const_iterator it3 = it2->second.begin(); it3 != it2->second.end(); ++it3)
+			for (const auto& it3 : it2.second)
 			{
-				if (it3->obj_->get_vnum() == vnum)
+				if (it3.obj_->get_vnum() == vnum)
 				{
-					it3->obj_->set_timer(0);
+					it3.obj_->set_timer(0);
 					num++;
 				}
 			}
@@ -999,15 +994,15 @@ int print_imm_where_obj(CHAR_DATA *ch, char *arg, int num)
 // * Обновление полей объектов при изменении их прототипа через олц.
 void olc_update_from_proto(int robj_num, OBJ_DATA *olc_proto)
 {
-	for (ParcelListType::const_iterator it = parcel_list.begin(); it != parcel_list.end(); ++it)
+	for (const auto& it : parcel_list)
 	{
-		for (SenderListType::const_iterator it2 = it->second.begin(); it2 != it->second.end(); ++it2)
+		for (const auto& it2 : it.second)
 		{
-			for (std::list<Node>::const_iterator it3 = it2->second.begin(); it3 != it2->second.end(); ++it3)
+			for (const auto& it3 : it2.second)
 			{
-				if (GET_OBJ_RNUM(it3->obj_) == robj_num)
+				if (GET_OBJ_RNUM(it3.obj_) == robj_num)
 				{
-					olc_update_object(robj_num, it3->obj_.get(), olc_proto);
+					olc_update_object(robj_num, it3.obj_.get(), olc_proto);
 				}
 			}
 		}
@@ -1017,15 +1012,15 @@ void olc_update_from_proto(int robj_num, OBJ_DATA *olc_proto)
 // * Поиск цели для каста локейта.
 OBJ_DATA * locate_object(const char *str)
 {
-	for (ParcelListType::const_iterator i = parcel_list.begin(); i != parcel_list.end(); ++i)
+	for (const auto& i : parcel_list)
 	{
-		for (SenderListType::const_iterator k = i->second.begin(); k != i->second.end(); ++k)
+		for (const auto& k : i.second)
 		{
-			for (std::list<Node>::const_iterator o = k->second.begin(); o != k->second.end(); ++o)
+			for (const auto& o : k.second)
 			{
-				if (isname(str, o->obj_->get_aliases()))
+				if (isname(str, o.obj_->get_aliases()))
 				{
-					return o->obj_.get();
+					return o.obj_.get();
 				}
 			}
 		}

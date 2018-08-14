@@ -4,7 +4,7 @@
 class Quest
 {
     public:
-	Quest(int id, int time_start, int time_end, std::string text_quest, std::string tquest, int var_quest);
+	Quest(int id, int time_start, int time_end, const std::string& text_quest, const std::string& tquest, int var_quest);
 	//~Quest();
 	int get_id();
 	int get_time_start();

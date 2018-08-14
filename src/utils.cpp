@@ -25,7 +25,6 @@
 #include "handler.h"
 #include "interpreter.h"
 #include "constants.h"
-#include "im.h"
 #include "dg_scripts.h"
 #include "features.hpp"
 #include "privilege.hpp"
@@ -33,9 +32,6 @@
 #include "room.hpp"
 #include "modify.h"
 #include "house.h"
-#include "player_races.hpp"
-#include "depot.hpp"
-#include "objsave.h"
 #include "fight.h"
 #include "skills.h"
 #include "exchange.h"
@@ -43,7 +39,6 @@
 #include "structs.h"
 #include "sysdep.h"
 #include "conf.h"
-#include "obj_sets.hpp"
 #include "utils.string.hpp"
 
 #ifdef HAVE_ICONV
@@ -60,14 +55,11 @@
 #include <algorithm>
 #include <sstream>
 
-extern DESCRIPTOR_DATA *descriptor_list;
-extern CHAR_DATA *mob_proto;
 extern const char *weapon_class[];
 // local functions
 TIME_INFO_DATA *real_time_passed(time_t t2, time_t t1);
 TIME_INFO_DATA *mud_time_passed(time_t t2, time_t t1);
 void prune_crlf(char *txt);
-int valid_email(const char *address);
 
 // external functions
 int attack_best(CHAR_DATA * ch, CHAR_DATA * victim);
@@ -116,7 +108,7 @@ CHAR_DATA *find_char(long n)
 
 bool check_spell_on_player(CHAR_DATA *ch, int spell_num)
 {
-	for (const auto af : ch->affected)
+	for (const auto& af : ch->affected)
 	{
 		if (af->type == spell_num)
 		{
@@ -237,7 +229,7 @@ void prune_crlf(char *txt)
 	}
 }
 
-bool is_head(std::string name)
+bool is_head(const std::string& name)
 {
 	if ((name == "Стрибог") || (name == "стрибог"))
 		return true;
@@ -719,7 +711,7 @@ bool stop_follower(CHAR_DATA * ch, int mode)
 	if (!ch->has_master())
 	{
 		log("SYSERR: stop_follower(%s) without master", GET_NAME(ch));
-		return (FALSE);
+		return (false);
 	}
 
 	// для смены лидера без лишнего спама
@@ -800,7 +792,7 @@ bool stop_follower(CHAR_DATA * ch, int mode)
 				perform_drop_gold(ch, ch->get_gold(), SCMD_DROP, 0);
 				ch->set_gold(0);
 				extract_char(ch, FALSE);
-				return (TRUE);
+				return (true);
 			}
 			else if (AFF_FLAGGED(ch, EAffectFlag::AFF_HELPER))
 			{
@@ -844,7 +836,7 @@ bool stop_follower(CHAR_DATA * ch, int mode)
 		MOB_FLAGS(ch) = MOB_FLAGS(mob_proto + i);
 	}
 
-	return (FALSE);
+	return (false);
 }
 
 
@@ -3359,12 +3351,12 @@ bool CompareBits(const FLAG_DATA& flags, const char *names[], int affect)
 			if (IS_SET(bitvector, 1))
 				if (*names[nr] != '\n')
 					if (nr == affect)
-						return 1;
+						return true;
 			if (*names[nr] != '\n')
 				nr++;
 		}
 	}
-	return 0;
+	return false;
 }
 
 bool ParseFilter::check_affect_weap(OBJ_DATA *obj) const

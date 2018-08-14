@@ -1,7 +1,6 @@
 #ifndef __CONFIG_HPP__
 #define __CONFIG_HPP__
 
-#include "blocking.queue.hpp"
 #include "birth_places.hpp"
 #include "structs.h"
 

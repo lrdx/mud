@@ -12,7 +12,6 @@
 #include "world.objects.hpp"
 #include "object.prototypes.hpp"
 #include "obj.hpp"
-#include "screen.h"
 #include "dg_scripts.h"
 #include "comm.h"
 #include "interpreter.h"
@@ -23,9 +22,7 @@
 #include "im.h"
 #include "char.hpp"
 #include "skills.h"
-#include "name_list.hpp"
 #include "room.hpp"
-#include "magic.h"
 #include "fight.h"
 #include "features.hpp"
 #include "logger.hpp"
@@ -34,14 +31,12 @@
 #include "sysdep.h"
 #include "conf.h"
 
-extern const char *dirs[];
 extern int up_obj_where(OBJ_DATA * obj);
 extern int reloc_target;
 
 CHAR_DATA *get_char_by_obj(OBJ_DATA * obj, char *name);
 OBJ_DATA *get_obj_by_obj(OBJ_DATA * obj, char *name);
 void sub_write(char *arg, CHAR_DATA * ch, byte find_invis, int targets);
-void die(CHAR_DATA * ch, CHAR_DATA * killer);
 void obj_command_interpreter(OBJ_DATA * obj, char *argument);
 
 ROOM_DATA *get_room(char *name);
@@ -109,7 +104,7 @@ int find_obj_target_room(OBJ_DATA * obj, char *rawroomstr)
 		return NOWHERE;
 	}
 
-	auto tmp = atoi(roomstr);
+	const auto tmp = atoi(roomstr);
 	if (tmp > 0)
 	{
 		location = real_room(tmp);
@@ -153,7 +148,7 @@ void do_oat(OBJ_DATA *obj, char *argument, int/* cmd*/, int/* subcmd*/)
 		return;
 	}
 	one_argument(argument, roomstr);
-	auto tmp = atoi(roomstr);
+	const auto tmp = atoi(roomstr);
 	if (tmp > 0)
 	{
 	    location = real_room(tmp);
@@ -632,7 +627,7 @@ void do_odamage(OBJ_DATA *obj, char *argument, int/* cmd*/, int/* subcmd*/)
 		}
 		GET_HIT(ch) -= dam;
 		update_pos(ch);
-		char_dam_message(dam, ch, ch, 0);
+		char_dam_message(dam, ch, ch, false);
 		if (GET_POS(ch) == POS_DEAD)
 		{
 			if (!IS_NPC(ch))

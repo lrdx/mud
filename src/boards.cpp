@@ -16,10 +16,9 @@
 #include "char.hpp"
 #include "modify.h"
 #include "room.hpp"
-#include "handler.h"
-#include "parse.hpp"
 #include "utils.h"
 #include "conf.h"
+#include "interpreter.h"
 
 #include <boost/format.hpp>
 #include <boost/algorithm/string.hpp>
@@ -88,7 +87,7 @@ namespace Boards
 
 	void add_server_message(const std::string& subj, const std::string& text)
 	{
-		auto board_it = std::find_if(
+		const auto board_it = std::find_if(
 			Boards::board_list.begin(),
 			Boards::board_list.end(),
 			[](const Board::shared_ptr p)
@@ -133,7 +132,7 @@ namespace Boards
 			return;
 		}
 
-		auto coder_board = std::find_if(
+		const auto coder_board = std::find_if(
 			Boards::board_list.begin(),
 			Boards::board_list.end(),
 			[](const Board::shared_ptr p)
@@ -237,7 +236,7 @@ namespace Boards
 				&& !PRF_FLAGGED(ch, PRF_NEWS_MODE))
 			{
 				std::ostringstream body;
-				Board::Formatter::shared_ptr formatter = FormattersBuilder::create(board.get_type(), body, ch, date);
+				const auto formatter = FormattersBuilder::create(board.get_type(), body, ch, date);
 				board.format_board(formatter);
 				set_last_read(ch, board.get_type(), board.last_message_date());
 				page_string(ch->desc, body.str());
@@ -247,7 +246,7 @@ namespace Boards
 			if (board.get_type() == CLANNEWS_BOARD && !PRF_FLAGGED(ch, PRF_NEWS_MODE))
 			{
 				std::ostringstream body;
-				Board::Formatter::shared_ptr formatter = FormattersBuilder::create(board.get_type(), body, ch, date);
+				const auto formatter = FormattersBuilder::create(board.get_type(), body, ch, date);
 				board.format_board(formatter);
 				set_last_read(ch, board.get_type(), board.last_message_date());
 				page_string(ch->desc, body.str());
@@ -368,7 +367,7 @@ namespace Boards
 			std::string subj;
 			if (subcmd == ERROR_BOARD || subcmd == MISPRINT_BOARD)
 			{
-				subj += "[" + boost::lexical_cast<std::string>(GET_ROOM_VNUM(ch->in_room)) + "] ";
+				subj += "[" + std::to_string(GET_ROOM_VNUM(ch->in_room)) + "] ";
 			}
 			subj += buffer2;
 			tempMessage->subject = subj;
@@ -378,7 +377,7 @@ namespace Boards
 
 			send_to_char(ch, "Можете писать сообщение.  (/s записать /h помощь)\r\n");
 			STATE(ch->desc) = CON_WRITEBOARD;
-			AbstractStringWriter::shared_ptr writer(new StdStringWriter());
+			const AbstractStringWriter::shared_ptr writer(new StdStringWriter());
 			string_write(ch->desc, writer, MAX_MESSAGE_LENGTH, 0, NULL);
 		}
 		else if (CompareParam(buffer, "очистить") || CompareParam(buffer, "remove"))
@@ -582,7 +581,7 @@ namespace Boards
 	void Static::LoginInfo(CHAR_DATA* ch)
 	{
 		std::ostringstream buffer, news;
-		bool has_message = 0;
+		bool has_message = false;
 		buffer << "\r\nВас ожидают сообщения:\r\n";
 
 		for (auto board = board_list.begin(); board != board_list.end(); ++board)
@@ -598,7 +597,7 @@ namespace Boards
 			const int unread = (*board)->count_unread(ch->get_board_date((*board)->get_type()));
 			if (unread > 0)
 			{
-				has_message = 1;
+				has_message = true;
 				if ((*board)->get_type() == NEWS_BOARD
 					|| (*board)->get_type() == GODNEWS_BOARD
 					|| (*board)->get_type() == CLANNEWS_BOARD)
@@ -827,7 +826,7 @@ namespace Boards
 	}
 
 	// втыкаем блокнот имму
-	void Static::init_god_board(long uid, std::string name)
+	void Static::init_god_board(long uid, const std::string& name)
 	{
 		const auto board = std::make_shared<Board>(PERS_BOARD);
 		board->set_name("Блокнот");
@@ -972,7 +971,7 @@ std::bitset<ACCESS_NUM> Static::get_access(CHAR_DATA *ch, const Board::shared_pt
 		break;
 	case PERS_BOARD:
 		if (IS_GOD(ch) && board->get_pers_uniq() == GET_UNIQUE(ch)
-			&& CompareParam(board->get_pers_name(), GET_NAME(ch), 1))
+			&& CompareParam(board->get_pers_name(), GET_NAME(ch), true))
 		{
 			access.set();
 		}
@@ -1107,7 +1106,7 @@ void report_on_board(CHAR_DATA *ch, char *argument, int/* cmd*/, int subcmd)
 	}
 
 	const auto predicate = [&](const auto board) { return board->get_type() == subcmd; };
-	auto board = std::find_if(board_list.begin(), board_list.end(), predicate);
+	const auto board = std::find_if(board_list.begin(), board_list.end(), predicate);
 
 	if (board == board_list.end())
 	{
@@ -1132,7 +1131,7 @@ void report_on_board(CHAR_DATA *ch, char *argument, int/* cmd*/, int subcmd)
 	// для досок кроме клановых и персональных пишет левел автора (для возможной очистки кем-то)
 	temp_message->level = GET_LEVEL(ch);
 	temp_message->rank = 0;
-	temp_message->subject = "[" + boost::lexical_cast<std::string>(GET_ROOM_VNUM(ch->in_room)) + "]";
+	temp_message->subject = "[" + std::to_string(GET_ROOM_VNUM(ch->in_room)) + "]";
 	temp_message->text = argument;
 	temp_message->date = time(0);
 

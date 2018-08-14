@@ -36,7 +36,6 @@
 #include "top.h"
 #include "ban.hpp"
 #include "description.h"
-#include "title.hpp"
 #include "password.hpp"
 #include "privilege.hpp"
 #include "depot.hpp"
@@ -54,10 +53,8 @@
 #include "shop_ext.hpp"
 #include "celebrates.hpp"
 #include "player_races.hpp"
-#include "birth_places.hpp"
 #include "corpse.hpp"
 #include "pugixml.hpp"
-#include "sets_drop.hpp"
 #include "fight.h"
 #include "ext_money.hpp"
 #include "noob.hpp"
@@ -89,28 +86,21 @@ using std::fstream;
 extern bool need_warn;
 extern FILE *player_fl;
 
-extern DESCRIPTOR_DATA *descriptor_list;
-extern INDEX_DATA *mob_index;
-extern struct zone_data *zone_table;
 extern char const *class_abbrevs[];
 extern char const *kin_abbrevs[];
-extern const char *weapon_affects[];
 extern int circle_restrict;
 extern int load_into_inventory;
 extern int buf_switches, buf_largecount, buf_overflows;
-extern mob_rnum top_of_mobt;
-extern CHAR_DATA *mob_proto;
 void medit_save_to_disk(int zone_num);
 extern const char *Dirs[];
 extern unsigned long int number_of_bytes_read;
 extern unsigned long int number_of_bytes_written;
 // for chars
 extern const char *pc_class_types[];
-extern struct spell_info_type spell_info[];
 // for name auto-agree
 extern void agree_name(CHAR_DATA * d, const char *immname, int immlev);
 extern void disagree_name(CHAR_DATA * d, const char *immname, int immlev);
-extern int check_dupes_host(DESCRIPTOR_DATA * d, bool autocheck = 0);
+extern int check_dupes_host(DESCRIPTOR_DATA * d, bool autocheck = false);
 extern bool CompareBits(const FLAG_DATA& flags, const char *names[], int affect);	// to avoid inclusion of utils.h
 void do_recall(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
 void save_zone_count_reset();
@@ -119,13 +109,10 @@ int level_exp(CHAR_DATA * ch, int level);
 void appear(CHAR_DATA * ch);
 void reset_zone(zone_rnum zone);
 int parse_class(char arg);
-extern CHAR_DATA *find_char(long n);
 void rename_char(CHAR_DATA * ch, char *oname);
 int _parse_name(char *arg, char *name);
 int Valid_Name(char *name);
 int reserved_word(const char *name);
-int compute_armor_class(CHAR_DATA * ch);
-extern bool can_be_reset(zone_rnum zone);
 extern int is_empty(zone_rnum zone_nr);
 void list_feats(CHAR_DATA * ch, CHAR_DATA * vict, bool all_feats);
 void list_skills(CHAR_DATA * ch, CHAR_DATA * vict, const char* filter = NULL);
@@ -254,9 +241,9 @@ void do_overstuff(CHAR_DATA *ch, char*, int, int)
 		}
 	}
 
-	for (auto it = objects.begin(); it != objects.end(); ++it)///вывод на экран
+	for (const auto& it : objects)///вывод на экран
 	{
-		sprintf(buf, "Дружина: %s, количество объектов: %d\r\n", it->first.c_str(), it->second);
+		sprintf(buf, "Дружина: %s, количество объектов: %d\r\n", it.first.c_str(), it.second);
 		send_to_char(buf, ch);
 	}
 }
@@ -332,7 +319,7 @@ void do_delete_obj(CHAR_DATA *ch, char *argument, int/* cmd*/, int/* subcmd*/)
 
 void do_showzonestats(CHAR_DATA* ch, char*, int, int)
 {
-	std::string buffer = "";
+	std::string buffer;
 	for (int i = 0; i <= top_of_zone_table; ++i)
 	{
 		sprintf(buf, "Zone: %d, count_reset: %d, посещено с ребута: %d", zone_table[i].number, zone_table[i].count_reset, zone_table[i].traffic);
@@ -904,32 +891,28 @@ int set_punish(CHAR_DATA * ch, CHAR_DATA * vict, int punish , char * reason , lo
 	return 1;
 }
 
-
-
 void is_empty_ch(zone_rnum zone_nr, CHAR_DATA *ch)
 {
-	DESCRIPTOR_DATA *i;
 	int rnum_start, rnum_stop;
 	bool found = false;
-	CHAR_DATA *caster;
 //Проверим, нет ли в зоне метки для врат, чтоб не абузили.
-	for (auto it = RoomSpells::aff_room_list.begin(); it != RoomSpells::aff_room_list.end(); ++it)
+	for (const auto& it : RoomSpells::aff_room_list)
 	{
-		const auto aff = find_room_affect(*it, SPELL_RUNE_LABEL);
-		if (((*it)->zone == zone_nr)
-			&& aff != (*it)->affected.end())
+		const auto aff = find_room_affect(it, SPELL_RUNE_LABEL);
+		if ((it->zone == zone_nr)
+			&& aff != it->affected.end())
 		{
 			// если в зоне метка
-			caster = find_char((*aff)->caster_id);
+			const auto caster = find_char((*aff)->caster_id);
 			if (caster)
 			{
-				sprintf(buf2, "В зоне vnum:%d клетка vnum: %d находится рунная метка игрока: %s.\r\n", zone_table[zone_nr].number, (*it)->number, GET_NAME(caster));
+				sprintf(buf2, "В зоне vnum:%d клетка vnum: %d находится рунная метка игрока: %s.\r\n", zone_table[zone_nr].number, it->number, GET_NAME(caster));
 				send_to_char(buf2, ch);
 			}
 		}
 	}
 
-	for (i = descriptor_list; i; i = i->next)
+	for (auto i = descriptor_list; i; i = i->next)
 	{
 		if (STATE(i) != CON_PLAYING)
 			continue;
@@ -972,7 +955,7 @@ void is_empty_ch(zone_rnum zone_nr, CHAR_DATA *ch)
 // теперь проверю всех товарищей в void комнате STRANGE_ROOM
 	for (const auto c : world[STRANGE_ROOM]->people)
 	{
-		int was = c->get_was_in_room();
+		const int was = c->get_was_in_room();
 		if (was == NOWHERE
 			|| GET_LEVEL(c) >= LVL_IMMORT
 			|| world[was]->zone != zone_nr)
@@ -1037,9 +1020,10 @@ InspReqListType& inspect_list = GlobalObjects::inspect_list();
 
 void setall_inspect()
 {
-    if(setall_inspect_list.size() == 0)
+    if(setall_inspect_list.empty())
 		return;
-    SetAllInspReqListType::iterator it = setall_inspect_list.begin();
+
+    auto it = setall_inspect_list.begin();
     CHAR_DATA *ch = 0;
     DESCRIPTOR_DATA *d_vict = 0;
 
@@ -1259,8 +1243,8 @@ void do_setall(CHAR_DATA *ch, char *argument, int/* cmd*/, int/* subcmd*/)
 	if (ch->get_pfilepos() < 0)
 		return;
 	
-	InspReqListType::iterator it_inspect = inspect_list.find(GET_UNIQUE(ch));
-	SetAllInspReqListType::iterator it = setall_inspect_list.find(GET_UNIQUE(ch));
+	const auto it_inspect = inspect_list.find(GET_UNIQUE(ch));
+	const auto it = setall_inspect_list.find(GET_UNIQUE(ch));
 	// На всякий случай разрешаем только одну команду такого типа - либо setall, либо inspect
 	if (it_inspect != inspect_list.end() && it != setall_inspect_list.end())
 	{
@@ -1502,7 +1486,7 @@ void do_glory(CHAR_DATA *ch, char *argument, int/* cmd*/, int/* subcmd*/)
 	{
 	case ADD_GLORY:
 	{
-		int amount = atoi((num + 1));
+		const int amount = atoi((num + 1));
 		Glory::add_glory(GET_UNIQUE(vict), amount);
 		send_to_char(ch, "%s добавлено %d у.е. славы (Всего: %d у.е.).\r\n",
 					 GET_PAD(vict, 2), amount, Glory::get_glory(GET_UNIQUE(vict)));
@@ -1515,7 +1499,7 @@ void do_glory(CHAR_DATA *ch, char *argument, int/* cmd*/, int/* subcmd*/)
 	}
 	case SUB_GLORY:
 	{
-		int amount = Glory::remove_glory(GET_UNIQUE(vict), atoi((num + 1)));
+		const int amount = Glory::remove_glory(GET_UNIQUE(vict), atoi((num + 1)));
 		if (amount <= 0)
 		{
 			send_to_char(ch, "У %s нет свободной славы.", GET_PAD(vict, 1));
@@ -1986,7 +1970,7 @@ void do_stat_object(CHAR_DATA * ch, OBJ_DATA * j, const int virt)
 	obj_vnum rnum, vnum;
 	OBJ_DATA *j2;
 	long int li;
-	bool is_grgod = (IS_GRGOD(ch) || PRF_FLAGGED(ch, PRF_CODERINFO)) ? true : false;
+	const bool is_grgod = (IS_GRGOD(ch) || PRF_FLAGGED(ch, PRF_CODERINFO)) ? true : false;
 
 	vnum = GET_OBJ_VNUM(j);
 	rnum = GET_OBJ_RNUM(j);
@@ -2096,7 +2080,7 @@ void do_stat_object(CHAR_DATA * ch, OBJ_DATA * j, const int virt)
 		sprintf(buf, "Таймер: %d\r\n", j->get_timer());
 	send_to_char(buf, ch);
 
-	auto room = get_room_where_obj(j);
+	const auto room = get_room_where_obj(j);
 	strcpy(buf, "Находится в комнате : ");
 	if (room == NOWHERE || !is_grgod)
 	{
@@ -2387,7 +2371,7 @@ void do_stat_character(CHAR_DATA * ch, CHAR_DATA * k, const int virt)
 	OBJ_DATA *j;
 	struct follow_type *fol;
 
-	int god_level = PRF_FLAGGED(ch, PRF_CODERINFO) ? LVL_IMPL : GET_LEVEL(ch);
+	const int god_level = PRF_FLAGGED(ch, PRF_CODERINFO) ? LVL_IMPL : GET_LEVEL(ch);
 	int k_room = -1;
 	if (!virt && (god_level == LVL_IMPL || (god_level == LVL_GRGOD && !IS_NPC(k))))
 	{
@@ -2506,12 +2490,12 @@ void do_stat_character(CHAR_DATA * ch, CHAR_DATA * k, const int virt)
 		}
 	}
 
-	sprintf(buf, "Титул: %s\r\n", (k->player_data.title != "" ? k->player_data.title.c_str() : "<Нет>"));
+	sprintf(buf, "Титул: %s\r\n", (!k->player_data.title.empty() ? k->player_data.title.c_str() : "<Нет>"));
 	send_to_char(buf, ch);
 	if (IS_NPC(k))
-		sprintf(buf, "L-Des: %s", (k->player_data.long_descr != "" ? k->player_data.long_descr.c_str() : "<Нет>\r\n"));
+		sprintf(buf, "L-Des: %s", (!k->player_data.long_descr.empty() ? k->player_data.long_descr.c_str() : "<Нет>\r\n"));
 	else
-		sprintf(buf, "L-Des: %s", (k->player_data.description != "" ? k->player_data.description.c_str() : "<Нет>\r\n"));
+		sprintf(buf, "L-Des: %s", (!k->player_data.description.empty() ? k->player_data.description.c_str() : "<Нет>\r\n"));
 	send_to_char(buf, ch);
 
 	if (!IS_NPC(k))
@@ -2773,7 +2757,7 @@ void do_stat_character(CHAR_DATA * ch, CHAR_DATA * k, const int virt)
 	// Routine to show what spells a char is affected by
 	if (!k->affected.empty())
 	{
-		for (const auto aff : k->affected)
+		for (const auto& aff : k->affected)
 		{
 			*buf2 = '\0';
 			sprintf(buf, "Заклинания: (%3dsec) %s%-21s%s ", aff->duration + 1,
@@ -2913,7 +2897,7 @@ void do_stat(CHAR_DATA *ch, char *argument, int/* cmd*/, int/* subcmd*/)
 		return;
 	}
 
-	int level = PRF_FLAGGED(ch, PRF_CODERINFO) ? LVL_IMPL : GET_LEVEL(ch);
+	const int level = PRF_FLAGGED(ch, PRF_CODERINFO) ? LVL_IMPL : GET_LEVEL(ch);
 
 	if (is_abbrev(buf1, "room") && level >= LVL_BUILDER)
 	{
@@ -3484,7 +3468,7 @@ void do_purge(CHAR_DATA *ch, char *argument, int/* cmd*/, int/* subcmd*/)
 	}
 }
 
-void send_list_char(std::string list_char, std::string email)
+void send_list_char(const std::string& list_char, const std::string& email)
 {
 	std::string cmd_line = "python3 send_list_char.py " + email + " " + list_char + " &";
 	auto result = system(cmd_line.c_str());
@@ -3548,10 +3532,10 @@ void show_pun(CHAR_DATA *vict, char *buf)
 
 void inspecting()
 {
-	if(inspect_list.size() == 0)
+	if(inspect_list.empty())
 		return;
 
-	InspReqListType::iterator it = inspect_list.begin();
+	auto it = inspect_list.begin();
 
 	CHAR_DATA *ch = 0;
 	DESCRIPTOR_DATA *d_vict = 0;
@@ -3754,8 +3738,8 @@ void do_inspect(CHAR_DATA *ch, char *argument, int/* cmd*/, int/* subcmd*/)
 	if (ch->get_pfilepos() < 0)
 		return;
 
-	InspReqListType::iterator it = inspect_list.find(GET_UNIQUE(ch));
-	SetAllInspReqListType::iterator it_setall = setall_inspect_list.find(GET_UNIQUE(ch));
+	const auto it = inspect_list.find(GET_UNIQUE(ch));
+	const auto it_setall = setall_inspect_list.find(GET_UNIQUE(ch));
 	// Навсякий случай разрешаем только одну команду такого типа, либо сетол, либо инспект
 	if (it != inspect_list.end() && it_setall != setall_inspect_list.end())
 	{
@@ -4281,8 +4265,8 @@ void do_dc(CHAR_DATA *ch, char *argument, int/* cmd*/, int/* subcmd*/)
 
 	if (d->character) //Чтоб не крешило при попытке разъединить незалогиненного
 	{
-		int victim_level = PRF_FLAGGED(d->character, PRF_CODERINFO) ? LVL_IMPL : GET_LEVEL(d->character);
-		int god_level = PRF_FLAGGED(ch, PRF_CODERINFO) ? LVL_IMPL : GET_LEVEL(ch);
+		const int victim_level = PRF_FLAGGED(d->character, PRF_CODERINFO) ? LVL_IMPL : GET_LEVEL(d->character);
+		const int god_level = PRF_FLAGGED(ch, PRF_CODERINFO) ? LVL_IMPL : GET_LEVEL(ch);
 		if (victim_level >= god_level)
 		{
 			if (!CAN_SEE(ch, d->character))
@@ -5088,8 +5072,8 @@ void do_show(CHAR_DATA *ch, char *argument, int/* cmd*/, int/* subcmd*/)
 		{
 			// хотят зоны в диапазоне увидеть
 			int found = 0;
-			int zstart = atoi(value);
-			int zend = atoi(value1);
+			const int zstart = atoi(value);
+			const int zend = atoi(value1);
 
 			for (zrn = 0; zrn <= top_of_zone_table; zrn++)
 			{
@@ -5205,9 +5189,9 @@ void do_show(CHAR_DATA *ch, char *argument, int/* cmd*/, int/* subcmd*/)
 			sprintf(rem, "Перевоплощений: 3+\r\n");
 		sprintf(buf + strlen(buf), "%s", rem);
 		sprintf(buf + strlen(buf), "Уровень: %s\r\n", (GET_LEVEL(vict) < 25 ? "ниже 25" : "25+"));
-		sprintf(buf + strlen(buf), "Титул: %s\r\n", (vict->player_data.title != "" ? vict->player_data.title.c_str() : "<Нет>"));
+		sprintf(buf + strlen(buf), "Титул: %s\r\n", (!vict->player_data.title.empty() ? vict->player_data.title.c_str() : "<Нет>"));
 		sprintf(buf + strlen(buf), "Описание игрока:\r\n");
-		sprintf(buf + strlen(buf), "%s\r\n", (vict->player_data.description != "" ? vict->player_data.description.c_str() : "<Нет>"));
+		sprintf(buf + strlen(buf), "%s\r\n", (!vict->player_data.description.empty() ? vict->player_data.description.c_str() : "<Нет>"));
 		send_to_char(buf, ch);
 		// Отображаем карму.
 		if (KARMA(vict))
@@ -5694,9 +5678,9 @@ int perform_set(CHAR_DATA * ch, CHAR_DATA * vict, int mode, char *val_arg)
 	if (set_fields[mode].type == BINARY)
 	{
 		if (!strn_cmp(val_arg, "on", 2) || !strn_cmp(val_arg, "yes", 3) || !strn_cmp(val_arg, "вкл", 3))
-			on = 1;
+			on = true;
 		else if (!strn_cmp(val_arg, "off", 3) || !strn_cmp(val_arg, "no", 2) || !strn_cmp(val_arg, "выкл", 4))
-			off = 1;
+			off = true;
 		if (!(on || off))
 		{
 			send_to_char("Значение может быть 'on' или 'off'.\r\n", ch);
@@ -6476,7 +6460,7 @@ void do_set(CHAR_DATA *ch, char *argument, int/* cmd*/, int/* subcmd*/)
 	}
 
 	// find the command in the list
-	size_t len = strlen(field);
+	const size_t len = strlen(field);
 	for (mode = 0; *(set_fields[mode].cmd) != '\n'; mode++)
 	{
 		if (!strncmp(field, set_fields[mode].cmd, len))
@@ -6514,10 +6498,6 @@ void do_set(CHAR_DATA *ch, char *argument, int/* cmd*/, int/* subcmd*/)
 	imm_log("%s try to set: %s", GET_NAME(ch), argument);
 }
 
-int shop_ext(CHAR_DATA *ch, void *me, int cmd, char* argument);
-int receptionist(CHAR_DATA *ch, void *me, int cmd, char* argument);
-int postmaster(CHAR_DATA *ch, void *me, int cmd, char* argument);
-int bank(CHAR_DATA *ch, void *me, int cmd, char* argument);
 int exchange(CHAR_DATA *ch, void *me, int cmd, char* argument);
 int horse_keeper(CHAR_DATA *ch, void *me, int cmd, char* argument);
 int guild_mono(CHAR_DATA *ch, void *me, int cmd, char* argument);
@@ -6580,7 +6560,7 @@ std::string print_script(CHAR_DATA *mob, const std::string &key)
 				{
 					first = false;
 				}
-				out += boost::lexical_cast<std::string>(trig_index[trg_rnum]->vnum);
+				out += std::to_string(trig_index[trg_rnum]->vnum);
 				if (print_name)
 				{
 					out += "(";
@@ -6605,7 +6585,7 @@ std::string print_special(CHAR_DATA *mob)
 
 	if (mob_index[GET_MOB_RNUM(mob)].func)
 	{
-		auto func = mob_index[GET_MOB_RNUM(mob)].func;
+		const auto func = mob_index[GET_MOB_RNUM(mob)].func;
 		if (func == shop_ext)
 			out += "shop";
 		else if (func == receptionist)
@@ -6723,8 +6703,8 @@ int print_olist(const CHAR_DATA* ch, const int first, const int last, std::strin
 	snprintf(buf_, sizeof(buf_), "Список объектов Vnum %d до %d\r\n", first, last);
 	ss << buf_;
 
-	auto from = obj_proto.vnum2index().lower_bound(first);
-	auto to = obj_proto.vnum2index().upper_bound(last);
+	const auto from = obj_proto.vnum2index().lower_bound(first);
+	const auto to = obj_proto.vnum2index().upper_bound(last);
 	for (auto i = from; i != to; ++i)
 	{
 		const auto vnum = i->first;
@@ -6988,8 +6968,11 @@ namespace SpellUsage
 
 void SpellUsage::clear()
 {
-	for(std::map<int, SpellCountType>::iterator it=usage.begin();it != usage.end(); ++it)
-		it->second.clear();
+	for (auto& it : usage)
+	{
+		it.second.clear();
+	}
+
 	usage.clear();
 	start = time(0);
 }
@@ -7000,11 +6983,11 @@ std::string statToPrint()
 	time_t now=time(0);
 	char * end_time = str_dup(rustime(localtime(&now)));
 	out << rustime(localtime(&SpellUsage::start)) << " - " << end_time << "\n";
-	for (std::map<int, SpellCountType>::iterator it = SpellUsage::usage.begin(); it != SpellUsage::usage.end(); ++it)
+	for (const auto& it : SpellUsage::usage)
 	{
-		out << std::setw(35)<<pc_class_types[it->first] << "\n";
-		for (SpellCountType::iterator itt = it->second.begin(); itt !=it->second.end(); ++itt)
-			out << std::setw(25) << spell_info[itt->first].name << " : " << itt->second << "\n";
+		out << std::setw(35)<<pc_class_types[it.first] << "\n";
+		for (const auto& itt : it.second)
+			out << std::setw(25) << spell_info[itt.first].name << " : " << itt.second << "\n";
 	}
 	return out.str();
 }
@@ -7351,7 +7334,7 @@ void do_print_armor(CHAR_DATA *ch, char *argument, int/* cmd*/, int/* subcmd*/)
 				break;
 			}
 			lower_convert(tmpbuf);
-			size_t len = strlen(tmpbuf);
+			const size_t len = strlen(tmpbuf);
 			int num = 0;
 
 			for (int flag = 0; flag < 4; ++flag)
@@ -7474,7 +7457,7 @@ void do_print_armor(CHAR_DATA *ch, char *argument, int/* cmd*/, int/* subcmd*/)
 	send_to_char(buffer, ch);
 
 	std::multimap<int /* zone lvl */, int /* obj rnum */> tmp_list;
-	for (const auto i : obj_proto)
+	for (const auto& i : obj_proto)
 	{
 		// материал
 		if (filter.material >= 0 && filter.material != GET_OBJ_MATER(i))
@@ -7550,7 +7533,7 @@ void do_print_armor(CHAR_DATA *ch, char *argument, int/* cmd*/, int/* subcmd*/)
 		}
 		if (find)
 		{
-			int vnum = i->get_vnum()/100;
+			const int vnum = i->get_vnum()/100;
 			for (int nr = 0; nr <= top_of_zone_table; nr++)
 			{
 				if (vnum == zone_table[nr].number)
@@ -7572,8 +7555,8 @@ void do_print_armor(CHAR_DATA *ch, char *argument, int/* cmd*/, int/* subcmd*/)
 
 		for (int i = 0; i < MAX_OBJ_AFFECT; i++)
 		{
-			int drndice = obj->get_affected(i).location;
-			int drsdice = obj->get_affected(i).modifier;
+			const int drndice = obj->get_affected(i).location;
+			const int drsdice = obj->get_affected(i).modifier;
 			if (drndice == APPLY_NONE || !drsdice)
 			{
 				continue;

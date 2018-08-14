@@ -3,10 +3,8 @@
 #include "boards.constants.hpp"
 #include "logger.hpp"
 #include "utils.h"
-#include "screen.h"
 
 #include <fstream>
-#include <sstream>
 
 namespace Boards
 {
@@ -171,7 +169,8 @@ namespace Boards
 			<< "Clan: " << clan_rent_ << " "
 			<< "PersUID: " << pers_unique_ << " "
 			<< "PersName: " << (pers_name_.empty() ? "none" : pers_name_) << "\n";
-		for (MessageListType::const_reverse_iterator message = messages.rbegin(); message != messages.rend(); ++message)
+
+		for (auto message = messages.rbegin(); message != messages.rend(); ++message)
 		{
 			file << "Message: " << (*message)->num << "\n"
 				<< (*message)->author << " "

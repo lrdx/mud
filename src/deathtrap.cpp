@@ -8,7 +8,6 @@
 #include "db.h"
 #include "spells.h"
 #include "handler.h"
-#include "comm.h"
 #include "house.h"
 #include "char.hpp"
 #include "corpse.hpp"
@@ -23,7 +22,6 @@
 #include <algorithm>
 
 extern int has_boat(CHAR_DATA * ch);
-extern void die(CHAR_DATA * ch, CHAR_DATA * killer);
 extern void death_cry(CHAR_DATA * ch, CHAR_DATA * killer);
 extern void reset_affects(CHAR_DATA *ch);
 
@@ -55,7 +53,7 @@ void DeathTrap::load()
 */
 void DeathTrap::add(ROOM_DATA* room)
 {
-	std::list<ROOM_DATA*>::const_iterator it = std::find(room_list.begin(), room_list.end(), room);
+	const auto it = std::find(room_list.begin(), room_list.end(), room);
 	if (it == room_list.end())
 		room_list.push_back(room);
 }
@@ -75,9 +73,9 @@ void DeathTrap::remove(ROOM_DATA* room)
 /// с пуржем чара натыкается далее на обнуленные структуры чармисов.
 void DeathTrap::activity()
 {
-	for (auto it = room_list.cbegin(); it != room_list.cend(); ++it)
+	for (const auto& it : room_list)
 	{
-		const auto people = (*it)->people; // make copy of people in the room
+		const auto people = it->people; // make copy of people in the room
 		for (const auto i : people)
 		{
 			if (i->purged() || IS_NPC(i))
@@ -94,7 +92,7 @@ void DeathTrap::activity()
 				char buf_[MAX_INPUT_LENGTH];
 				snprintf(buf_, sizeof(buf_),
 					"Player %s died in slow DT (room %d)",
-					name.c_str(), (*it)->number);
+					name.c_str(), it->number);
 				mudlog(buf_, LGH, LVL_IMMORT, SYSLOG, TRUE);
 			}
 		}
@@ -123,7 +121,7 @@ void add(ROOM_DATA* to_room, ROOM_DATA* from_room)
 */
 void remove(ROOM_DATA* to_room)
 {
-	std::map<ROOM_DATA*, ROOM_DATA*>::iterator it = portal_list.find(to_room);
+	const auto it = portal_list.find(to_room);
 	if (it != portal_list.end())
 		portal_list.erase(it);
 }
@@ -135,7 +133,7 @@ void remove(ROOM_DATA* to_room)
 */
 ROOM_DATA * get_from_room(ROOM_DATA* to_room)
 {
-	std::map<ROOM_DATA*, ROOM_DATA*>::const_iterator it = portal_list.find(to_room);
+	const auto it = portal_list.find(to_room);
 	if (it != portal_list.end())
 		return it->second;
 	return 0;

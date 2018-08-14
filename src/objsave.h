@@ -10,8 +10,6 @@
 #include "objsave.h"
 #include "obj.hpp"
 #include "structs.h"
-#include "sysdep.h"
-#include "conf.h"
 
 // these factors should be unique integers
 #define RENT_FACTOR 	1

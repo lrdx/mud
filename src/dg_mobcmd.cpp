@@ -68,18 +68,12 @@ struct mob_command_info
 
 #define IS_CHARMED(ch)          (IS_HORSE(ch)||AFF_FLAGGED(ch, EAffectFlag::AFF_CHARM))
 
-extern DESCRIPTOR_DATA *descriptor_list;
-extern INDEX_DATA *mob_index;
-
-extern const char *dirs[];
-
 extern int reloc_target;
 extern TRIG_DATA *cur_trig;
 
 void sub_write(char *arg, CHAR_DATA * ch, byte find_invis, int targets);
 ROOM_DATA *get_room(char *name);
 OBJ_DATA *get_obj_by_char(CHAR_DATA * ch, char *name);
-extern void die(CHAR_DATA * ch, CHAR_DATA * killer);
 // * Local functions.
 void mob_command_interpreter(CHAR_DATA* ch, char *argument);
 bool mob_script_command_interpreter(CHAR_DATA* ch, char *argument);
@@ -115,7 +109,7 @@ room_rnum dg_find_target_room(CHAR_DATA * ch, char *rawroomstr)
 		return NOWHERE;
 	}
 
-	auto tmp = atoi(roomstr);
+	const auto tmp = atoi(roomstr);
 	if (tmp > 0)
 	{
 		location = real_room(tmp);
@@ -150,7 +144,7 @@ void do_masound(CHAR_DATA *ch, char *argument, int/* cmd*/, int/* subcmd*/)
 
 	skip_spaces(&argument);
 
-	int temp_in_room = ch->in_room;
+	const int temp_in_room = ch->in_room;
 	for (int door = 0; door < NUM_OF_DIRS; door++)
 	{
 		const auto& exit = world[temp_in_room]->dir_option[door];
@@ -1257,11 +1251,6 @@ void do_mdoor(CHAR_DATA *ch, char *argument, int/* cmd*/, int/* subcmd*/)
 	}
 }
 
-// increases spells & skills 
-const char *skill_name(int num);
-const char *spell_name(int num);
-int fix_name_and_find_spell_num(char *name);
-
 void do_mfeatturn(CHAR_DATA *ch, char *argument, int/* cmd*/, int/* subcmd*/)
 {
 	int isFeat = 0;
@@ -1365,7 +1354,7 @@ void do_mskillturn(CHAR_DATA *ch, char *argument, int/* cmd*/, int/* subcmd*/)
 
 	if ((skillnum = fix_name_and_find_skill_num(skillname)) > 0 && skillnum <= MAX_SKILL_NUM)
 	{
-		isSkill = 1;
+		isSkill = true;
 	}
 	else if ((recipenum = im_get_recipe_by_name(skillname)) < 0)
 	{
@@ -1850,7 +1839,7 @@ void do_mdamage(CHAR_DATA *ch, char *argument, int/* cmd*/, int/* subcmd*/)
 	}
 
 	dam = atoi(amount);
-	auto victim = get_char(name);
+	const auto victim = get_char(name);
 	if (victim)
 	{
 		if (world[IN_ROOM(victim)]->zone != world[ch->in_room]->zone)
@@ -1872,7 +1861,7 @@ void do_mdamage(CHAR_DATA *ch, char *argument, int/* cmd*/, int/* subcmd*/)
 		}
 
 		update_pos(victim);
-		char_dam_message(dam, victim, victim, 0);
+		char_dam_message(dam, victim, victim, false);
 		if (GET_POS(victim) == POS_DEAD)
 		{
 			if (!IS_NPC(victim))
@@ -1893,7 +1882,7 @@ void do_mdamage(CHAR_DATA *ch, char *argument, int/* cmd*/, int/* subcmd*/)
 
 const struct mob_command_info mob_cmd_info[] =
 {
-	{ "RESERVED", 0, 0, 0, 0 },	// this must be first -- for specprocs
+	{ "RESERVED", 0, 0, 0, false },	// this must be first -- for specprocs
 	{ "masound", POS_DEAD, do_masound, -1, false},
 	{ "mkill", POS_STANDING, do_mkill, -1, false},
 	{ "mjunk", POS_SITTING, do_mjunk, -1, true},
@@ -1918,7 +1907,7 @@ const struct mob_command_info mob_cmd_info[] =
 	{ "mspellturntemp", POS_DEAD, do_mspellturntemp, -1, false},
 	{ "mspelladd", POS_DEAD, do_mspelladd, -1, false},
 	{ "mspellitem", POS_DEAD, do_mspellitem, -1, false},
-	{ "\n", 0, 0, 0, 0}		// this must be last
+	{ "\n", 0, 0, 0, false}		// this must be last
 };
 
 bool mob_script_command_interpreter(CHAR_DATA* ch, char *argument)

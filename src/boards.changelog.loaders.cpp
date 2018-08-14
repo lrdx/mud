@@ -191,7 +191,7 @@ namespace Boards
 		}
 
 		const auto date_length = buffer.size() - DATE_PREFIX.size();
-		std::string date = buffer.substr(DATE_PREFIX.size(), date_length);
+		const auto date = buffer.substr(DATE_PREFIX.size(), date_length);
 
 		m_date = parse_asctime(date);
 

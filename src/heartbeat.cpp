@@ -33,14 +33,13 @@
 #include "time_utils.hpp"
 #include "structs.h"
 #include "global.objects.hpp"
+#include "interpreter.h"
 
 #if defined WITH_SCRIPTING
 #include "scripting.hpp"
 #endif
 
 #include <boost/algorithm/string/predicate.hpp>
-
-#include <iostream>
 
 constexpr bool FRAC_SAVE = true;
 
@@ -103,7 +102,7 @@ namespace
 				for (CHAR_DATA *ch : sw.mobs) {
 					if (ch && !ch->purged())
 					{
-						std::string direction = sw.route[sw.cur_state].direction;
+						const std::string direction = sw.route[sw.cur_state].direction;
 						int dir = 1;
 						if (boost::starts_with(direction, "север"))
 							dir = SCMD_NORTH;
@@ -354,7 +353,7 @@ namespace
 				return;
 			}
 
-			time_t tmp_time = time(0);
+			const time_t tmp_time = time(0);
 			if ((tmp_time - SpellUsage::start) >= (60 * 60 * 24))
 			{
 				SpellUsage::save();

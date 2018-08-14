@@ -35,15 +35,9 @@
 
 #include <cmath>
 
-// extern variables
-extern DESCRIPTOR_DATA *descriptor_list;
-
 // extern functions
-int compute_armor_class(CHAR_DATA * ch);
-int awake_others(CHAR_DATA * ch);
 void appear(CHAR_DATA * ch);
 int legal_dir(CHAR_DATA * ch, int dir, int need_specials_check, int show_msg);
-void alt_equip(CHAR_DATA * ch, int pos, int dam, int chance);
 void go_protect(CHAR_DATA * ch, CHAR_DATA * vict);
 void go_stun(CHAR_DATA * ch, CHAR_DATA * vict);
 
@@ -1209,16 +1203,16 @@ void do_stun(CHAR_DATA* ch, char* argument, int, int)
 		return;
 	if (!check_pkill(ch, vict, arg))
 		return;
-//	if (IS_IMPL(ch) || !ch->get_fighting())
-		go_stun(ch, vict);
-/*	else
-	{
-		act("Вы не смогли сосредоточиться, чтобы ошеломить $N3.", FALSE, ch, 0, vict, TO_CHAR);
-		act("$n попытал$u ошеломить вас, но не смог$q сосредоточиться.", FALSE, vict, 0, ch, TO_CHAR);
-		act("$n попытал$u ошеломить $N3, но не удалось. ", TRUE, ch, 0, vict, TO_NOTVICT | TO_ARENA_LISTEN);
-		WAIT_STATE(ch, 1 * PULSE_VIOLENCE);
-	}
-*/
+	//	if (IS_IMPL(ch) || !ch->get_fighting())
+	go_stun(ch, vict);
+	/*	else
+		{
+			act("Вы не смогли сосредоточиться, чтобы ошеломить $N3.", FALSE, ch, 0, vict, TO_CHAR);
+			act("$n попытал$u ошеломить вас, но не смог$q сосредоточиться.", FALSE, vict, 0, ch, TO_CHAR);
+			act("$n попытал$u ошеломить $N3, но не удалось. ", TRUE, ch, 0, vict, TO_NOTVICT | TO_ARENA_LISTEN);
+			WAIT_STATE(ch, 1 * PULSE_VIOLENCE);
+		}
+	*/
 }
 
 void go_stun(CHAR_DATA * ch, CHAR_DATA * vict)
@@ -1235,7 +1229,7 @@ void go_stun(CHAR_DATA * ch, CHAR_DATA * vict)
 		act("$N3 попытал$U ошеломить вас, но не получилось.", FALSE, vict, 0, ch, TO_CHAR);
 		act("$n попытал$u ошеломить $N3, но плохому танцору и тапки мешают.", TRUE, ch, 0, vict, TO_NOTVICT | TO_ARENA_LISTEN);
 		set_hit(ch, vict);
-	        return;
+		return;
 	}
 	struct timed_type timed;
 	timed.skill = SKILL_STUN;
@@ -1254,8 +1248,8 @@ void go_stun(CHAR_DATA * ch, CHAR_DATA * vict)
 		act("У вас не получилось ошеломить $N3, надо больше тренироваться!", FALSE, ch, 0, vict, TO_CHAR);
 		act("$N3 попытал$U ошеломить вас, но не получилось.", FALSE, vict, 0, ch, TO_CHAR);
 		act("$n попытал$u ошеломить $N3, но плохому танцору и тапки мешают.", TRUE, ch, 0, vict, TO_NOTVICT | TO_ARENA_LISTEN);
-//			Damage dmg(SkillDmg(SKILL_STUN), 1, FightSystem::PHYS_DMG);
-//			dmg.process(ch, vict);
+		//			Damage dmg(SkillDmg(SKILL_STUN), 1, FightSystem::PHYS_DMG);
+		//			dmg.process(ch, vict);
 		set_hit(ch, vict);
 	}
 	else
@@ -1483,7 +1477,7 @@ void go_kick(CHAR_DATA * ch, CHAR_DATA * vict)
 			af.modifier = 0;
 			af.battleflag = 0;
 //             (%скила+сила персонажа*5+вес сапог*3)/размер жертвы/0,55
-			float modi = ((ch->get_skill(SKILL_KICK) + GET_REAL_STR(ch) * 5) + (GET_EQ(ch, WEAR_FEET) ? GET_OBJ_WEIGHT(GET_EQ(ch, WEAR_FEET)) : 0) * 3) / float(GET_SIZE(vict));
+			const float modi = ((ch->get_skill(SKILL_KICK) + GET_REAL_STR(ch) * 5) + (GET_EQ(ch, WEAR_FEET) ? GET_OBJ_WEIGHT(GET_EQ(ch, WEAR_FEET)) : 0) * 3) / float(GET_SIZE(vict));
 			if (number(1, 1000) < modi * 10)
 			{
 				switch (number(0, (ch->get_skill(SKILL_KICK) - 150) / 10))
@@ -1754,16 +1748,16 @@ void do_parry(CHAR_DATA *ch, char* /*argument*/, int/* cmd*/, int/* subcmd*/)
 			return;
 		}
 
-		bool prim = 0, offh = 0;
+		bool prim = false, offh = false;
 		if (GET_EQ(ch, WEAR_WIELD)
 			&& GET_OBJ_TYPE(GET_EQ(ch, WEAR_WIELD)) == OBJ_DATA::ITEM_WEAPON)
 		{
-			prim = 1;
+			prim = true;
 		}
 		if (GET_EQ(ch, WEAR_HOLD)
 			&& GET_OBJ_TYPE(GET_EQ(ch, WEAR_HOLD)) == OBJ_DATA::ITEM_WEAPON)
 		{
-			offh = 1;
+			offh = true;
 		}
 
 		if (!prim && !offh)
@@ -2071,7 +2065,7 @@ void go_disarm(CHAR_DATA * ch, CHAR_DATA * vict)
 		// act("Вы ловко выбили $o3 из рук $N1.",FALSE,ch,wielded,vict,TO_CHAR);
 		// act("$n ловко выбил$g $o3 из ваших рук.", FALSE, ch, wielded, vict, TO_VICT);
 		send_to_char(vict, "%s ловко выбил%s %s%s из ваших рук.\r\n",
-			ch->get_name(), GET_CH_VIS_SUF_1(ch, vict),
+			ch->get_name().c_str(), GET_CH_VIS_SUF_1(ch, vict),
 			wielded->get_PName(3).c_str(), char_get_custom_label(wielded, vict).c_str());
 		act("$n ловко выбил$g $o3 из рук $N1.", TRUE, ch, wielded, vict, TO_NOTVICT | TO_ARENA_LISTEN);
 		unequip_char(vict, pos);
@@ -2985,7 +2979,7 @@ void do_turn_undead(CHAR_DATA *ch, char* /*argument*/, int/* cmd*/, int/* subcmd
 		ch_list.push_back(ch_vict);
 	}
 
-	if (ch_list.size() > 0)
+	if (!ch_list.empty())
 	{
 		percent = ch->get_skill(SKILL_TURN_UNDEAD);
 	}
@@ -3005,14 +2999,13 @@ void do_turn_undead(CHAR_DATA *ch, char* /*argument*/, int/* cmd*/, int/* subcmd
 //Применяем.
 //Если уровень больше максимального, или отсэйвилось - фейл по этому персу
 //Если поражение - то дамаг+страх, если от страха спасла воля - просто дамаг.
-	for (std::vector<CHAR_DATA *>::iterator it=ch_list.begin();it!=ch_list.end();++it)
+	for (const auto& ch_vict : ch_list)
 	{
 		if (sum <= 0)
 		{
 			break;
 		}
 
-		CHAR_DATA *ch_vict = *it;
 		if (ch->in_room == NOWHERE || IN_ROOM(ch_vict) == NOWHERE)
 		{
 			continue;
@@ -3435,43 +3428,43 @@ int DegreeOfSuccess(int roll, int rating)
 
 bool CheckExpedientSuccess(CHAR_DATA *ch, CHAR_DATA *victim)
 {
-    ESkill DoerSkill = ExpedientWeaponSkill(ch);
-    int DoerRating = ExpedientRating(ch, DoerSkill);
-    int DoerCap = ExpedientCap(ch, DoerSkill);
-    int DoerRoll = dice(1, DoerCap);
-    int DoerSuccess = DegreeOfSuccess(DoerRoll, DoerRating);
+    const ESkill doer_skill = ExpedientWeaponSkill(ch);
+    const int doer_rating = ExpedientRating(ch, doer_skill);
+    const int doer_cap = ExpedientCap(ch, doer_skill);
+    const int doer_roll = dice(1, doer_cap);
+    const int doer_success = DegreeOfSuccess(doer_roll, doer_rating);
 
-    ESkill VictimSkill = ExpedientWeaponSkill(victim);
-    int VictimRating = ExpedientRating(victim, VictimSkill);
-    int VictimCap = ExpedientCap(victim, VictimSkill);
-    int VictimRoll = dice(1, VictimCap);
-    int VictimSuccess = DegreeOfSuccess(VictimRoll, VictimRating);
+    const ESkill victim_skill = ExpedientWeaponSkill(victim);
+    const int victim_rating = ExpedientRating(victim, victim_skill);
+    const int victim_cap = ExpedientCap(victim, victim_skill);
+    const int victim_roll = dice(1, victim_cap);
+    const int victim_success = DegreeOfSuccess(victim_roll, victim_rating);
 
     //Если один провалил бросок, а другой выиграл - победа выигравшего
-    if ((DoerRoll <= DoerRating) && (VictimRoll > VictimRating))
+    if ((doer_roll <= doer_rating) && (victim_roll > victim_rating))
         return true;
-    if ((DoerRoll > DoerRating) && (VictimRoll <= VictimRating))
+    if ((doer_roll > doer_rating) && (victim_roll <= victim_rating))
         return false;
     //Если оба провалили - переброс
-    if ((DoerRoll > DoerRating) && (VictimRoll > VictimRating))
+    if ((doer_roll > doer_rating) && (victim_roll > victim_rating))
         return CheckExpedientSuccess(ch, victim);
 
     //Если оба выиграли - сравниваются степени успеха
-    if (DoerSuccess > VictimSuccess)
+    if (doer_success > victim_success)
         return true;
-    if (DoerSuccess < VictimSuccess)
+    if (doer_success < victim_success)
         return false;
 
     //Если и степени успеха равны - сравниваем бонусы ключевых параметров
-    if (ParameterBonus(GetExpedientKeyParameter(ch, DoerSkill)) > ParameterBonus(GetExpedientKeyParameter(victim, VictimSkill)))
+    if (ParameterBonus(GetExpedientKeyParameter(ch, doer_skill)) > ParameterBonus(GetExpedientKeyParameter(victim, victim_skill)))
         return true;
-    if (ParameterBonus(GetExpedientKeyParameter(ch, DoerSkill)) < ParameterBonus(GetExpedientKeyParameter(victim, VictimSkill)))
+    if (ParameterBonus(GetExpedientKeyParameter(ch, doer_skill)) < ParameterBonus(GetExpedientKeyParameter(victim, victim_skill)))
         return false;
 
     //Если бонусы равны - сравниваем  результаты бросков (чем ниже - тем лучше)
-    if (DoerRoll < VictimRoll)
+    if (doer_roll < victim_roll)
         return true;
-    if (DoerRoll > VictimRoll)
+    if (doer_roll > victim_roll)
         return true;
 
     //Охламоны соверщенно идентичны и получили одинаковый результат... начинаем все сначала

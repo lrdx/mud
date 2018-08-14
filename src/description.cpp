@@ -5,9 +5,7 @@
 #include "description.h"
 
 #include "logger.hpp"
-#include "structs.h"
 #include "conf.h"
-#include "sysdep.h"
 
 #include <stdexcept>
 
@@ -21,7 +19,7 @@ RoomDescription::reboot_map_t RoomDescription::_reboot_map;
 */
 size_t RoomDescription::add_desc(const std::string &text)
 {
-	reboot_map_t::const_iterator it = _reboot_map.find(text);
+	const auto it = _reboot_map.find(text);
 	if (it != _reboot_map.end())
 	{
 		return it->second;
@@ -34,7 +32,7 @@ size_t RoomDescription::add_desc(const std::string &text)
 	}
 }
 
-const static std::string empty_string = "";
+const static std::string empty_string;
 
 /**
 * поиск описания по его порядковому номеру в массиве

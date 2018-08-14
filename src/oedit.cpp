@@ -24,37 +24,16 @@
 #include "features.hpp"
 #include "depot.hpp"
 #include "char.hpp"
-#include "house.h"
 #include "skills.h"
 #include "parcel.hpp"
 #include "liquid.hpp"
-#include "name_list.hpp"
-#include "corpse.hpp"
-#include "shop_ext.hpp"
 #include "constants.h"
-#include "sets_drop.hpp"
 #include "obj.hpp"
 
 #include <array>
-#include <vector>
 #include <stack>
 
 // * External variable declarations.
-extern struct zone_data *zone_table;
-extern const char *item_types[];
-extern const char *wear_bits[];
-extern const char *extra_bits[];
-extern const char *drinks[];
-extern const char *apply_types[];
-extern const char *container_bits[];
-extern const char *anti_bits[];
-extern const char *no_bits[];
-extern const char *weapon_affects[];
-extern const char *material_name[];
-extern const char *ingradient_bits[];
-extern const char *magic_container_bits[];
-extern struct spell_info_type spell_info[];
-extern DESCRIPTOR_DATA *descriptor_list;
 extern int top_imrecipes;
 extern void extract_obj(OBJ_DATA * obj);
 int real_zone(int number);

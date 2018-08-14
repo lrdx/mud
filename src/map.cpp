@@ -9,7 +9,6 @@
 #include "room.hpp"
 #include "db.h"
 #include "char_player.hpp"
-#include "handler.h"
 #include "shop_ext.hpp"
 #include "noob.hpp"
 #include "char_obj_utils.inl"
@@ -26,19 +25,12 @@
 #include <iomanip>
 #include <vector>
 
-int shop_ext(CHAR_DATA *ch, void *me, int cmd, char* argument);
-int receptionist(CHAR_DATA *ch, void *me, int cmd, char* argument);
-int postmaster(CHAR_DATA *ch, void *me, int cmd, char* argument);
-int bank(CHAR_DATA *ch, void *me, int cmd, char* argument);
 int exchange(CHAR_DATA *ch, void *me, int cmd, char* argument);
 int horse_keeper(CHAR_DATA *ch, void *me, int cmd, char* argument);
 int guild_mono(CHAR_DATA *ch, void *me, int cmd, char* argument);
 int guild_poly(CHAR_DATA *ch, void *me, int cmd, char* argument);
 int torc(CHAR_DATA *ch, void *me, int cmd, char* argument);
-namespace Noob
-{
-int outfit(CHAR_DATA *ch, void *me, int cmd, char* argument);
-}
+
 extern int has_boat(CHAR_DATA *ch);
 
 namespace MapSystem

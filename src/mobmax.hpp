@@ -5,10 +5,9 @@
 #ifndef MOBMAX_HPP_INCLUDED
 #define MOBMAX_HPP_INCLUDED
 
-#include <list>
-#include "conf.h"
-#include "sysdep.h"
 #include "structs.h"
+
+#include <list>
 
 class MobMax
 {

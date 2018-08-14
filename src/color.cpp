@@ -200,7 +200,7 @@ int proc_color(char *inbuf, int colour)
 	if (inbuf == NULL)
 		return -1;
 
-	size_t len = strlen(inbuf);
+	const size_t len = strlen(inbuf);
 	if (len == 0)
 	{
 		return -2;
@@ -261,7 +261,7 @@ int proc_color(char *inbuf, int colour)
 		{
 			c = 0;
 		}
-		size_t max = strlen(COLOURLIST[(c == 0 && nc != 0 ? nc : c)]);
+		const size_t max = strlen(COLOURLIST[(c == 0 && nc != 0 ? nc : c)]);
 		if (colour || max == 1)
 		{
 			for (size_t k = 0; k < max; k++)

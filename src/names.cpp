@@ -30,7 +30,6 @@
 #include <fstream>
 #include <sstream>
 
-extern const char *genders[];
 extern void send_to_gods(char *text, bool demigod);
 
 static const char *god_text = "Богом";
@@ -212,7 +211,7 @@ void NewNameSave()
 
 // добавление имени в список неодобренных для показа иммам
 // флажок для более удобного лоада без перезаписи файла
-void NewNameAdd(CHAR_DATA * ch, bool save = 1)
+void NewNameAdd(CHAR_DATA * ch, bool save = true)
 {
 	NewNamePtr name(new NewName);
 
@@ -276,7 +275,7 @@ void NewNameLoad()
 		if (load_char(buffer.c_str(), tch) < 0)
 			continue;
 		// не сделетился...
-		NewNameAdd(tch, 0);
+		NewNameAdd(tch, false);
 	}
 
 	file.close();

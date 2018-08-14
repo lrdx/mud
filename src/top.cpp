@@ -105,14 +105,14 @@ void DoBest(CHAR_DATA *ch, char *argument, int/* cmd*/, int/* subcmd*/)
 	std::string buffer = argument;
 	boost::trim(buffer);
 
-	bool find = 0;
+	bool find = false;
 	int class_num = 0;
 	// тут и далее <= для учета 'игроки' после классов
 	for (; class_num <= NUM_PLAYER_CLASSES; ++class_num)
 	{
 		if (CompareParam(buffer, TopPlayer::TopFormat[class_num]))
 		{
-			find = 1;
+			find = true;
 			break;
 		}
 	}

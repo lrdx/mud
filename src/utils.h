@@ -17,7 +17,6 @@
 #include "config.hpp"
 #include "structs.h"
 #include "conf.h"
-#include "pugixml.hpp"
 
 #include <boost/dynamic_bitset.hpp>
 
@@ -148,7 +147,7 @@ size_t strl_cpy(char *dst, const char *src, size_t siz);
 int get_real_dr(CHAR_DATA *ch);
 extern bool GetAffectNumByName(const std::string& affName, EAffectFlag& result);
 void tell_to_char(CHAR_DATA *keeper, CHAR_DATA *ch, const char *arg);
-bool is_head(std::string name);
+bool is_head(const std::string& name);
 extern std::list<FILE *> opened_files;
 extern bool is_dark(room_rnum room);
 #define core_dump()     core_dump_real(__FILE__, __LINE__)

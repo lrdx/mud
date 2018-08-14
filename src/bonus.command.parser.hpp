@@ -1,5 +1,5 @@
-#ifndef __BONUS_BOMMAND_PARSER_HPP__
-#define __BONUS_BOMMAND_PARSER_HPP__
+#ifndef __BONUS_COMMAND_PARSER_HPP__
+#define __BONUS_COMMAND_PARSER_HPP__
 
 #include "bonus.types.hpp"
 

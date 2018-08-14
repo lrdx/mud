@@ -27,15 +27,12 @@
 #include "screen.h"
 #include "house.h"
 #include "constants.h"
-#include "dg_scripts.h"
 #include "pk.h"
 #include "fight.h"
 #include "fight_hit.hpp"
 #include "magic.h"
 #include "features.hpp"
 #include "depot.hpp"
-#include "privilege.hpp"
-#include "random.hpp"
 #include "char.hpp"
 #include "char_player.hpp"
 #include "remember.hpp"
@@ -48,8 +45,6 @@
 #include "sysdep.h"
 #include "char_obj_utils.inl"
 
-#include <sys/stat.h>
-
 #include <sstream>
 #include <fstream>
 #include <string>
@@ -59,8 +54,6 @@
 #include <utility>
 
 // extern variables
-extern DESCRIPTOR_DATA *descriptor_list;
-extern INDEX_DATA *mob_index;
 extern char const *class_abbrevs[];
 extern int free_rent;
 extern int max_filesize;
@@ -78,7 +71,6 @@ void perform_immort_vis(CHAR_DATA * ch);
 int have_mind(CHAR_DATA * ch);
 void do_gen_comm(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
 extern char *color_value(CHAR_DATA * ch, int real, int max);
-int posi_value(int real, int max);
 int invalid_no_class(CHAR_DATA * ch, const OBJ_DATA * obj);
 extern void split_or_clan_tax(CHAR_DATA *ch, long amount);
 extern bool is_wear_light(CHAR_DATA *ch);
@@ -110,7 +102,6 @@ void do_color(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
 void do_recall(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
 void do_dig(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
 void do_summon(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
-bool is_dark(room_rnum room);
 
 void do_antigods(CHAR_DATA *ch, char* /*argument*/, int/* cmd*/, int/* subcmd*/)
 {
@@ -169,11 +160,11 @@ void do_quit(CHAR_DATA *ch, char *argument, int/* cmd*/, int subcmd)
 		mudlog(buf, NRM, MAX(LVL_GOD, GET_INVIS_LEV(ch)), SYSLOG, TRUE);
 		send_to_char("До свидания, странник... Мы ждем тебя снова!\r\n", ch);
 
-		int depot_cost = Depot::get_total_cost_per_day(ch);
+		const int depot_cost = Depot::get_total_cost_per_day(ch);
 		if (depot_cost)
 		{
 			send_to_char(ch, "За вещи в хранилище придется заплатить %ld %s в день.\r\n", depot_cost, desc_count(depot_cost, WHAT_MONEYu));
-			int deadline = ((ch->get_gold() + ch->get_bank()) / depot_cost);
+			const int deadline = ((ch->get_gold() + ch->get_bank()) / depot_cost);
 			send_to_char(ch, "Твоих денег хватит на %ld %s.\r\n", deadline, desc_count(deadline, WHAT_DAY));
 		}
 		Depot::exit_char(ch);
@@ -1858,7 +1849,7 @@ void apply_enchant(CHAR_DATA *ch, OBJ_DATA *obj, std::string text)
 		return;
 	}
 
-	auto check_slots = GET_OBJ_WEAR(obj) & GET_OBJ_WEAR(target);
+	const auto check_slots = GET_OBJ_WEAR(obj) & GET_OBJ_WEAR(target);
 	if (check_slots > 0
 		&& check_slots != to_underlying(EWearFlag::ITEM_WEAR_TAKE))
 	{
@@ -2348,8 +2339,10 @@ void SetScreen(CHAR_DATA * ch, char *argument, int flag)
 {
 	if (IS_NPC(ch))
 		return;
+
 	skip_spaces(&argument);
-	int size = atoi(argument);
+
+	const int size = atoi(argument);
 
 	if (!flag && (size < 30 || size > 300))
 		send_to_char("Ширина экрана должна быть в пределах 30 - 300 символов.\r\n", ch);
@@ -2428,7 +2421,9 @@ void setNotifyEchange(CHAR_DATA* ch, char *argument)
 		send_to_char(ch, "Формат команды: режим уведомления <минимальная цена, число от 0 до %ld>.\r\n", 0x7fffffff);
 		return;
 	}
-	long size = atol(argument);
+
+	const long size = atol(argument);
+
 	if (size>=100)
 	{
 		send_to_char(ch, "Вам будут приходить уведомления о продаже с базара ваших лотов стоимостью не менее чем %ld %s.\r\n",
@@ -2743,7 +2738,9 @@ void do_gen_tog(CHAR_DATA *ch, char *argument, int/* cmd*/, int subcmd)
 			send_to_char("Формат команды: режим вспомнить <число строк от 1 до 100>.\r\n", ch);
 			return;
 		}
-		unsigned int size = atoi(argument);
+
+		const unsigned int size = atoi(argument);
+
 		if (ch->remember_set_num(size))
 		{
 			send_to_char(ch, "Количество выводимых строк по команде 'вспомнить' установлено в %d.\r\n", size);
@@ -3075,7 +3072,7 @@ void insert_wanted_gem::init()
 
 	file.width(MAX_INPUT_LENGTH);
 
-	while (1)
+	while (true)
 	{
 		if (!(file >> dummy)) break;
 
@@ -3342,7 +3339,7 @@ void do_dig(CHAR_DATA *ch, char* /*argument*/, int/* cmd*/, int/* subcmd*/)
 
 	if (number(1, dig_vars.treasure_chance) == 1)	// копнули клад
 	{
-		int gold = number(40000, 60000);
+		const int gold = number(40000, 60000);
 		send_to_char("Вы нашли клад!\r\n", ch);
 		act("$n выкопал$g клад!", FALSE, ch, 0, 0, TO_ROOM);
 		sprintf(textbuf, "Вы насчитали %i монет.\r\n", gold);
@@ -3689,7 +3686,7 @@ void do_insertgem(CHAR_DATA *ch, char *argument, int/* cmd*/, int /*subcmd*/)
 			return;
 		}
 
-		std::string str(arg3);
+		const std::string str(arg3);
 		if (!iwg.exist(GET_OBJ_VNUM(gemobj), str))
 		{
 			iwg.show(ch, GET_OBJ_VNUM(gemobj));
@@ -3722,12 +3719,12 @@ void do_insertgem(CHAR_DATA *ch, char *argument, int/* cmd*/, int /*subcmd*/)
 
 	if (GET_OBJ_OWNER(itemobj) == GET_UNIQUE(ch))
 	{
-		int timer = itemobj->get_timer() + itemobj->get_timer() / 100 * insgem_vars.timer_plus_percent;
+		const int timer = itemobj->get_timer() + itemobj->get_timer() / 100 * insgem_vars.timer_plus_percent;
 		itemobj->set_timer(timer);
 	}
 	else
 	{
-		int timer = itemobj->get_timer() - itemobj->get_timer() / 100 * insgem_vars.timer_minus_percent;
+		const int timer = itemobj->get_timer() - itemobj->get_timer() / 100 * insgem_vars.timer_minus_percent;
 		itemobj->set_timer(timer);
 	}
 
@@ -4008,7 +4005,7 @@ void do_insertgem(CHAR_DATA *ch, char *argument, int/* cmd*/, int /*subcmd*/)
 		else
 		{
 			int tmp_type, tmp_qty;
-			std::string str(arg3);
+			const std::string str(arg3);
 
 			int tmp_bit = iwg.get_bit(GET_OBJ_VNUM(gemobj), str);
 			tmp_qty = iwg.get_qty(GET_OBJ_VNUM(gemobj), str);
@@ -4108,14 +4105,14 @@ void do_bandage(CHAR_DATA *ch, char* /*argument*/, int/* cmd*/, int/* subcmd*/)
 	af.duration = pc_duration(ch, 10, 0, 0, 0, 0);
 	af.bitvector = to_underlying(EAffectFlag::AFF_BANDAGE);
 	af.battleflag = AF_PULSEDEC;
-	affect_join(ch, af, 0, 0, 0, 0);
+	affect_join(ch, af, false, false, false, false);
 
 	af.type = SPELL_NO_BANDAGE;
 	af.location = APPLY_NONE;
 	af.duration = pc_duration(ch, 60, 0, 0, 0, 0);
 	af.bitvector = to_underlying(EAffectFlag::AFF_NO_BANDAGE);
 	af.battleflag = AF_PULSEDEC;
-	affect_join(ch, af, 0, 0, 0, 0);
+	affect_join(ch, af, false, false, false, false);
 
 	bandage->set_weight(bandage->get_weight() - 1);
 	IS_CARRYING_W(ch) -= 1;

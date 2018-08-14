@@ -10,7 +10,6 @@
 #include "poison.hpp"
 #include "char.hpp"
 #include "db.h"
-#include "room.hpp"
 #include "logger.hpp"
 #include "structs.h"
 #include "sysdep.h"
@@ -203,10 +202,9 @@ std::string TimedSpell::diag_to_char(CHAR_DATA *ch)
 	}
 
 	std::string out;
-	for(std::map<int, int>::iterator i = spell_list_.begin(),
-		iend = spell_list_.end(); i != iend; ++i)
+	for(const auto& i : spell_list_)
 	{
-		out += print_spell_str(ch, i->first, i->second);
+		out += print_spell_str(ch, i.first, i.second);
 	}
 	return out;
 }
@@ -217,12 +215,11 @@ std::string TimedSpell::diag_to_char(CHAR_DATA *ch)
  */
 int TimedSpell::is_spell_poisoned() const
 {
-	for(std::map<int, int>::const_iterator i = spell_list_.begin(),
-		iend = spell_list_.end(); i != iend; ++i)
+	for(const auto& i : spell_list_)
 	{
-		if (check_poison(i->first))
+		if (check_poison(i.first))
 		{
-			return i->first;
+			return i.first;
 		}
 	}
 	return -1;
@@ -240,10 +237,9 @@ std::string TimedSpell::print() const
 	std::stringstream out;
 
 	out << "TSpl: ";
-	for(std::map<int, int>::const_iterator i = spell_list_.begin(),
-		iend = spell_list_.end(); i != iend; ++i)
+	for(const auto& i : spell_list_)
 	{
-		out << i->first << " " << i->second << "\n";
+		out << i.first << " " << i.second << "\n";
 	}
 	out << "~\n";
 

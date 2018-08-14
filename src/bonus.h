@@ -1,5 +1,9 @@
 // Copyright (c) 2016 bodrich
 // Part of Bylins http://www.bylins.su
+
+#ifndef __BONUS_HPP__
+#define __BONUS_HPP__
+
 #include "bonus.types.hpp"
 
 #include <string>
@@ -21,3 +25,7 @@ namespace Bonus
 	void show_log(CHAR_DATA *ch);
 	void dg_do_bonus(char *cmd);
 }
+
+#endif	//__BONUS_HPP__
+
+// vim: ts=4 sw=4 tw=0 noet syntax=cpp :

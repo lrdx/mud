@@ -20,7 +20,6 @@
 #include "db.h"
 #include "interpreter.h"
 #include "logger.hpp"
-#include "spells.h"
 #include "screen.h"
 #include "house.h"
 #include "im.h"
@@ -30,39 +29,31 @@
 #include "file_crc.hpp"
 #include "named_stuff.hpp"
 #include "room.hpp"
-#include "mail.h"
-#include "dg_scripts.h"
 #include "features.hpp"
 #include "char_obj_utils.inl"
 #include "structs.h"
 #include "sysdep.h"
 #include "conf.h"
-#include "obj_sets.hpp"
 
 #include <boost/algorithm/string.hpp>
 
 #include <sstream>
 #include <vector>
+#include <fstream>
 
 #define LOC_INVENTORY	0
 #define MAX_BAG_ROWS	5
 #define ITEM_DESTROYED  100
 
-extern INDEX_DATA *mob_index;
-extern DESCRIPTOR_DATA *descriptor_list;
 extern int rent_file_timeout, crash_file_timeout;
 extern int free_crashrent_period;
 extern int free_rent;
-extern room_rnum r_helled_start_room;
-extern room_rnum r_named_start_room;
-extern room_rnum r_unreg_start_room;
 
 #define RENTCODE(number) (player_table[(number)].timer->rent.rentcode)
 #define GET_INDEX(ch) (get_ptable_by_name(GET_NAME(ch)))
 
 // Extern functions
 void do_tell(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
-int receptionist(CHAR_DATA *ch, void *me, int cmd, char* argument);
 int cryogenicist(CHAR_DATA *ch, void *me, int cmd, char* argument);
 int invalid_no_class(CHAR_DATA * ch, const OBJ_DATA * obj);
 int invalid_anti_class(CHAR_DATA * ch, const OBJ_DATA * obj);
@@ -1622,7 +1613,7 @@ int auto_equip(CHAR_DATA * ch, OBJ_DATA * obj, int location)
 			{
 				// Check the characters's alignment to prevent them from being
 				// zapped through the auto-equipping.
-				if (invalid_align(ch, obj) || invalid_anti_class(ch, obj) || invalid_no_class(ch, obj) || NamedStuff::check_named(ch, obj, 0))
+				if (invalid_align(ch, obj) || invalid_anti_class(ch, obj) || invalid_no_class(ch, obj) || NamedStuff::check_named(ch, obj, false))
 				{
 					location = LOC_INVENTORY;
 				}
@@ -2139,7 +2130,7 @@ int Crash_load(CHAR_DATA * ch)
 	OBJ_DATA *obj2, *obj_list = NULL;
 	int location, rnum;
 	struct container_list_type *tank_list = NULL, *tank, *tank_to;
-	bool need_convert_character_objects = 0;	// add by Pereplut
+	bool need_convert_character_objects = false;	// add by Pereplut
 
 	if ((index = GET_INDEX(ch)) < 0)
 		return (1);
@@ -2174,8 +2165,8 @@ int Crash_load(CHAR_DATA * ch)
 		sprintf(buf, "SYSERR: %s entering game with undefined rent code %d.", GET_NAME(ch), RENTCODE(index));
 		mudlog(buf, BRF, MAX(LVL_IMMORT, GET_INVIS_LEV(ch)), SYSLOG, TRUE);
 		send_to_char("\r\n** Неизвестный код ренты **\r\n"
-					 "Проблемы с восстановлением ваших вещей из файла.\r\n"
-					 "Обращайтесь за помощью к Богам.\r\n", ch);
+			"Проблемы с восстановлением ваших вещей из файла.\r\n"
+			"Обращайтесь за помощью к Богам.\r\n", ch);
 		Crash_clear_objects(index);
 		return (1);
 		break;
@@ -2189,20 +2180,20 @@ int Crash_load(CHAR_DATA * ch)
 	cost = (int)(SAVEINFO(index)->rent.net_cost_per_diem * num_of_days);
 	cost = MAX(0, cost);
 	// added by WorM (Видолюб) 2010.06.04 сумма потраченная на найм(возвращается при креше)
-	if(RENTCODE(index) == RENT_CRASH)
+	if (RENTCODE(index) == RENT_CRASH)
 	{
-		if(!IS_IMMORTAL(ch) && can_use_feat(ch, EMPLOYER_FEAT) && ch->player_specials->saved.HiredCost!=0)
+		if (!IS_IMMORTAL(ch) && can_use_feat(ch, EMPLOYER_FEAT) && ch->player_specials->saved.HiredCost != 0)
 		{
-			if(ch->player_specials->saved.HiredCost<0)
+			if (ch->player_specials->saved.HiredCost < 0)
 				ch->add_bank(abs(ch->player_specials->saved.HiredCost), false);
 			else
 				ch->add_gold(ch->player_specials->saved.HiredCost, false);
 		}
-		ch->player_specials->saved.HiredCost=0;
+		ch->player_specials->saved.HiredCost = 0;
 	}
 	// end by WorM
-  	// Бесплатная рента, если выйти в течение 2 часов после ребута или креша
-  	if ((RENTCODE(index) == RENT_CRASH || RENTCODE(index) == RENT_FORCED)
+	// Бесплатная рента, если выйти в течение 2 часов после ребута или креша
+	if ((RENTCODE(index) == RENT_CRASH || RENTCODE(index) == RENT_FORCED)
 		&& SAVEINFO(index)->rent.time + free_crashrent_period * SECS_PER_REAL_HOUR > time(0))
 	{
 		sprintf(buf, "%s** На сей раз постой был бесплатным **%s\r\n", CCWHT(ch, C_NRM), CCNRM(ch, C_NRM));
@@ -2213,19 +2204,19 @@ int Crash_load(CHAR_DATA * ch)
 	else if (cost > ch->get_gold() + ch->get_bank())
 	{
 		sprintf(buf, "%sВы находились на постое %1.2f дней.\n\r"
-				"%s"
-				"Вам предъявили счет на %d %s за постой (%d %s в день).\r\n"
-				"Но все, что у вас было - %ld %s... Увы. Все ваши вещи переданы мобам.%s\n\r",
-				CCWHT(ch, C_NRM),
-				num_of_days,
-				RENTCODE(index) ==
-				RENT_TIMEDOUT ?
-				"Вас пришлось тащить до кровати, за это постой был дороже.\r\n"
-				: "", cost, desc_count(cost, WHAT_MONEYu),
-				SAVEINFO(index)->rent.net_cost_per_diem,
-				desc_count(SAVEINFO(index)->rent.net_cost_per_diem,
-						   WHAT_MONEYa), ch->get_gold() + ch->get_bank(),
-				desc_count(ch->get_gold() + ch->get_bank(), WHAT_MONEYa), CCNRM(ch, C_NRM));
+			"%s"
+			"Вам предъявили счет на %d %s за постой (%d %s в день).\r\n"
+			"Но все, что у вас было - %ld %s... Увы. Все ваши вещи переданы мобам.%s\n\r",
+			CCWHT(ch, C_NRM),
+			num_of_days,
+			RENTCODE(index) ==
+			RENT_TIMEDOUT ?
+			"Вас пришлось тащить до кровати, за это постой был дороже.\r\n"
+			: "", cost, desc_count(cost, WHAT_MONEYu),
+			SAVEINFO(index)->rent.net_cost_per_diem,
+			desc_count(SAVEINFO(index)->rent.net_cost_per_diem,
+				WHAT_MONEYa), ch->get_gold() + ch->get_bank(),
+			desc_count(ch->get_gold() + ch->get_bank(), WHAT_MONEYa), CCNRM(ch, C_NRM));
 		send_to_char(buf, ch);
 		sprintf(buf, "%s: rented equipment lost (no $).", GET_NAME(ch));
 		mudlog(buf, LGH, MAX(LVL_GOD, GET_INVIS_LEV(ch)), SYSLOG, TRUE);
@@ -2239,16 +2230,16 @@ int Crash_load(CHAR_DATA * ch)
 		if (cost)
 		{
 			sprintf(buf, "%sВы находились на постое %1.2f дней.\n\r"
-					"%s"
-					"С вас содрали %d %s за постой (%d %s в день).%s\r\n",
-					CCWHT(ch, C_NRM),
-					num_of_days,
-					RENTCODE(index) ==
-					RENT_TIMEDOUT ?
-					"Вас пришлось тащить до кровати, за это постой был дороже.\r\n"
-					: "", cost, desc_count(cost, WHAT_MONEYu),
-					SAVEINFO(index)->rent.net_cost_per_diem,
-					desc_count(SAVEINFO(index)->rent.net_cost_per_diem, WHAT_MONEYa), CCNRM(ch, C_NRM));
+				"%s"
+				"С вас содрали %d %s за постой (%d %s в день).%s\r\n",
+				CCWHT(ch, C_NRM),
+				num_of_days,
+				RENTCODE(index) ==
+				RENT_TIMEDOUT ?
+				"Вас пришлось тащить до кровати, за это постой был дороже.\r\n"
+				: "", cost, desc_count(cost, WHAT_MONEYu),
+				SAVEINFO(index)->rent.net_cost_per_diem,
+				desc_count(SAVEINFO(index)->rent.net_cost_per_diem, WHAT_MONEYa), CCNRM(ch, C_NRM));
 			send_to_char(buf, ch);
 		}
 		ch->remove_both_gold(cost);
@@ -2258,8 +2249,8 @@ int Crash_load(CHAR_DATA * ch)
 	if (!get_filename(GET_NAME(ch), fname, TEXT_CRASH_FILE) || !(fl = fopen(fname, "r+b")))
 	{
 		send_to_char("\r\n** Нет файла описания вещей **\r\n"
-					 "Проблемы с восстановлением ваших вещей из файла.\r\n"
-					 "Обращайтесь за помощью к Богам.\r\n", ch);
+			"Проблемы с восстановлением ваших вещей из файла.\r\n"
+			"Обращайтесь за помощью к Богам.\r\n", ch);
 		Crash_clear_objects(index);
 		return (1);
 	}
@@ -2269,8 +2260,8 @@ int Crash_load(CHAR_DATA * ch)
 	{
 		fclose(fl);
 		send_to_char("\r\n** Файл описания вещей пустой **\r\n"
-					 "Проблемы с восстановлением ваших вещей из файла.\r\n"
-					 "Обращайтесь за помощью к Богам.\r\n", ch);
+			"Проблемы с восстановлением ваших вещей из файла.\r\n"
+			"Обращайтесь за помощью к Богам.\r\n", ch);
 		Crash_clear_objects(index);
 		return (1);
 	}
@@ -2282,8 +2273,8 @@ int Crash_load(CHAR_DATA * ch)
 		fclose(fl);
 		FileCRC::check_crc(fname, FileCRC::TEXTOBJS, GET_UNIQUE(ch));
 		send_to_char("\r\n** Ошибка чтения файла описания вещей **\r\n"
-					 "Проблемы с восстановлением ваших вещей из файла.\r\n"
-					 "Обращайтесь за помощью к Богам.\r\n", ch);
+			"Проблемы с восстановлением ваших вещей из файла.\r\n"
+			"Обращайтесь за помощью к Богам.\r\n", ch);
 		log("Memory error or cann't read %s(%d)...", fname, fsize);
 		free(readdata);
 		Crash_clear_objects(index);
@@ -2297,14 +2288,14 @@ int Crash_load(CHAR_DATA * ch)
 
 	// Проверка в каком формате записана информация о персонаже.
 	if (!strn_cmp(readdata, "@", 1))
-		need_convert_character_objects = 1;
+		need_convert_character_objects = true;
 
 	//Создание объектов
 	long timer_dec = time(0) - SAVEINFO(index)->rent.time;
 	timer_dec = (timer_dec / SECS_PER_MUD_HOUR) + (timer_dec % SECS_PER_MUD_HOUR ? 1 : 0);
 
 	for (fsize = 0, reccount = SAVEINFO(index)->rent.nitems;
-			reccount > 0 && *data && *data != END_CHAR; reccount--, fsize++)
+		reccount > 0 && *data && *data != END_CHAR; reccount--, fsize++)
 	{
 		i++;
 		OBJ_DATA::shared_ptr obj;
@@ -2331,7 +2322,7 @@ int Crash_load(CHAR_DATA * ch)
 				//send_to_char ("Ошибка при чтении - чтение предметов прервано.\r\n", ch);
 				send_to_char("Ошибка при чтении файла объектов.\r\n", ch);
 				sprintf(buf, "SYSERR: Objects reading fail for %s error %d, stop reading.",
-						GET_NAME(ch), error);
+					GET_NAME(ch), error);
 				mudlog(buf, BRF, LVL_IMMORT, SYSLOG, TRUE);
 				//break;
 				continue;	//Ann
@@ -2363,10 +2354,10 @@ int Crash_load(CHAR_DATA * ch)
 		if (!check_unlimited_timer(obj.get()))
 		{
 			const save_info* si = SAVEINFO(index);
-		    obj->set_timer(si->time[fsize].timer);
-		    obj->dec_timer(timer_dec);
+			obj->set_timer(si->time[fsize].timer);
+			obj->dec_timer(timer_dec);
 		}
-		
+
 		std::string cap = obj->get_PName(0);
 		cap[0] = UPPER(cap[0]);
 
@@ -2401,7 +2392,7 @@ int Crash_load(CHAR_DATA * ch)
 		// Check valid class
 		if (invalid_anti_class(ch, obj.get())
 			|| invalid_unique(ch, obj.get())
-			|| NamedStuff::check_named(ch, obj.get(), 0))
+			|| NamedStuff::check_named(ch, obj.get(), false))
 		{
 			sprintf(buf, "%s рассыпал%s, как запрещенн%s для вас.\r\n",
 				cap.c_str(), GET_OBJ_SUF_2(obj), GET_OBJ_SUF_3(obj));

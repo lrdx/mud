@@ -3,7 +3,6 @@
 
 #include "boards.h"
 
-#include <iostream>
 #include <memory>
 
 namespace Boards

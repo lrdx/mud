@@ -6,7 +6,6 @@
 #define PRIVILEGE_HPP_INCLUDED
 
 #include <string>
-#include <set>
 #include <bitset>
 #include <map>
 

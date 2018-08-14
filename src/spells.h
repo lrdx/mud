@@ -566,7 +566,6 @@ void spell_energydrain(int level, CHAR_DATA *ch, CHAR_DATA *victim, OBJ_DATA *ob
 void spell_fear(int level, CHAR_DATA *ch, CHAR_DATA *victim, OBJ_DATA *obj);
 void spell_sacrifice(int level, CHAR_DATA *ch, CHAR_DATA *victim, OBJ_DATA *obj);
 void spell_forbidden(int level, CHAR_DATA *ch, CHAR_DATA *victim, OBJ_DATA *obj);
-void spell_identify(int level, CHAR_DATA *ch, CHAR_DATA *victim, OBJ_DATA *obj);
 void spell_holystrike(int level, CHAR_DATA *ch, CHAR_DATA *victim, OBJ_DATA *obj);
 void skill_identify(int level, CHAR_DATA *ch, CHAR_DATA *victim, OBJ_DATA *obj);
 void spell_angel(int level, CHAR_DATA *ch, CHAR_DATA *victim, OBJ_DATA *obj);

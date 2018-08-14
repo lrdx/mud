@@ -19,14 +19,11 @@
 #include "dg_scripts.h"
 #include "db.h"
 #include "handler.h"
-#include "dg_event.h"
 #include "comm.h"
 #include "spells.h"
 #include "skills.h"
-#include "im.h"
 #include "features.hpp"
 #include "char.hpp"
-#include "interpreter.h"
 #include "room.hpp"
 #include "magic.h"
 #include "boards.h"
@@ -46,10 +43,6 @@ extern void extract_trigger(TRIG_DATA * trig);
 
 //внум_триггера : [внум_триггера_который_прикрепил_данный тригер : [перечисление к чему прикрепленно (внумы объектов/мобов/комнат)]]
 trigger_to_owners_map_t owner_trig;
-
-extern int top_of_trigt;
-
-extern INDEX_DATA *mob_index;
 
 int check_recipe_values(CHAR_DATA * ch, int spellnum, int spelltype, int showrecipe);
 
@@ -229,8 +222,6 @@ void dg_obj_trigger(char *line, OBJ_DATA * obj)
 	obj->add_proto_script(vnum);
 }
 
-extern CHAR_DATA *mob_proto;
-
 void assign_triggers(void *i, int type)
 {
 	CHAR_DATA *mob;
@@ -265,7 +256,7 @@ void assign_triggers(void *i, int type)
 				}
 				else
 				{
-					auto trig = read_trigger(rnum);
+					const auto trig = read_trigger(rnum);
 					if (add_trigger(SCRIPT(mob).get(), trig, -1))
 					{
 						if (owner_trig.find(trigger_vnum) == owner_trig.end())
@@ -307,7 +298,7 @@ void assign_triggers(void *i, int type)
 				}
 				else
 				{
-					auto trig = read_trigger(rnum);
+					const auto trig = read_trigger(rnum);
 					if (add_trigger(obj->get_script().get(), trig, -1))
 					{
 						if (owner_trig.find(trigger_vnum) == owner_trig.end())
@@ -348,7 +339,7 @@ void assign_triggers(void *i, int type)
 				}
 				else
 				{
-					auto trig = read_trigger(rnum);
+					const auto trig = read_trigger(rnum);
 					if (add_trigger(SCRIPT(room).get(), trig, -1))
 					{
 						if (owner_trig.find(trigger_vnum) == owner_trig.end())
@@ -429,7 +420,7 @@ void trg_skillturn(CHAR_DATA * ch, const ESkill skillnum, int skilldiff, int vnu
 
 void trg_skilladd(CHAR_DATA * ch, const ESkill skillnum, int skilldiff, int vnum)
 {
-	int skill = ch->get_trained_skill(skillnum);
+	const int skill = ch->get_trained_skill(skillnum);
 	ch->set_skill(skillnum, (MAX(1, MIN(ch->get_trained_skill(skillnum) + skilldiff, 200))));
 
 	if (skill > ch->get_trained_skill(skillnum))
@@ -451,7 +442,7 @@ void trg_skilladd(CHAR_DATA * ch, const ESkill skillnum, int skilldiff, int vnum
 
 void trg_spellturn(CHAR_DATA * ch, int spellnum, int spelldiff, int vnum)
 {
-	int spell = GET_SPELL_TYPE(ch, spellnum);
+	const int spell = GET_SPELL_TYPE(ch, spellnum);
 
 	if (!can_get_spell(ch, spellnum))
 	{
@@ -495,7 +486,7 @@ void trg_spellturntemp(CHAR_DATA * ch, int spellnum, int spelldiff, int vnum)
 
 void trg_spelladd(CHAR_DATA * ch, int spellnum, int spelldiff, int vnum)
 {
-	int spell = GET_SPELL_MEM(ch, spellnum);
+	const int spell = GET_SPELL_MEM(ch, spellnum);
 	GET_SPELL_MEM(ch, spellnum) = MAX(0, MIN(spell + spelldiff, 50));
 
 	if (spell > GET_SPELL_MEM(ch, spellnum))

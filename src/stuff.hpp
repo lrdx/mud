@@ -12,11 +12,6 @@
 
 #include "double_map.hpp"
 #include "structs.h"
-#include "conf.h"
-
-#include <vector>
-#include <fstream>
-#include <sstream>
 
 const int MAX_LOAD_PROB = 1000;
 

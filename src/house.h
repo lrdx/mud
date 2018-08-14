@@ -7,7 +7,6 @@
 #ifndef _HOUSE_H_
 #define _HOUSE_H_
 
-#include "interpreter.h"
 #include "house_exp.hpp"
 #include "remember.hpp"
 #include "db.h"
@@ -177,8 +176,8 @@ public:
 	static ClanListType ClanList; // список кланов
 	
 	static void ClanLoad();
-	static void ClanLoadSingle(std::string index);
-	static void ClanReload(std::string index);
+	static void ClanLoadSingle(const std::string& index);
+	static void ClanReload(const std::string& index);
 	static void ClanSave();
 	static void SaveChestAll();
 	static void HconShow(CHAR_DATA * ch);
@@ -196,7 +195,7 @@ public:
 	static void SyncTopExp();
 	static bool ChestShow(OBJ_DATA * list, CHAR_DATA * ch);
 	static void remove_from_clan(long unique);
-	static int print_spell_locate_object(CHAR_DATA *ch, int count, std::string name);
+	static int print_spell_locate_object(CHAR_DATA *ch, int count, const std::string& name);
 	static int GetClanWars(CHAR_DATA * ch);
 	static void init_chest_rnum();
 	static bool is_clan_chest(OBJ_DATA *obj);
@@ -225,7 +224,7 @@ public:
 	bool CheckPrivilege(int rank, int privilege) { return this->privileges[rank][privilege]; }
 	int CheckPolitics(int victim);
 
-	void add_remember(std::string text, int flag);
+	void add_remember(const std::string& text, int flag);
 	std::string get_remember(unsigned int num, int flag) const;
 
 	void write_mod(const std::string &arg);

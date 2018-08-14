@@ -5,13 +5,13 @@
 #ifndef HOUSE_EXP_HPP_INCLUDED
 #define HOUSE_EXP_HPP_INCLUDED
 
-#include <list>
-#include <map>
-#include <string>
-#include <vector>
 #include "conf.h"
 #include "sysdep.h"
 #include "char.hpp"
+
+#include <list>
+#include <map>
+#include <string>
 
 void update_clan_exp();
 void save_clan_exp();

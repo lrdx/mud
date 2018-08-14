@@ -154,7 +154,7 @@ void Dps::clear(int type)
 	{
 	case PERS_DPS:
 	{
-		PlayerDpsNode empty_dps;
+		const PlayerDpsNode empty_dps;
 		pers_dps_ = empty_dps;
 		exp_ = 0;
 		battle_exp_ = 0;
@@ -196,7 +196,7 @@ unsigned tmp_total_dmg = 0;
 
 void Dps::add_tmp_group_list(CHAR_DATA *ch)
 {
-	GroupListType::iterator it = group_dps_.find(GET_ID(ch));
+	const auto it = group_dps_.find(GET_ID(ch));
 	if (it != group_dps_.end())
 	{
 		sort_node tmp_node(it->second.get_name(), it->second.get_stat(),
@@ -228,8 +228,8 @@ void Dps::print_stats(CHAR_DATA *ch, CHAR_DATA *coder)
 			% pers_dps_.get_over_dmg()), coder);
 	send_to_char(pers_dps_.print_charm_stats(), coder);
 
-	double percent = exp_ ? battle_exp_ * 100.0 / exp_ : 0.0;
-	int balance = exp_ + lost_exp_;
+	const double percent = exp_ ? battle_exp_ * 100.0 / exp_ : 0.0;
+	const int balance = exp_ + lost_exp_;
 
 	send_to_char(coder, "\r\nВсего получено опыта: %s, за удары: %s (%.2f%%)\r\n"
 			"Потеряно опыта: %s, баланс: %s %s\r\n",
@@ -432,12 +432,12 @@ void PlayerDpsNode::end_charm_round(CHAR_DATA *ch)
 std::string PlayerDpsNode::print_charm_stats() const
 {
 	std::ostringstream text;
-	for (CharmListType::const_iterator it = charm_list_.begin(); it != charm_list_.end(); ++it)
+	for (const auto& it : charm_list_)
 	{
-		if (it->get_dmg() > 0)
+		if (it.get_dmg() > 0)
 		{
-			text << dps_stat_format % it->get_name() % it->get_dmg()
-					% it->get_stat() % it->get_round_dmg() % it->get_over_dmg();
+			text << dps_stat_format % it.get_name() % it.get_dmg()
+					% it.get_stat() % it.get_round_dmg() % it.get_over_dmg();
 		}
 	}
 	return text.str();
@@ -452,7 +452,7 @@ void PlayerDpsNode::print_group_charm_stats(CHAR_DATA *ch) const
 		{
 			continue;
 		}
-		CharmListType::const_iterator it = std::find_if(charm_list_.begin(), charm_list_.end(),
+		const auto it = std::find_if(charm_list_.begin(), charm_list_.end(),
 			[&](const DpsNode& dps_node)
 		{
 			return dps_node.get_id() == GET_ID(f->follower);

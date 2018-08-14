@@ -19,11 +19,9 @@
 #include "screen.h"
 #include "dg_scripts.h"
 #include "auction.h"
-#include "privilege.hpp"
 #include "char.hpp"
 #include "char_player.hpp"
 #include "remember.hpp"
-#include "house.h"
 #include "obj.hpp"
 #include "room.hpp"
 #include "spam.hpp"
@@ -34,12 +32,7 @@
 #include "conf.h"
 
 #include <sstream>
-#include <list>
 #include <string>
-
-// extern variables
-extern DESCRIPTOR_DATA *descriptor_list;
-extern TIME_INFO_DATA time_info;
 
 // local functions
 void perform_tell(CHAR_DATA * ch, CHAR_DATA * vict, char *arg);
@@ -408,7 +401,7 @@ void do_reply(CHAR_DATA *ch, char *argument, int/* cmd*/, int/* subcmd*/)
 		 *      hear tells anyway. :) -gg 2/24/98
 		 */
 		bool found = false;
-		for (const auto i : character_list)
+		for (const auto& i : character_list)
 		{
 			if (!IS_NPC(i)
 				&& GET_IDNUM(i) == ch->get_answer_id())
@@ -802,7 +795,7 @@ void do_gen_comm(CHAR_DATA *ch, char *argument, int/* cmd*/, int subcmd)
 
 	if ((subcmd != SCMD_AUCTION) && (!IS_IMMORTAL(ch)) && (!IS_NPC(ch)))
 	{
-		unsigned int bad_smb_procent = MAX_UPPERS_CHAR_PRC;
+		const unsigned int bad_smb_procent = MAX_UPPERS_CHAR_PRC;
 		int bad_simb_cnt = 0, bad_seq_cnt = 0;
 
 		// фильтруем верхний регистр
@@ -950,7 +943,7 @@ void do_gen_comm(CHAR_DATA *ch, char *argument, int/* cmd*/, int subcmd)
 				send_to_char(KNRM, i->character.get());
 			}
 
-			std::string text = Remember::format_gossip(ch, i->character.get(), subcmd, argument);
+			const auto text = Remember::format_gossip(ch, i->character.get(), subcmd, argument);
 
 			i->character->remember_add(text, Remember::ALL);
 		}
@@ -1257,7 +1250,7 @@ void do_ignore(CHAR_DATA *ch, char *argument, int/* cmd*/, int/* subcmd*/)
 	{
 		sprintf(buf, "%sВы игнорируете следующих персонажей:%s\r\n", CCWHT(ch, C_NRM), CCNRM(ch, C_NRM));
 		send_to_char(buf, ch);
-		for (const auto ignore : ch->get_ignores())
+		for (const auto& ignore : ch->get_ignores())
 		{
 			if (!ignore->id)
 				continue;
@@ -1339,7 +1332,7 @@ void do_ignore(CHAR_DATA *ch, char *argument, int/* cmd*/, int/* subcmd*/)
 
 // ищем жертву в списке
 	ignore_data::shared_ptr ignore = nullptr;
-	for (const auto ignore_i : ch->get_ignores())
+	for (const auto& ignore_i : ch->get_ignores())
 	{
 		if (ignore_i->id == vict_id)
 		{

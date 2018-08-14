@@ -13,18 +13,14 @@
 #include "spells.h"
 #include "db.h"
 #include "olc.h"
-#include "handler.h"
 #include "dg_olc.h"
 #include "constants.h"
 #include "features.hpp"
 #include "im.h"
 #include "char.hpp"
 #include "skills.h"
-#include "name_list.hpp"
 #include "room.hpp"
-#include "corpse.hpp"
 #include "sets_drop.hpp"
-#include "fight.h"
 #include "logger.hpp"
 #include "utils.h"
 #include "structs.h"
@@ -32,8 +28,8 @@
 #include "conf.h"
 
 #include <boost/format.hpp>
+
 #include <stack>
-#include <sstream>
 
  // * Set this to 1 for debugging logs in medit_save_internally.
 #if 0
@@ -44,11 +40,6 @@
 
 // * External variable declarations.
 
-extern INDEX_DATA *mob_index;
-extern CHAR_DATA *mob_proto;
-extern mob_rnum top_of_mobt;
-extern struct zone_data *zone_table;
-extern DESCRIPTOR_DATA *descriptor_list;
 #if defined(OASIS_MPROG)
 extern const char *mobprog_types[];
 #endif
@@ -57,7 +48,6 @@ int planebit(const char *str, int *plane, int *bit);
 
 int real_zone(int number);
 
-int receptionist(CHAR_DATA *ch, void *me, int cmd, char* argument);
 void clear_mob_charm(CHAR_DATA *mob);
 
 //-------------------------------------------------------------------
@@ -383,7 +373,7 @@ void medit_save_internally(DESCRIPTOR_DATA * d)
 		}
 
 		// В живых мобах необходимо обновить строки, иначе будут крэши
-		for (const auto live_mob : character_list)
+		for (const auto& live_mob : character_list)
 		{
 			if (IS_MOB(live_mob) && GET_MOB_RNUM(live_mob) == rmob_num)
 			{
@@ -492,7 +482,7 @@ void medit_save_internally(DESCRIPTOR_DATA * d)
 				// Update live mobile rnums. //
 				// new_mob_num - индекс, куда вставлен новый моб //
 				// Для всех существующих мобов с RNUM>=new_mob_num нужно увеличить RNUM //
-		for (const auto live_mob : character_list)
+		for (const auto& live_mob : character_list)
 		{
 			if (GET_MOB_RNUM(live_mob) >= new_mob_num)
 			{
@@ -1639,7 +1629,7 @@ void medit_parse(DESCRIPTOR_DATA * d, char *arg)
 			break;
 
 		case '9':
-			send_to_char(d->character.get(), "&S%s&s\r\nВведите длинное описание :-\r\n| ", GET_LDESC(OLC_MOB(d)));
+			send_to_char(d->character.get(), "&S%s&s\r\nВведите длинное описание :-\r\n| ", GET_LDESC(OLC_MOB(d)).c_str());
 			OLC_MODE(d) = MEDIT_L_DESC;
 			i--;
 			break;
@@ -1649,7 +1639,7 @@ void medit_parse(DESCRIPTOR_DATA * d, char *arg)
 			OLC_MODE(d) = MEDIT_D_DESC;
 			SEND_TO_Q("Введите описание моба: (/s сохранить /h помощь)\r\n\r\n", d);
 			d->backstr = NULL;
-			if (OLC_MOB(d)->player_data.description != "")
+			if (!OLC_MOB(d)->player_data.description.empty())
 			{
 				SEND_TO_Q(OLC_MOB(d)->player_data.description.c_str(), d);
 				d->backstr = str_dup(OLC_MOB(d)->player_data.description.c_str());

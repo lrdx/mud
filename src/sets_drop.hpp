@@ -4,10 +4,10 @@
 #ifndef SETS_DROP_HPP_INCLUDED
 #define SETS_DROP_HPP_INCLUDED
 
-#include "conf.h"
-#include "sysdep.h"
 #include "structs.h"
+
 #include <map>
+
 namespace SetsDrop
 {
 

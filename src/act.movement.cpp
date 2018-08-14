@@ -32,7 +32,6 @@
 #include "deathtrap.hpp"
 #include "privilege.hpp"
 #include "char.hpp"
-#include "corpse.hpp"
 #include "room.hpp"
 #include "named_stuff.hpp"
 #include "fight.h"
@@ -46,17 +45,13 @@
 void set_wait(CHAR_DATA * ch, int waittime, int victim_in_room);
 int find_eq_pos(CHAR_DATA * ch, OBJ_DATA * obj, char *arg);
 int attack_best(CHAR_DATA * ch, CHAR_DATA * victim);
-int awake_others(CHAR_DATA * ch);
-void affect_from_char(CHAR_DATA * ch, int type);
-void do_aggressive_room(CHAR_DATA * ch, int check_sneak);
-void die(CHAR_DATA * ch, CHAR_DATA * killer);
 // local functions
 void check_ice(int room);
 int has_boat(CHAR_DATA * ch);
 int find_door(CHAR_DATA * ch, const char *type, char *dir, const char *cmdname);
 int has_key(CHAR_DATA * ch, obj_vnum key);
 void do_doorcmd(CHAR_DATA * ch, OBJ_DATA * obj, int door, int scmd);
-int ok_pick(CHAR_DATA * ch, obj_vnum keynum, OBJ_DATA* obj, int door, int scmd);
+bool ok_pick(CHAR_DATA * ch, obj_vnum keynum, OBJ_DATA* obj, int door, int scmd);
 extern int get_pick_chance(int skill_pick, int lock_complexity);
 
 void do_gen_door(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
@@ -83,17 +78,19 @@ const char *DirIs[] =
 // check ice in room
 int check_death_ice(int room, CHAR_DATA* /*ch*/)
 {
-	int sector, mass = 0, result = FALSE;
-
 	if (room == NOWHERE)
 		return (FALSE);
-	sector = SECT(room);
+
+	const auto sector = SECT(room);
 	if (sector != SECT_WATER_SWIM && sector != SECT_WATER_NOSWIM)
 		return (FALSE);
-	if ((sector = real_sector(room)) != SECT_THIN_ICE && sector != SECT_NORMAL_ICE)
+
+	const auto real_sect = real_sector(room);
+	if (real_sect != SECT_THIN_ICE && real_sect != SECT_NORMAL_ICE)
 		return (FALSE);
 
-	for (const auto vict : world[room]->people)
+	int mass = 0;
+	for (const auto& vict : world[room]->people)
 	{
 		if (!IS_NPC(vict)
 			&& !AFF_FLAGGED(vict, EAffectFlag::AFF_FLY))
@@ -124,7 +121,7 @@ int check_death_ice(int room, CHAR_DATA* /*ch*/)
 		return (FALSE);
 	}
 
-	return (result);
+	return FALSE;
 }
 
 // simple function to determine if char can walk on water
@@ -302,7 +299,7 @@ int skip_sneaking(CHAR_DATA * ch, CHAR_DATA * vict)
 			percent = number(1, (can_use_feat(ch, STEALTHY_FEAT) ? 102 : 112) + (GET_REAL_INT(vict) * (vict->get_role(MOB_ROLE_BOSS) ? 3 : 1)) + (GET_LEVEL(vict) > 30 ? GET_LEVEL(vict) : 0));
 			prob = calculate_skill(ch, SKILL_SNEAK, vict);
 
-			int catch_level = (GET_LEVEL(vict) - GET_LEVEL(ch));
+			const int catch_level = (GET_LEVEL(vict) - GET_LEVEL(ch));
 			if (catch_level > 5)
 			{
 			//5% шанс фэйла при prob==200 всегда, при prob = 100 - 10%, если босс, шанс множим на 5
@@ -543,7 +540,7 @@ int legal_dir(CHAR_DATA * ch, int dir, int need_specials_check, int show_msg)
 		    return (FALSE);
 		}
 
-		auto need_movement = calculate_move_cost(ch, dir);
+		const auto need_movement = calculate_move_cost(ch, dir);
 		if (GET_MOVE(ch) < need_movement)
 		{
 			if (need_specials_check
@@ -1496,23 +1493,23 @@ void do_doorcmd(CHAR_DATA * ch, OBJ_DATA * obj, int door, int scmd)
 			send_to_char("*Щелк*\r\n", ch);
 			if (obj)
 			{
-				for (unsigned long i = 0; i < cases.size(); i++)
+				for (const auto& cas : cases)
 				{
-					if (GET_OBJ_VNUM(obj) == cases[i].vnum)
+					if (GET_OBJ_VNUM(obj) == cas.vnum)
 					{
 						send_to_char("&GГде-то далеко наверху раздалась звонкая музыка.&n\r\n", ch);
 						// chance = cases[i].chance;		
 						// chance пока что не учитывается, просто падает одна рандомная стафина из всего этого
-						const int maximal_chance = static_cast<int>(cases[i].vnum_objs.size() - 1);
+						const int maximal_chance = static_cast<int>(cas.vnum_objs.size() - 1);
 						const int random_number = number(0, maximal_chance);
-						vnum = cases[i].vnum_objs[random_number];
+						vnum = cas.vnum_objs[random_number];
 						if ((r_num = real_object(vnum)) < 0)
 						{
 							send_to_char("Ошибка с номером 1, пожалуйста, напишите об этом в воззвать.\r\n", ch);
 							return;
 						}
 						// сначала удалим ключ из инвентаря
-						int vnum_key = GET_OBJ_VAL(obj, 2);
+						const int vnum_key = GET_OBJ_VAL(obj, 2);
 						// первый предмет в инвентаре
 						OBJ_DATA *obj_inv = ch->carrying;
 						OBJ_DATA *i;
@@ -1584,23 +1581,35 @@ void do_doorcmd(CHAR_DATA * ch, OBJ_DATA * obj, int door, int scmd)
 	}
 }
 
-int ok_pick(CHAR_DATA* ch, obj_vnum /*keynum*/, OBJ_DATA* obj, int door, int scmd)
+bool ok_pick(CHAR_DATA* ch, obj_vnum /*keynum*/, OBJ_DATA* obj, int door, int scmd)
 {
-	int percent;
-	int pickproof = DOOR_IS_PICKPROOF(ch, obj, door);
-	percent = number(1, skill_info[SKILL_PICK_LOCK].max_percent);
+	const int pickproof = DOOR_IS_PICKPROOF(ch, obj, door);
+	const auto percent = number(1, skill_info[SKILL_PICK_LOCK].max_percent);
 
 	if (scmd == SCMD_PICK)
 	{
 		if (pickproof)
+		{
 			send_to_char("Вы никогда не сможете взломать ЭТО.\r\n", ch);
-		else if (!check_moves(ch, PICKLOCK_MOVES));
-		else if (DOOR_LOCK_COMPLEX(ch, obj, door) - ch->get_skill(SKILL_PICK_LOCK) > 10)//Polud очередной magic number...
-		//если скилл меньше сложности на 10 и более - даже трениться на таком замке нельзя
+			return false;
+		}
+		else if (!check_moves(ch, PICKLOCK_MOVES))
+		{
+			return false;
+		}
+		else if (DOOR_LOCK_COMPLEX(ch, obj, door) - ch->get_skill(SKILL_PICK_LOCK) > 10)
+		{
+			//Polud очередной magic number...
+			//если скилл меньше сложности на 10 и более - даже трениться на таком замке нельзя
 			send_to_char("С таким сложным замком даже и пытаться не следует...\r\n", ch);
-		else if ((ch->get_skill(SKILL_PICK_LOCK) - DOOR_LOCK_COMPLEX(ch, obj, door) <= 10)  && //если скилл больше сложности на 10 и более - даже трениться на таком замке нельзя
-			(percent > train_skill(ch, SKILL_PICK_LOCK, skill_info[SKILL_PICK_LOCK].max_percent, NULL)))
+			return false;
+		}
+		else if (ch->get_skill(SKILL_PICK_LOCK) - DOOR_LOCK_COMPLEX(ch, obj, door) <= 10	//если скилл больше сложности на 10 и более - даже трениться на таком замке нельзя
+					&& percent > train_skill(ch, SKILL_PICK_LOCK, skill_info[SKILL_PICK_LOCK].max_percent, NULL))
+		{
 			send_to_char("Взломщик из вас пока еще никудышний.\r\n", ch);
+			return false;
+		}
 		else if (get_pick_chance(ch->get_skill(SKILL_PICK_LOCK), DOOR_LOCK_COMPLEX(ch, obj, door)) < number(1,10))
 		{
 			send_to_char("Вы все-таки сломали этот замок...\r\n", ch);
@@ -1614,12 +1623,11 @@ int ok_pick(CHAR_DATA* ch, obj_vnum /*keynum*/, OBJ_DATA* obj, int door, int scm
 			{
 				SET_BIT(EXIT(ch, door)->exit_info, EX_BROKEN);
 			}
+			return false;
 		}
-		else
-			return (1);
-		return (0);
 	}
-	return (1);
+
+	return true;
 }
 
 void do_gen_door(CHAR_DATA *ch, char *argument, int/* cmd*/, int subcmd)

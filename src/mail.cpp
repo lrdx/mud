@@ -18,7 +18,6 @@
 #include "handler.h"
 #include "char.hpp"
 #include "parcel.hpp"
-#include "char_player.hpp"
 #include "named_stuff.hpp"
 #include "parse.hpp"
 #include "screen.h"
@@ -37,14 +36,9 @@
 #include <unordered_map>
 #include <unordered_set>
 
-extern room_rnum r_helled_start_room;
-extern room_rnum r_named_start_room;
-extern room_rnum r_unreg_start_room;
-
 void postmaster_send_mail(CHAR_DATA * ch, CHAR_DATA * mailman, int cmd, char *arg);
 void postmaster_check_mail(CHAR_DATA * ch, CHAR_DATA * mailman, int cmd, char *arg);
 void postmaster_receive_mail(CHAR_DATA * ch, CHAR_DATA * mailman, int cmd, char *arg);
-int postmaster(CHAR_DATA *ch, void *me, int cmd, char* argument);
 
 namespace mail
 {
@@ -103,7 +97,7 @@ void print_undelivered(CHAR_DATA *ch)
 		std::string out(
 			"Информация по недоставленным (на момент перезагрузки) письмам.\r\n"
 			"Количество писем: ");
-		out += boost::lexical_cast<std::string>(i->second.total_num);
+		out += std::to_string(i->second.total_num);
 		out += ", Адресаты:\r\n " + i->second.names + "\r\n";
 		send_to_char(out, ch);
 	}
@@ -470,13 +464,13 @@ void add_notice(int uid)
 
 void print_notices()
 {
-	for(auto i = notice_list.begin(); i != notice_list.end(); ++i)
+	for(const auto& i : notice_list)
 	{
-		if (!has_mail(*i))
+		if (!has_mail(i))
 		{
 			continue;
 		}
-		DESCRIPTOR_DATA* d = DescByUID(*i);
+		DESCRIPTOR_DATA* d = DescByUID(i);
 		if (d)
 		{
 			send_to_char(d->character.get(),
@@ -662,12 +656,12 @@ void save()
 	doc.append_child().set_name("mail");
 	pugi::xml_node mail_n = doc.child("mail");
 
-	for (auto i = mail_list.cbegin(), iend = mail_list.cend(); i != iend; ++i)
+	for (const auto& i : mail_list)
 	{
 		pugi::xml_node msg_n = mail_n.append_child();
 		msg_n.set_name("m");
-		msg_n.append_attribute("h") = i->second.header.c_str();
-		msg_n.append_attribute("t") = i->second.text.c_str();
+		msg_n.append_attribute("h") = i.second.header.c_str();
+		msg_n.append_attribute("t") = i.second.text.c_str();
 	}
 
 	doc.save_file(MAIL_XML_FILE);

@@ -11,7 +11,6 @@
 #include "db.h"
 #include "char.hpp"
 #include "constants.h"
-#include "spells.h"
 
 namespace obj
 {
@@ -51,10 +50,9 @@ void enchant::print(CHAR_DATA *ch) const
 {
 	send_to_char(ch, "Зачаровано %s :%s\r\n", name_.c_str(), CCCYN(ch, C_NRM));
 
-	for (std::vector<obj_affected_type>::const_iterator i = affected_.begin(),
-		iend = affected_.end(); i != iend; ++i)
+	for (const auto& i : affected_)
 	{
-		print_obj_affects(ch, *i);
+		print_obj_affects(ch, i);
 	}
 
 	if (affects_flags_.sprintbits(weapon_affects, buf2, ","))
@@ -107,10 +105,9 @@ std::string enchant::print_to_file() const
 	std::stringstream out;
 	out << "Ench: I " << name_ << "\n" << " T "<< type_ << "\n";
 
-	for (std::vector<obj_affected_type>::const_iterator i = affected_.begin(),
-		iend = affected_.end(); i != iend; ++i)
+	for (const auto& i : affected_)
 	{
-		out << " A " << i->location << " " << i->modifier << "\n";
+		out << " A " << i.location << " " << i.modifier << "\n";
 	}
 
 	*buf = '\0';
@@ -142,18 +139,18 @@ void correct_values(OBJ_DATA *obj)
 
 void enchant::apply_to_obj(OBJ_DATA *obj) const
 {
-	for (auto i = affected_.cbegin(), iend = affected_.cend(); i != iend; ++i)
+	for (const auto& i : affected_)
 	{
 		for (int k = 0; k < MAX_OBJ_AFFECT; k++)
 		{
-			if (obj->get_affected(k).location == i->location)
+			if (obj->get_affected(k).location == i.location)
 			{
-				obj->add_affected(k, i->modifier);
+				obj->add_affected(k, i.modifier);
 				break;
 			}
 			else if (obj->get_affected(k).location == APPLY_NONE)
 			{
-				obj->set_affected(k, *i);
+				obj->set_affected(k, i);
 				break;
 			}
 		}
@@ -181,9 +178,9 @@ void Enchants::add(const enchant &ench)
 
 bool Enchants::check(int type) const
 {
-	for (auto i = list_.cbegin(), iend = list_.cend(); i != iend; ++i)
+	for (const auto& i : list_)
 	{
-		if (i->type_ == type)
+		if (i.type_ == type)
 		{
 			return true;
 		}
@@ -194,18 +191,18 @@ bool Enchants::check(int type) const
 std::string Enchants::print_to_file() const
 {
 	std::string out;
-	for (auto i = list_.cbegin(), iend = list_.cend(); i != iend; ++i)
+	for (const auto& i : list_)
 	{
-		out += i->print_to_file();
+		out += i.print_to_file();
 	}
 	return out;
 }
 
 void Enchants::print(CHAR_DATA *ch) const
 {
-	for (auto i = list_.cbegin(), iend = list_.cend(); i != iend; ++i)
+	for (const auto& i : list_)
 	{
-		i->print(ch);
+		i.print(ch);
 	}
 }
 
@@ -216,26 +213,26 @@ bool Enchants::empty() const
 
 void Enchants::update_set_bonus(OBJ_DATA *obj, const obj_sets::ench_type& set_ench)
 {
-	for (auto i = list_.begin(); i != list_.end(); ++i)
+	for (auto& i : list_)
 	{
-		if (i->type_ == ENCHANT_FROM_SET)
+		if (i.type_ == ENCHANT_FROM_SET)
 		{
-			if (i->weight_ != set_ench.weight
-				|| i->ndice_ != set_ench.ndice
-				|| i->sdice_ != set_ench.sdice)
+			if (i.weight_ != set_ench.weight
+				|| i.ndice_ != set_ench.ndice
+				|| i.sdice_ != set_ench.sdice)
 			{
 				// вес
-				obj->add_weight(set_ench.weight - i->weight_);
+				obj->add_weight(set_ench.weight - i.weight_);
 				// дайсы пушек
 				if (GET_OBJ_TYPE(obj) == OBJ_DATA::ITEM_WEAPON)
 				{
-					obj->add_val(1, set_ench.ndice - i->ndice_);
-					obj->add_val(2, set_ench.sdice - i->sdice_);
+					obj->add_val(1, set_ench.ndice - i.ndice_);
+					obj->add_val(2, set_ench.sdice - i.sdice_);
 				}
 				correct_values(obj);
-				i->weight_ = set_ench.weight;
-				i->ndice_ = set_ench.ndice;
-				i->sdice_ = set_ench.sdice;
+				i.weight_ = set_ench.weight;
+				i.ndice_ = set_ench.ndice;
+				i.sdice_ = set_ench.sdice;
 			}
 			return;
 		}

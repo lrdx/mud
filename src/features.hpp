@@ -10,7 +10,6 @@
 #define __FEATURES_HPP__
 
 #include "structs.h"
-#include "conf.h"
 
 #include <array>
 #include <bitset>

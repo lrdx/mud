@@ -12,8 +12,6 @@
 #define RACE_MAIN_TAG "races"
 #define PLAYER_RACE_ERROR_STR "...players races reading fail"
 
-#include "conf.h"
-#include "sysdep.h"
 #include "structs.h"
 
 #include <string>
@@ -58,23 +56,23 @@ public:
 		_Enabled = Flag;
 	};
 
-	void SetRaceMenuStr(std::string MenuStr)
+	void SetRaceMenuStr(const std::string& MenuStr)
 	{
 		_RaceMenuStr = MenuStr;
 	};
-	void SetRaceItName(std::string Name)
+	void SetRaceItName(const std::string& Name)
 	{
 		_RaceItName = Name;
 	};
-	void SetRaceHeName(std::string Name)
+	void SetRaceHeName(const std::string& Name)
 	{
 		_RaceHeName = Name;
 	};
-	void SetRaceSheName(std::string Name)
+	void SetRaceSheName(const std::string& Name)
 	{
 		_RaceSheName = Name;
 	};
-	void SetRacePluralName(std::string Name)
+	void SetRacePluralName(const std::string& Name)
 	{
 		_RacePluralName = Name;
 	};

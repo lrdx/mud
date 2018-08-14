@@ -390,15 +390,15 @@ void load(bool reload)
 		for (auto index = 0u; index < items.size(); ++index)
 		{
 			const auto& item = items.node(index);
-			for (auto id = item_descriptions.begin(); id != item_descriptions.end(); ++id)
+			for (auto& id : item_descriptions)
 			{
-				if (id->second.find(item->vnum()) != id->second.end())
+				if (id.second.find(item->vnum()) != id.second.end())
 				{
-					item_desc_node tmp_desc(id->second[item->vnum()]);
+					item_desc_node tmp_desc(id.second[item->vnum()]);
 					for (const auto& mob_vnum : tmp_shop->mob_vnums())
 					{
 						if (mob_to_template.find(mob_vnum) != mob_to_template.end()
-							&& mob_to_template[mob_vnum] == id->first)
+							&& mob_to_template[mob_vnum] == id.first)
 						{
 							item->add_desc(mob_vnum, tmp_desc);
 						}
@@ -575,7 +575,7 @@ void do_shops_list(CHAR_DATA *ch, char* /*argument*/, int/* cmd*/, int/* subcmd*
 	std::string out;
 	for (size_t i = 0; i < n; i++)
 	{
-		out = out + boost::lexical_cast<std::string>(i + 1) + " " + dic->GetNameByNID(i) + " " + dic->GetTIDByNID(i) + "\r\n";
+		out = out + std::to_string(i + 1) + " " + dic->GetNameByNID(i) + " " + dic->GetTIDByNID(i) + "\r\n";
 	}
 	send_to_char(out, ch);
 }

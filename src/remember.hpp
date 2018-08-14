@@ -5,11 +5,10 @@
 #ifndef REMEMBER_HPP_INCLUDED
 #define REMEMBER_HPP_INCLUDED
 
+#include "structs.h"
+
 #include <list>
 #include <string>
-#include "conf.h"
-#include "sysdep.h"
-#include "structs.h"
 
 namespace Remember
 {
@@ -43,7 +42,7 @@ class CharRemember
 {
 public:
 	CharRemember() : num_str_(Remember::DEF_REMEMBER_NUM) {};
-	void add_str(std::string text, int flag);
+	void add_str(const std::string& text, int flag);
 	std::string get_text(int flag) const;
 	void reset();
 	bool set_num_str(unsigned int num);

@@ -14,7 +14,6 @@
 #include "skills.h"
 #include "utils.h"
 #include "structs.h"
-#include "conf.h"
 
 #include <boost/dynamic_bitset.hpp>
 
@@ -96,7 +95,7 @@ struct char_ability_data
 {
 	std::array<ubyte, MAX_SPELLS + 1> SplKnw; // array of SPELL_KNOW_TYPE
 	std::array<ubyte, MAX_SPELLS + 1> SplMem; // array of MEMed SPELLS
-	bitset<MAX_FEATS> Feats;
+	std::bitset<MAX_FEATS> Feats;
 	sbyte size;
 	sbyte hitroll;
 	int damroll;

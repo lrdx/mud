@@ -18,7 +18,6 @@
 #include "description.h"
 #include "deathtrap.hpp"
 #include "char.hpp"
-#include "char_player.hpp"
 #include "room.hpp"
 #include "house.h"
 #include "world.characters.hpp"
@@ -30,30 +29,14 @@
 
 #include <vector>
 
-// * External data structures.
-extern CHAR_DATA *mob_proto;
-extern const char *room_bits[];
-extern const char *sector_types[];
-extern const char *exit_bits[];
-extern struct zone_data *zone_table;
 extern room_rnum r_frozen_start_room;
-extern room_rnum r_helled_start_room;
-extern room_rnum r_mortal_start_room;
-extern room_rnum r_immort_start_room;
-extern room_rnum r_named_start_room;
-extern room_rnum r_unreg_start_room;
-extern DESCRIPTOR_DATA *descriptor_list;
 
 //------------------------------------------------------------------------
 int planebit(const char *str, int *plane, int *bit);
 // * Function Prototypes
 void redit_setup(DESCRIPTOR_DATA * d, int real_num);
 
-void room_copy(ROOM_DATA * dst, ROOM_DATA * src);
-void room_free(ROOM_DATA * room);
-
 void redit_save_internally(DESCRIPTOR_DATA * d);
-void redit_save_to_disk(int zone);
 
 void redit_parse(DESCRIPTOR_DATA * d, char *arg);
 void redit_disp_extradesc_menu(DESCRIPTOR_DATA * d);

@@ -37,7 +37,6 @@
 #include "world.characters.hpp"
 #include "shutdown.parameters.hpp"
 #include "object.prototypes.hpp"
-#include "external.trigger.hpp"
 #include "handler.h"
 #include "house.h"
 #include "olc.h"
@@ -51,7 +50,6 @@
 #include "corpse.hpp"
 #include "glory_misc.hpp"
 #include "glory_const.hpp"
-#include "shop_ext.hpp"
 #include "sets_drop.hpp"
 #include "mail.h"
 #include "mob_stat.hpp"
@@ -60,6 +58,7 @@
 #include "msdp.hpp"
 #include "msdp.constants.hpp"
 #include "heartbeat.hpp"
+#include "features.hpp"
 
 #if defined WITH_SCRIPTING
 #include "scripting.hpp"
@@ -116,7 +115,6 @@
 
 #include <boost/format.hpp>
 #include <boost/algorithm/string.hpp>
-#include <sys/stat.h>
 
 #include <string>
 #include <exception>
@@ -160,7 +158,6 @@
 
 #define MXPMODE(arg) ESC "[" #arg "z"
 extern void save_zone_count_reset();
-extern int perform_move(CHAR_DATA * ch, int dir, int following, int checkmob, CHAR_DATA * leader);
 // flags for show_list_to_char 
 
 enum {
@@ -379,7 +376,6 @@ void our_terminate()
 // externs
 extern int num_invalid;
 extern char *GREETINGS;
-extern const char *circlemud_version;
 extern int circle_restrict;
 extern FILE *player_fl;
 extern ush_int DFLT_PORT;
@@ -388,10 +384,7 @@ extern const char *DFLT_IP;
 extern const char *LOGNAME;
 extern int max_playing;
 extern int nameserver_is_slow;	// see config.cpp
-extern int mana[];
-extern struct zone_data *zone_table;
 extern const char *save_info_msg[];	// In olc.cpp
-extern CHAR_DATA *combat_list;
 extern int proc_color(char *inbuf, int color);
 extern void tact_auction(void);
 extern void log_code_date();
@@ -544,9 +537,9 @@ const int vnum_gifts[len_array_gifts] = { 27113,
 void gifts()
 {
 	// выбираем случайную комнату с елкой
-	int rand_vnum_r = vnum_room_new_year[number(1, 56)];
+	const int rand_vnum_r = vnum_room_new_year[number(1, 56)];
 	// выбираем  случайный подарок
-	int rand_vnum = vnum_gifts[number(0, len_array_gifts - 1)];
+	const int rand_vnum = vnum_gifts[number(0, len_array_gifts - 1)];
 	obj_rnum rnum;
 	if ((rnum = real_object(rand_vnum)) < 0)
 	{
@@ -572,7 +565,6 @@ RETSIGTYPE checkpointing(int sig);
 RETSIGTYPE hupsig(int sig);
 ssize_t perform_socket_read(socket_t desc, char *read_point, size_t space_left);
 ssize_t perform_socket_write(socket_t desc, const char *txt, size_t length);
-void sanity_check(void);
 void circle_sleep(struct timeval *timeout);
 int get_from_q(struct txt_q *queue, char *dest, int *aliased);
 void init_game(ush_int port);
@@ -595,7 +587,6 @@ void flush_queues(DESCRIPTOR_DATA * d);
 void nonblock(socket_t s);
 int perform_subst(DESCRIPTOR_DATA * t, char *orig, char *subst);
 int perform_alias(DESCRIPTOR_DATA * d, char *orig);
-char *make_prompt(DESCRIPTOR_DATA * point);
 struct in_addr *get_bind_addr(void);
 int parse_ip(const char *addr, struct in_addr *inaddr);
 int set_sendbuf(socket_t s);
@@ -682,7 +673,7 @@ const char str_goahead[] = { (char)IAC, (char)GA, 0 };
 void gettimeofday(struct timeval *t, void *dummy)
 {
 #if defined(CIRCLE_WINDOWS)
-	DWORD millisec = GetTickCount();
+	const DWORD millisec = GetTickCount();
 #elif defined(CIRCLE_MACINTOSH)
 	unsigned long int millisec;
 	millisec = (int)((float) TickCount() * 1000.0 / 60.0);
@@ -1896,7 +1887,7 @@ char *make_prompt(DESCRIPTOR_DATA * d)
 		{
 			if (d->character->get_skill(SKILL_WARCRY))
 			{
-				int wc_count = (HOURS_PER_DAY - timed_by_skill(d->character.get(), SKILL_WARCRY)) / HOURS_PER_WARCRY;
+				const int wc_count = (HOURS_PER_DAY - timed_by_skill(d->character.get(), SKILL_WARCRY)) / HOURS_PER_WARCRY;
 				count += sprintf(prompt + count, "Кл:%d ", wc_count);
 			}
 			if (d->character->get_skill(SKILL_COURAGE))
@@ -2050,7 +2041,7 @@ void write_to_output(const char *txt, DESCRIPTOR_DATA * t)
 		return;
 	}
 
-	size_t size = strlen(txt);
+	const size_t size = strlen(txt);
 
 	// if we have enough space, just write to buffer and that's it!
 	if (t->bufspace >= size)
@@ -2635,7 +2626,7 @@ ssize_t perform_socket_write(socket_t desc, const char *txt, size_t length)
 	** ... -=>
 	**/
 #if defined WIN32
-	int l = static_cast<int>(length);
+	const int l = static_cast<int>(length);
 #else
 	size_t l = length;
 #endif
@@ -2855,7 +2846,7 @@ int process_input(DESCRIPTOR_DATA * t)
 	char tmp[MAX_INPUT_LENGTH];
 
 	// first, find the point where we left off reading data
-	size_t buf_length = strlen(t->inbuf);
+	const size_t buf_length = strlen(t->inbuf);
 	read_point = t->inbuf + buf_length;
 	space_left = MAX_RAW_INPUT_LENGTH - buf_length - 1;
 
@@ -3198,8 +3189,8 @@ int process_input(DESCRIPTOR_DATA * t)
 		else if (*tmp == '!' && *(tmp + 1))
 		{
 			char *commandln = (tmp + 1);
-			int starting_pos = t->history_pos,
-							   cnt = (t->history_pos == 0 ? HISTORY_SIZE - 1 : t->history_pos - 1);
+			const int starting_pos = t->history_pos;
+			int cnt = (t->history_pos == 0 ? HISTORY_SIZE - 1 : t->history_pos - 1);
 
 			skip_spaces(&commandln);
 			for (; cnt != starting_pos; cnt--)
@@ -3317,7 +3308,7 @@ int perform_subst(DESCRIPTOR_DATA * t, char *orig, char *subst)
 */
 bool any_other_ch(CHAR_DATA *ch)
 {
-	for (const auto vict : character_list)
+	for (const auto& vict : character_list)
 	{
 		if (!IS_NPC(vict)
 			&& vict.get() != ch

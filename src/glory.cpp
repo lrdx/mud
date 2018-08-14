@@ -15,13 +15,14 @@
 #include "top.h"
 #include "char.hpp"
 #include "char_player.hpp"
-#include "modify.h"
 #include "glory_misc.hpp"
+#include "interpreter.h"
 
 #include <boost/lexical_cast.hpp>
 #include <boost/format.hpp>
 
 #include <sstream>
+#include <fstream>
 
 extern void add_karma(CHAR_DATA * ch, const char * punish , const char * reason);
 extern void check_max_hp(CHAR_DATA *ch);
@@ -47,7 +48,7 @@ typedef std::map<long, GloryNodePtr> GloryListType; // first - уид
 class GloryNode
 {
 public:
-	GloryNode() : free_glory(0), spend_glory(0), denial(0), hide(0), freeze(0) {};
+	GloryNode() : free_glory(0), spend_glory(0), denial(0), hide(false), freeze(false) {};
 
 	GloryNode &operator= (const GloryNode&);
 	void copy_glory(const GloryNodePtr k);
@@ -109,12 +110,12 @@ GloryNode & GloryNode::operator= (const GloryNode &t)
 	hide = t.hide;
 	freeze = t.freeze;
 	timers.clear();
-	for (GloryTimeType::const_iterator tm_it = t.timers.begin(); tm_it != t.timers.end(); ++tm_it)
+	for (const auto& tm_it : t.timers)
 	{
-		GloryTimePtr temp_timer(new glory_time);
-		temp_timer->stat = (*tm_it)->stat;
-		temp_timer->glory = (*tm_it)->glory;
-		temp_timer->timer = (*tm_it)->timer;
+		const GloryTimePtr temp_timer(new glory_time);
+		temp_timer->stat = tm_it->stat;
+		temp_timer->glory = tm_it->glory;
+		temp_timer->timer = tm_it->timer;
 		timers.push_back(temp_timer);
 	}
 	return *this;
@@ -125,7 +126,7 @@ void GloryNode::copy_stat(const GloryTimePtr k)
 {
 	if (spend_glory < MAX_STATS_BY_GLORY)
 	{
-		GloryTimePtr tmp_node(new glory_time);
+		const GloryTimePtr tmp_node(new glory_time);
 		*tmp_node = *k;
 		tmp_node->glory = MIN(k->glory, MAX_STATS_BY_GLORY - spend_glory);
 		spend_glory += tmp_node->glory;
@@ -156,7 +157,7 @@ void load_glory()
 
 	long all_sum = 0;
 	std::string buffer;
-	bool checksum = 0;
+	bool checksum = false;
 	while (file >> buffer)
 	{
 		if (buffer == "<Node>")
@@ -164,7 +165,7 @@ void load_glory()
 			GloryNodePtr temp_node(new GloryNode);
 			long uid = 0;
 			int free_glory = 0, denial = 0;
-			bool hide = 0, freeze = 0;
+			bool hide = false, freeze = false;
 
 			if (!(file >> uid >> free_glory >> denial >> hide >> freeze))
 			{
@@ -210,7 +211,7 @@ void load_glory()
 					break;
 				}
 
-				GloryTimePtr temp_glory_timers(new glory_time);
+				const GloryTimePtr temp_glory_timers(new glory_time);
 				temp_glory_timers->glory = glory;
 				temp_glory_timers->timer = timer;
 				temp_glory_timers->stat = stat;
@@ -263,8 +264,8 @@ void load_glory()
 		{
 			// сверочка мд5
 			file >> buffer;
-			int result = Password::compare_password(buffer, boost::lexical_cast<std::string>(all_sum));
-			checksum = 1;
+			const int result = Password::compare_password(buffer, std::to_string(all_sum));
+			checksum = true;
 			if (!result)
 			{
 				// FIXME тут надо другое оповещение, но потом
@@ -303,7 +304,7 @@ void save_glory()
 	}
 	out << "<End>\n";
 	// TODO: в file_crc систему это надо
-	out << Password::generate_md5_hash(boost::lexical_cast<std::string>(all_sum)) << "\n";
+	out << Password::generate_md5_hash(std::to_string(all_sum)) << "\n";
 
 	const char *glory_file = LIB_PLRSTUFF"glory.lst";
 	std::ofstream file(glory_file);
@@ -320,9 +321,11 @@ void save_glory()
 int get_glory(long uid)
 {
 	int glory = 0;
-	GloryListType::iterator it = glory_list.find(uid);
+	const auto it = glory_list.find(uid);
+
 	if (it != glory_list.end())
 		glory = it->second->free_glory;
+
 	return glory;
 }
 
@@ -338,7 +341,7 @@ void add_glory(long uid, int amount)
 	}
 	else
 	{
-		GloryNodePtr temp_node(new GloryNode);
+		const GloryNodePtr temp_node(new GloryNode);
 		temp_node->free_glory = amount;
 		glory_list[uid] = temp_node;
 	}
@@ -397,44 +400,44 @@ bool parse_denial_check(CHAR_DATA *ch, int stat)
 	// при включенном таймере статы ниже уже вложенных не опускаются
 	if (ch->desc->glory->olc_node->denial)
 	{
-		bool stop = 0;
+		bool stop = false;
 		switch (stat)
 		{
 		case G_STR:
 			if (ch->get_inborn_str() == ch->desc->glory->olc_str)
-				stop = 1;
+				stop = true;
 			break;
 		case G_DEX:
 			if (ch->get_inborn_dex() == ch->desc->glory->olc_dex)
-				stop = 1;
+				stop = true;
 			break;
 		case G_INT:
 			if (ch->get_inborn_int() == ch->desc->glory->olc_int)
-				stop = 1;
+				stop = true;
 			break;
 		case G_WIS:
 			if (ch->get_inborn_wis() == ch->desc->glory->olc_wis)
-				stop = 1;
+				stop = true;
 			break;
 		case G_CON:
 			if (ch->get_inborn_con() == ch->desc->glory->olc_con)
-				stop = 1;
+				stop = true;
 			break;
 		case G_CHA:
 			if (ch->get_inborn_cha() == ch->desc->glory->olc_cha)
-				stop = 1;
+				stop = true;
 			break;
 		default:
 			log("Glory: невалидный номер стат: %d (uid: %d, name: %s)", stat, GET_UNIQUE(ch), GET_NAME(ch));
-			stop = 1;
+			stop = true;
 		}
 		if (stop)
 		{
 			print_denial_message(ch, ch->desc->glory->olc_node->denial);
-			return 0;
+			return false;
 		}
 	}
-	return 1;
+	return true;
 }
 
 /**
@@ -445,9 +448,10 @@ bool parse_denial_check(CHAR_DATA *ch, int stat)
 */
 bool parse_remove_stat(CHAR_DATA *ch, int stat)
 {
-	if (!parse_denial_check(ch, stat)) return 0;
+	if (!parse_denial_check(ch, stat))
+		return false;
 
-	for (GloryTimeType::iterator it = ch->desc->glory->olc_node->timers.begin(); it != ch->desc->glory->olc_node->timers.end(); ++it)
+	for (auto it = ch->desc->glory->olc_node->timers.begin(); it != ch->desc->glory->olc_node->timers.end(); ++it)
 	{
 		if ((*it)->stat == stat)
 		{
@@ -457,7 +461,7 @@ bool parse_remove_stat(CHAR_DATA *ch, int stat)
 			{
 				// если мы убрали только часть статов, то надо сохранять таймер этой части
 				// да, все это тупняк и надо было разбирать еще в момент входа/выхода олц
-				GloryTimePtr temp_timer(new glory_time);
+				const GloryTimePtr temp_timer(new glory_time);
 				temp_timer->stat = -1;
 				temp_timer->timer = (*it)->timer;
 				// в начало списка, чтобы при вложении он ушел первым
@@ -479,11 +483,11 @@ bool parse_remove_stat(CHAR_DATA *ch, int stat)
 			}
 			ch->desc->glory->olc_add_spend_glory -= 1;
 			ch->desc->glory->olc_node->free_glory += 1000;
-			return 1;
+			return true;
 		}
 	}
 	log("Glory: не найден стат при вычитании в олц (stat: %d, uid: %d, name: %s)", stat, GET_UNIQUE(ch), GET_NAME(ch));
-	return 1;
+	return true;
 }
 
 // * Добавление стата в олц, проверка на свободные записи с включенным таймером, чтобы учесть перекладывание первым.
@@ -527,7 +531,7 @@ void parse_add_stat(CHAR_DATA *ch, int stat)
 		}
 	}
 	// если стат не найден - делаем новую запись
-	GloryTimePtr temp_timer(new glory_time);
+	const GloryTimePtr temp_timer(new glory_time);
 	temp_timer->stat = stat;
 	temp_timer->glory = 1;
 	// вставляем в начало списка, чтобы при вычитании удалять первыми вложенные в текущей сессии статы
@@ -535,7 +539,7 @@ void parse_add_stat(CHAR_DATA *ch, int stat)
 }
 
 // * Парс олц меню 'слава'.
-bool parse_spend_glory_menu(CHAR_DATA *ch, char *arg)
+bool parse_spend_glory_menu(CHAR_DATA* ch, const char* arg)
 {
 	switch (*arg)
 	{
@@ -660,10 +664,10 @@ bool parse_spend_glory_menu(CHAR_DATA *ch, char *arg)
 				&& ch->desc->glory->olc_cha == ch->get_inborn_cha())
 				|| ch->desc->glory->olc_add_spend_glory < ch->desc->glory->olc_node->spend_glory)
 		{
-			return 0;
+			return false;
 		}
 
-		GloryListType::iterator it = glory_list.find(GET_UNIQUE(ch));
+		const auto it = glory_list.find(GET_UNIQUE(ch));
 		if (it == glory_list.end()
 				|| ch->desc->glory->check_spend_glory != it->second->spend_glory
 				|| ch->desc->glory->check_free_glory != it->second->free_glory
@@ -675,7 +679,7 @@ bool parse_spend_glory_menu(CHAR_DATA *ch, char *arg)
 			ch->desc->glory.reset();
 			STATE(ch->desc) = CON_PLAYING;
 			send_to_char("Редактирование отменено из-за внешних изменений.\r\n", ch);
-			return 1;
+			return true;
 		}
 
 		// включаем таймер, если было переливание статов
@@ -712,18 +716,18 @@ bool parse_spend_glory_menu(CHAR_DATA *ch, char *arg)
 		STATE(ch->desc) = CON_PLAYING;
 		check_max_hp(ch);
 		send_to_char("Ваши изменения сохранены.\r\n", ch);
-		return 1;
+		return true;
 	}
 	case 'Х':
 	case 'х':
 		ch->desc->glory.reset();
 		STATE(ch->desc) = CON_PLAYING;
 		send_to_char("Редактирование прервано.\r\n", ch);
-		return 1;
+		return true;
 	default:
 		break;
 	}
-	return 0;
+	return false;
 }
 
 // * Распечатка олц меню.
@@ -783,7 +787,7 @@ void spend_glory_menu(CHAR_DATA *ch)
 	<< MIN((MAX_STATS_BY_GLORY - ch->desc->glory->olc_add_spend_glory), ch->desc->glory->olc_node->free_glory / 1000)
 	<< "\r\n\r\n";
 
-	int diff = ch->desc->glory->olc_node->spend_glory - ch->desc->glory->olc_add_spend_glory;
+	const int diff = ch->desc->glory->olc_node->spend_glory - ch->desc->glory->olc_add_spend_glory;
 	if (diff > 0)
 	{
 		out << "  Вы должны распределить вложенные ранее " << diff << " " << desc_count(diff, WHAT_POINT) << "\r\n";
@@ -892,7 +896,7 @@ void do_spend_glory(CHAR_DATA *ch, char *argument, int/* cmd*/, int/* subcmd*/)
 
 	// я не помню уже, как там этот шаред-птр ведет себя при дефолтном копировании
 	// а т.к. внутри есть список таймеров на них - скопирую вручную и пофигу на все
-	GloryNodePtr olc_node(new GloryNode);
+	const GloryNodePtr olc_node(new GloryNode);
 	*olc_node = *(it->second);
 	temp_glory->olc_node = olc_node;
 	temp_glory->olc_add_spend_glory = it->second->spend_glory;
@@ -967,32 +971,34 @@ void remove_stat_online(long uid, int stat, int glory)
 // * Тикание таймеров славы и запрета перекладывания, снятие просроченной славы с чара онлайн.
 void timers_update()
 {
-	for (GloryListType::iterator it = glory_list.begin(); it != glory_list.end(); ++it)
+	for (const auto& it : glory_list)
 	{
-		if (it->second->freeze) continue; // во фризе никакие таймеры не тикают
-		bool removed = 0; // флажок для сообщения о пропадании славы (чтобы не спамить на каждый стат)
-		for (GloryTimeType::iterator tm_it = it->second->timers.begin(); tm_it != it->second->timers.end();)
+		if (it.second->freeze)
+			continue; // во фризе никакие таймеры не тикают
+
+		bool removed = false; // флажок для сообщения о пропадании славы (чтобы не спамить на каждый стат)
+		for (auto tm_it = it.second->timers.begin(); tm_it != it.second->timers.end();)
 		{
 			if ((*tm_it)->timer > 0)
 				(*tm_it)->timer -= 1;
 			if ((*tm_it)->timer <= 0)
 			{
-				removed = 1;
+				removed = true;
 				// если чар онлайн - снимаем с него стат
-				remove_stat_online(it->first, (*tm_it)->stat, (*tm_it)->glory);
-				it->second->spend_glory -= (*tm_it)->glory;
-				it->second->timers.erase(tm_it++);
+				remove_stat_online(it.first, (*tm_it)->stat, (*tm_it)->glory);
+				it.second->spend_glory -= (*tm_it)->glory;
+				it.second->timers.erase(tm_it++);
 			}
 			else
 				++tm_it;
 		}
 		// тут же тикаем ограничением на переливания
-		if (it->second->denial > 0)
-			it->second->denial -= 1;
+		if (it.second->denial > 0)
+			it.second->denial -= 1;
 
 		if (removed)
 		{
-			DESCRIPTOR_DATA *d = DescByUID(it->first);
+			DESCRIPTOR_DATA *d = DescByUID(it.first);
 			if (d)
 			{
 				send_to_char("Вы долго не совершали достойных деяний и слава вас покинула...\r\n",
@@ -1033,26 +1039,26 @@ void timers_update()
 */
 bool remove_stats(CHAR_DATA *ch, CHAR_DATA *god, int amount)
 {
-	GloryListType::iterator it = glory_list.find(GET_UNIQUE(ch));
+	const auto it = glory_list.find(GET_UNIQUE(ch));
 	if (it == glory_list.end())
 	{
 		send_to_char(god, "У %s нет вложенной славы.\r\n", GET_PAD(ch, 1));
-		return 0;
+		return false;
 	}
 	if (amount > it->second->spend_glory)
 	{
 		send_to_char(god, "У %s нет столько вложенной славы.\r\n", GET_PAD(ch, 1));
-		return 0;
+		return false;
 	}
 	if (amount <= 0)
 	{
 		send_to_char(god, "Некорректное количество статов (%d).\r\n", amount);
-		return 0;
+		return false;
 	}
 
 	int removed = 0;
 	// собсна не заморачиваясь просто режем первые попавшиеся статы
-	for (GloryTimeType::iterator tm_it = it->second->timers.begin(); tm_it != it->second->timers.end();)
+	for (auto tm_it = it->second->timers.begin(); tm_it != it->second->timers.end();)
 	{
 		if (amount > 0)
 		{
@@ -1085,14 +1091,14 @@ bool remove_stats(CHAR_DATA *ch, CHAR_DATA *god, int amount)
 	// надо пересчитать хп на случай снятия с тела
 	check_max_hp(ch);
 	save_glory();
-	return 1;
+	return true;
 }
 
 /**
 * Трансфер 'вчистую', т.е. у принимаюего чара все обнуляем (кроме свободной славы) и сетим все,
 * что было у передающего (свободная слава плюсуется).
 */
-void transfer_stats(CHAR_DATA *ch, CHAR_DATA *god, std::string name, char *reason)
+void transfer_stats(CHAR_DATA *ch, CHAR_DATA *god, const std::string& name, const char *reason)
 {
 	if (IS_IMMORTAL(ch))
 	{
@@ -1100,7 +1106,7 @@ void transfer_stats(CHAR_DATA *ch, CHAR_DATA *god, std::string name, char *reaso
 		return;
 	}
 
-	GloryListType::iterator it = glory_list.find(GET_UNIQUE(ch));
+	const auto it = glory_list.find(GET_UNIQUE(ch));
 	if (it == glory_list.end())
 	{
 		send_to_char(god, "У %s нет славы.\r\n", GET_PAD(ch, 1));
@@ -1113,7 +1119,7 @@ void transfer_stats(CHAR_DATA *ch, CHAR_DATA *god, std::string name, char *reaso
 		return;
 	}
 
-	long vict_uid = GetUniqueByName(name);
+	const long vict_uid = GetUniqueByName(name);
 	if (!vict_uid)
 	{
 		send_to_char(god, "Некорректное имя персонажа (%s), принимающего славу.\r\n", name.c_str());
@@ -1153,15 +1159,15 @@ void transfer_stats(CHAR_DATA *ch, CHAR_DATA *god, std::string name, char *reaso
 	}
 
 	// ищем запись принимающего, если ее нет - создаем
-	GloryListType::iterator vict_it = glory_list.find(vict_uid);
+	auto vict_it = glory_list.find(vict_uid);
 	if (vict_it == glory_list.end())
 	{
-		GloryNodePtr temp_node(new GloryNode);
+		const GloryNodePtr temp_node(new GloryNode);
 		glory_list[vict_uid] = temp_node;
 		vict_it = glory_list.find(vict_uid);
 	}
 	// vict_it сейчас валидный итератор на принимающего
-	int was_stats = vict_it->second->spend_glory;
+	const int was_stats = vict_it->second->spend_glory;
 	vict_it->second->copy_glory(it->second);
 	vict_it->second->denial = DISPLACE_TIMER;
 
@@ -1179,34 +1185,33 @@ void transfer_stats(CHAR_DATA *ch, CHAR_DATA *god, std::string name, char *reaso
 	{
 		// стартовые статы полюбому должны быть валидными, раз он уже в игре
 		GloryMisc::recalculate_stats(vict.get());
-		for (GloryTimeType::iterator tm_it = vict_it->second->timers.begin();
-				tm_it != vict_it->second->timers.end(); ++tm_it)
+		for (const auto& tm_it : vict_it->second->timers)
 		{
-			if ((*tm_it)->timer > 0)
+			if (tm_it->timer > 0)
 			{
-				switch ((*tm_it)->stat)
+				switch (tm_it->stat)
 				{
 				case G_STR:
-					vict->inc_str((*tm_it)->glory);
+					vict->inc_str(tm_it->glory);
 					break;
 				case G_DEX:
-					vict->inc_dex((*tm_it)->glory);
+					vict->inc_dex(tm_it->glory);
 					break;
 				case G_INT:
-					vict->inc_int((*tm_it)->glory);
+					vict->inc_int(tm_it->glory);
 					break;
 				case G_WIS:
-					vict->inc_wis((*tm_it)->glory);
+					vict->inc_wis(tm_it->glory);
 					break;
 				case G_CON:
-					vict->inc_con((*tm_it)->glory);
+					vict->inc_con(tm_it->glory);
 					break;
 				case G_CHA:
-					vict->inc_cha((*tm_it)->glory);
+					vict->inc_cha(tm_it->glory);
 					break;
 				default:
 					log("Glory: некорректный номер стата %d (uid: %ld)",
-							(*tm_it)->stat, it->first);
+							tm_it->stat, it->first);
 				}
 			}
 		}
@@ -1230,7 +1235,7 @@ void transfer_stats(CHAR_DATA *ch, CHAR_DATA *god, std::string name, char *reaso
 // * Показ свободной и вложенной славы у чара (glory имя).
 void show_glory(CHAR_DATA *ch, CHAR_DATA *god)
 {
-	GloryListType::iterator it = glory_list.find(GET_UNIQUE(ch));
+	auto it = glory_list.find(GET_UNIQUE(ch));
 	if (it == glory_list.end())
 	{
 		send_to_char(god, "У %s совсем не славы.\r\n", GET_PAD(ch, 1));
@@ -1239,17 +1244,16 @@ void show_glory(CHAR_DATA *ch, CHAR_DATA *god)
 
 	send_to_char(god, "Информация об очках славы %s:\r\n", GET_PAD(ch, 1));
 	print_glory(god, it);
-	return;
 }
 
 // * Вывод инфы в show stats.
 void show_stats(CHAR_DATA *ch)
 {
 	int free_glory = 0, spend_glory = 0;
-	for (GloryListType::iterator it = glory_list.begin(); it != glory_list.end(); ++it)
+	for (const auto& it : glory_list)
 	{
-		free_glory += it->second->free_glory;
-		spend_glory += it->second->spend_glory * 1000;
+		free_glory += it.second->free_glory;
+		spend_glory += it.second->spend_glory * 1000;
 	}
 	send_to_char(ch, "  Слава: вложено %d, свободно %d, всего %d\r\n", spend_glory, free_glory, free_glory + spend_glory);
 }
@@ -1262,25 +1266,25 @@ void print_glory_top(CHAR_DATA *ch)
 	std::map<int, GloryNodePtr> temp_list;
 	std::stringstream hide;
 
-	bool print_hide = 0;
+	bool print_hide = false;
 	if (IS_IMMORTAL(ch))
 	{
-		print_hide = 1;
+		print_hide = true;
 		hide << "\r\nПерсонажи, исключенные из списка: ";
 	}
 
-	for (GloryListType::const_iterator it = glory_list.begin(); it != glory_list.end(); ++it)
+	for (const auto& it : glory_list)
 	{
-		if (!it->second->hide && !it->second->freeze)
-			temp_list[it->second->free_glory + it->second->spend_glory * 1000] = it->second;
+		if (!it.second->hide && !it.second->freeze)
+			temp_list[it.second->free_glory + it.second->spend_glory * 1000] = it.second;
 		else if (print_hide)
-			hide << it->second->name << " ";
+			hide << it.second->name << " ";
 	}
 
 	out << CCWHT(ch, C_NRM) << "Лучшие прославленные:\r\n" << CCNRM(ch, C_NRM);
 
 	int i = 0;
-	for (std::map<int, GloryNodePtr>::reverse_iterator t_it = temp_list.rbegin(); t_it != temp_list.rend() && i < MAX_TOP_CLASS; ++t_it, ++i)
+	for (auto t_it = temp_list.rbegin(); t_it != temp_list.rend() && i < MAX_TOP_CLASS; ++t_it, ++i)
 	{
 		//имя с заглавной буквы. мб можно сделать как-то лучше...
 		t_it->second->name[0] = UPPER(t_it->second->name[0]);
@@ -1298,17 +1302,19 @@ void print_glory_top(CHAR_DATA *ch)
 // * Вкдючение/выключение показа чара в топе славы (glory hide on|off).
 void hide_char(CHAR_DATA *vict, CHAR_DATA *god, char const * const mode)
 {
-	if (!mode || !*mode) return;
-	bool ok = 1;
-	GloryListType::iterator it = glory_list.find(GET_UNIQUE(vict));
+	if (!mode || !*mode) 
+		return;
+
+	bool ok = true;
+	const auto it = glory_list.find(GET_UNIQUE(vict));
 	if (it != glory_list.end())
 	{
 		if (!str_cmp(mode, "on"))
-			it->second->hide = 1;
+			it->second->hide = true;
 		else if (!str_cmp(mode, "off"))
-			it->second->hide = 1;
+			it->second->hide = true;
 		else
-			ok = 0;
+			ok = false;
 	}
 	if (ok)
 	{
@@ -1323,63 +1329,63 @@ void hide_char(CHAR_DATA *vict, CHAR_DATA *god, char const * const mode)
 // * Остановка таймеров на вложенной славе.
 void set_freeze(long uid)
 {
-	GloryListType::iterator it = glory_list.find(uid);
+	const auto it = glory_list.find(uid);
 	if (it != glory_list.end())
-		it->second->freeze = 1;
+		it->second->freeze = true;
 	save_glory();
 }
 
 // * Включение таймеров на вложенной славе.
 void remove_freeze(long uid)
 {
-	GloryListType::iterator it = glory_list.find(uid);
+	const auto it = glory_list.find(uid);
 	if (it != glory_list.end())
-		it->second->freeze = 0;
+		it->second->freeze = false;
 	save_glory();
 }
 
 // * Во избежание разного рода недоразумений с фризом таймеров - проверяем эту тему при входе в игру.
 void check_freeze(CHAR_DATA *ch)
 {
-	GloryListType::iterator it = glory_list.find(GET_UNIQUE(ch));
+	const auto it = glory_list.find(GET_UNIQUE(ch));
 	if (it != glory_list.end())
 		it->second->freeze = PLR_FLAGGED(ch, PLR_FROZEN) ? true : false;
 }
 
 void set_stats(CHAR_DATA *ch)
 {
-	GloryListType::iterator it = glory_list.find(GET_UNIQUE(ch));
+	auto it = glory_list.find(GET_UNIQUE(ch));
 	if (glory_list.end() == it)
 	{
 		return;
 	}
 
-	for (GloryTimeType::iterator tm_it = it->second->timers.begin(); tm_it != it->second->timers.end(); ++tm_it)
+	for (const auto& tm_it : it->second->timers)
 	{
-		if ((*tm_it)->timer > 0)
+		if (tm_it->timer > 0)
 		{
-			switch ((*tm_it)->stat)
+			switch (tm_it->stat)
 			{
 			case G_STR:
-				ch->inc_str((*tm_it)->glory);
+				ch->inc_str(tm_it->glory);
 				break;
 			case G_DEX:
-				ch->inc_dex((*tm_it)->glory);
+				ch->inc_dex(tm_it->glory);
 				break;
 			case G_INT:
-				ch->inc_int((*tm_it)->glory);
+				ch->inc_int(tm_it->glory);
 				break;
 			case G_WIS:
-				ch->inc_wis((*tm_it)->glory);
+				ch->inc_wis(tm_it->glory);
 				break;
 			case G_CON:
-				ch->inc_con((*tm_it)->glory);
+				ch->inc_con(tm_it->glory);
 				break;
 			case G_CHA:
-				ch->inc_cha((*tm_it)->glory);
+				ch->inc_cha(tm_it->glory);
 				break;
 			default:
-				log("Glory: некорректный номер стата %d (uid: %ld)", (*tm_it)->stat, it->first);
+				log("Glory: некорректный номер стата %d (uid: %ld)", tm_it->stat, it->first);
 			}
 		}
 	}
@@ -1387,7 +1393,7 @@ void set_stats(CHAR_DATA *ch)
 
 int get_spend_glory(CHAR_DATA *ch)
 {
-	GloryListType::iterator i = glory_list.find(GET_UNIQUE(ch));
+	const auto i = glory_list.find(GET_UNIQUE(ch));
 	if (glory_list.end() != i)
 	{
 		return i->second->spend_glory;

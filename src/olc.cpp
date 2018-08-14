@@ -11,7 +11,6 @@
 #include "olc.h"
 
 #include "object.prototypes.hpp"
-#include "obj.hpp"
 #include "interpreter.h"
 #include "comm.h"
 #include "db.h"
@@ -30,12 +29,6 @@
 
 #include <vector>
 
-// * External data structures.
-extern CHAR_DATA *mob_proto;
-
-extern struct zone_data *zone_table;
-extern DESCRIPTOR_DATA *descriptor_list;
-
 // * External functions.
 void zedit_setup(DESCRIPTOR_DATA * d, int room_num);
 void zedit_save_to_disk(int zone);
@@ -48,11 +41,9 @@ void oedit_setup(DESCRIPTOR_DATA * d, int robj_num);
 void oedit_save_to_disk(int zone);
 void sedit_setup_new(DESCRIPTOR_DATA * d);
 void sedit_setup_existing(DESCRIPTOR_DATA * d, int robj_num);
-void room_free(ROOM_DATA * room);
 void medit_mobile_free(CHAR_DATA * mob);
 void trigedit_setup_new(DESCRIPTOR_DATA * d);
 void trigedit_setup_existing(DESCRIPTOR_DATA * d, int rtrg_num);
-int real_trigger(int vnum);
 void dg_olc_script_free(DESCRIPTOR_DATA * d);
 
 // Internal function prototypes.
@@ -118,7 +109,7 @@ olc_data::olc_data()
 void do_olc(CHAR_DATA *ch, char *argument, int cmd, int subcmd)
 {
 	int number = -1, save = 0, real_num;
-	bool lock = 0, unlock = 0;
+	bool lock = false, unlock = false;
 	DESCRIPTOR_DATA *d;
 
 	// * No screwing around as a mobile.

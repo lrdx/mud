@@ -2,9 +2,7 @@
 // Copyright (c) 2008 Krodo
 // Part of Bylins http://www.mud.ru
 
-#include "conf.h"
 #include "random.hpp"
-#include "sysdep.h"
 #include "utils.h"
 
 #include <boost/version.hpp>

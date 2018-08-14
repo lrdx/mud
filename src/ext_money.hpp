@@ -5,8 +5,6 @@
 #ifndef EXT_MONEY_HPP_INCLUDED
 #define EXT_MONEY_HPP_INCLUDED
 
-#include "conf.h"
-#include "sysdep.h"
 #include "structs.h"
 #include "char.hpp"
 #include <string>
@@ -21,7 +19,7 @@ void drop_torc(CHAR_DATA *mob);
 std::string draw_daily_limit(CHAR_DATA *ch, bool imm_stat = false);
 
 void player_drop_log(CHAR_DATA *ch, unsigned type, int num);
-std::string name_currency_plural(std::string name);
+std::string name_currency_plural(const std::string& name);
 
 } // namespace ExtMoney
 

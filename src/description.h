@@ -5,7 +5,6 @@
 #ifndef _DESCRIPTION_H_INCLUDED
 #define _DESCRIPTION_H_INCLUDED
 
-#include "conf.h"
 #include <string>
 #include <vector>
 #include <map>

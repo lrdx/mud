@@ -15,10 +15,12 @@
 #include "handler.h"
 #include "char.hpp"
 #include "char_player.hpp"
+#include "interpreter.h"
 
 #include <boost/algorithm/string.hpp>
 
 #include <sstream>
+#include <fstream>
 
 extern void send_to_gods(char *text, bool demigod);
 
@@ -122,9 +124,9 @@ void TitleSystem::do_title(CHAR_DATA *ch, char *argument, int/* cmd*/, int/* sub
 			return;
 		}
 		else if (CompareParam(buffer, "одобрить"))
-			result = manage_title_list(buffer2, 1, ch);
+			result = manage_title_list(buffer2, true, ch);
 		else if (CompareParam(buffer, "запретить"))
-			result = manage_title_list(buffer2, 0, ch);
+			result = manage_title_list(buffer2, false, ch);
 		if (result == TITLE_FIND_CHAR)
 			return;
 	}
@@ -221,7 +223,7 @@ void TitleSystem::do_title(CHAR_DATA *ch, char *argument, int/* cmd*/, int/* sub
 		else
 			send_to_char("В данный момент вам нечего отменять.\r\n", ch);
 	}
-	else if (CompareParam(buffer2, "удалить", 1))
+	else if (CompareParam(buffer2, "удалить", true))
 	{
 		if (GET_TITLE(ch) != "")
 		{
@@ -246,15 +248,15 @@ void TitleSystem::do_title(CHAR_DATA *ch, char *argument, int/* cmd*/, int/* sub
 */
 bool TitleSystem::check_title(const std::string& text, CHAR_DATA* ch)
 {
-	if (!check_alphabet(text, ch, " ,.-?Ёё")) return 0;
+	if (!check_alphabet(text, ch, " ,.-?Ёё")) return false;
 
 	if (GET_LEVEL(ch) < 25 && !GET_REMORT(ch) && !IS_GOD(ch) && !Privilege::check_flag(ch, Privilege::TITLE))
 	{
 		send_to_char(ch, "Для права на титул вы должны достигнуть 25го уровня или иметь перевоплощения.\r\n");
-		return 0;
+		return false;
 	}
 
-	return 1;
+	return true;
 }
 
 /**
@@ -265,14 +267,14 @@ bool TitleSystem::check_title(const std::string& text, CHAR_DATA* ch)
 */
 bool TitleSystem::check_pre_title(std::string text, CHAR_DATA* ch)
 {
-	if (!check_alphabet(text, ch, " .-?Ёё")) return 0;
+	if (!check_alphabet(text, ch, " .-?Ёё")) return false;
 
-	if (IS_GOD(ch) || Privilege::check_flag(ch, Privilege::TITLE)) return 1;
+	if (IS_GOD(ch) || Privilege::check_flag(ch, Privilege::TITLE)) return true;
 
 	if (!GET_REMORT(ch))
 	{
 		send_to_char(ch, "Вы должны иметь по крайней мере одно перевоплощение для предтитула.\r\n");
-		return 0;
+		return false;
 	}
 
 	int word = 0, prep = 0;
@@ -287,15 +289,15 @@ bool TitleSystem::check_pre_title(std::string text, CHAR_DATA* ch)
 	if (word > 3 || prep > 3)
 	{
 		send_to_char(ch, "Слишком много слов в предтитуле.\r\n");
-		return 0;
+		return false;
 	}
 	if (word > GET_REMORT(ch))
 	{
 		send_to_char(ch, "У вас недостаточно перевоплощений для стольких слов в предтитуле.\r\n");
-		return 0;
+		return false;
 	}
 
-	return 1;
+	return true;
 }
 
 /**
@@ -314,10 +316,10 @@ bool TitleSystem::check_alphabet(const std::string& text, CHAR_DATA* ch, const s
 		if (c < 192 && idx == std::string::npos)
 		{
 			send_to_char(ch, "Недопустимый символ '%c' в позиции %d.\r\n", *it, ++i);
-			return 0;
+			return false;
 		}
 	}
-	return 1;
+	return true;
 }
 
 /**
@@ -514,8 +516,8 @@ bool TitleSystem::is_new_petition(CHAR_DATA* ch)
 {
 	TitleListType::iterator it = temp_title_list.find(GET_NAME(ch));
 	if (it != temp_title_list.end())
-		return 0;
-	return 1;
+		return false;
+	return true;
 }
 
 /**

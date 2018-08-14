@@ -16,16 +16,16 @@
 #include "house.h"
 #include "pk.h"
 #include "stuff.hpp"
-#include "sets_drop.hpp"
 #include "top.h"
 #include "constants.h"
 #include "screen.h"
-#include "magic.h"
 #include "mob_stat.hpp"
 #include "logger.hpp"
 #include "bonus.h"
 #include "backtrace.hpp"
 #include "spell_parser.hpp"
+#include "features.hpp"
+#include "interpreter.h"
 
 #include <algorithm>
 
@@ -117,7 +117,7 @@ void process_mobmax(CHAR_DATA *ch, CHAR_DATA *killer)
 			partner->mobmax_add(partner, GET_MOB_VNUM(ch), 1, GET_LEVEL(ch));
 		} else {
 			// выберем случайным образом мембера группы для замакса
-			auto n = number(0, cnt);
+			const auto n = number(0, cnt);
 			int i = 0;
 			for (struct follow_type *f = master->followers; f && i < n; f = f->next)
 			{
@@ -456,7 +456,7 @@ void forget_all_spells(CHAR_DATA *ch)
 		af.duration = pc_duration(ch, max_slot*RECALL_SPELLS_INTERVAL+SECS_PER_PLAYER_AFFECT, 0, 0, 0, 0);
 		af.bitvector = to_underlying(EAffectFlag::AFF_RECALL_SPELLS);
 		af.battleflag = AF_PULSEDEC | AF_DEADKEEP;
-		affect_join(ch, af, 0, 0, 0, 0);
+		affect_join(ch, af, false, false, false, false);
 	}
 }
 
@@ -618,7 +618,7 @@ void check_spell_capable(CHAR_DATA *ch, CHAR_DATA *killer)
 		affect_from_char(ch, SPELL_CAPABLE);
 		act("Чары, наложенные на $n3, тускло засветились и стали превращаться в нечто опасное.",
 			FALSE, ch, 0, killer, TO_ROOM | TO_ARENA_LISTEN);
-		int pos = GET_POS(ch);
+		const int pos = GET_POS(ch);
 		GET_POS(ch) = POS_STANDING;
 		call_magic(ch, killer, NULL, world[ch->in_room], ch->mob_specials.capable_spell, GET_LEVEL(ch), CAST_SPELL);
 		GET_POS(ch) = pos;
@@ -627,7 +627,7 @@ void check_spell_capable(CHAR_DATA *ch, CHAR_DATA *killer)
 
 void clear_mobs_memory(CHAR_DATA *ch)
 {
-	for (const auto hitter : character_list)
+	for (const auto& hitter : character_list)
 	{
 		if (IS_NPC(hitter) && MEMORY(hitter))
 		{
@@ -783,13 +783,15 @@ void raw_kill(CHAR_DATA *ch, CHAR_DATA *killer)
 
 int get_remort_mobmax(CHAR_DATA * ch)
 {
-	int remort = GET_REMORT(ch);
+	const int remort = GET_REMORT(ch);
+
 	if (remort >= 18)
 		return 15;
 	if (remort >= 14)
 		return 7;
 	if (remort >= 9)
 		return 4;
+
 	return 0;
 }
 
@@ -895,7 +897,7 @@ void perform_group_gain(CHAR_DATA * ch, CHAR_DATA * victim, int members, int koe
 
 		if (!IS_NPC(ch) && !ch->affected.empty())
 		{ 
-			for (const auto aff : ch->affected)
+			for (const auto& aff : ch->affected)
 			{
 				if (aff->location == APPLY_BONUS_EXP) // скушал свиток с эксп бонусом
 				{
@@ -1069,9 +1071,9 @@ void gain_battle_exp(CHAR_DATA *ch, CHAR_DATA *victim, int dam)
 		&& !IS_NPC(ch)
 		&& !MOB_FLAGGED(victim, MOB_NO_BATTLE_EXP))
 	{
-		int max_exp = MIN(max_exp_gain_pc(ch), (GET_LEVEL(victim) * GET_MAX_HIT(victim) + 4) /
+		const int max_exp = MIN(max_exp_gain_pc(ch), (GET_LEVEL(victim) * GET_MAX_HIT(victim) + 4) /
 			(5 * MAX(1, GET_REMORT(ch) - MAX_EXP_COEFFICIENTS_USED - 1)));
-		double coeff = MIN(dam, GET_HIT(victim)) / static_cast<double>(GET_MAX_HIT(victim));
+		const double coeff = MIN(dam, GET_HIT(victim)) / static_cast<double>(GET_MAX_HIT(victim));
 		int battle_exp = MAX(1, static_cast<int>(max_exp * coeff));
 		if (Bonus::is_bonus(Bonus::BONUS_WEAPON_EXP))
 			battle_exp *= Bonus::get_mult_bonus();
@@ -1356,7 +1358,7 @@ void Damage::post_init_shields(CHAR_DATA *victim)
 			return;
 		}
 
-		int shield_num = number(0, static_cast<int>(shields.size() - 1));
+		const int shield_num = number(0, static_cast<int>(shields.size() - 1));
 
 		if (shields[shield_num] == FIRESHIELD)
 		{

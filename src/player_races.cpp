@@ -7,9 +7,7 @@
 #include "conf.h"
 #include "sysdep.h"
 #include "utils.h"
-#include "comm.h"
 #include "player_races.hpp"
-#include "pugixml.hpp"
 
 PlayerKinListType PlayerRace::PlayerKinList;
 
@@ -107,9 +105,11 @@ void PlayerRace::AddRaceBirthPlace(int id)
 PlayerKinPtr PlayerRace::GetPlayerKin(int Kin)
 {
 	PlayerKinPtr KinPtr;
-	for (PlayerKinListType::iterator it =  PlayerKinList.begin();it != PlayerKinList.end();++it)
-		if ((*it)->KinNum == Kin)
-			KinPtr = *it;
+	for (const auto& it : PlayerKinList)
+	{
+		if (it->KinNum == Kin)
+			KinPtr = it;
+	}
 	return KinPtr;
 };
 
@@ -120,9 +120,13 @@ PlayerRacePtr PlayerRace::GetPlayerRace(int Kin,int Race)
 	PlayerKinPtr KinPtr = PlayerRace::GetPlayerKin(Kin);
 
 	if (KinPtr != NULL)
-		for (PlayerRaceListType::iterator it = KinPtr->PlayerRaceList.begin();it != KinPtr->PlayerRaceList.end();++it)
-			if ((*it)->_RaceNum == Race)
-				RacePtr = *it;
+	{
+		for (const auto& it : KinPtr->PlayerRaceList)
+		{
+			if (it->_RaceNum == Race)
+				RacePtr = it;
+		}
+	}
 	return RacePtr;
 };
 
@@ -282,9 +286,13 @@ std::string PlayerRace::ShowRacesMenu(int KinNum)
     std::ostringstream buffer;
     PlayerKinPtr KinPtr = PlayerRace::GetPlayerKin(KinNum);
 
-    if (KinPtr != NULL)
-        for (PlayerRaceListType::iterator it =  KinPtr->PlayerRaceList.begin();it != KinPtr->PlayerRaceList.end();++it)
-            buffer << " " << (*it)->_RaceNum+1 << ") " << (*it)->_RaceMenuStr << "\r\n";
+	if (KinPtr != NULL)
+	{
+		for (const auto& it : KinPtr->PlayerRaceList)
+		{
+			buffer << " " << it->_RaceNum + 1 << ") " << it->_RaceMenuStr << "\r\n";
+		}
+	}
 
     return buffer.str();
 };
@@ -318,8 +326,10 @@ int PlayerRace::CheckRace(int KinNum, char *arg)
 std::string PlayerRace::ShowKinsMenu()
 {
     std::ostringstream buffer;
-    for (PlayerKinListType::iterator it =  PlayerKinList.begin();it != PlayerKinList.end();++it)
-        buffer << " " << (*it)->KinNum+1 << ") " << (*it)->KinMenuStr << "\r\n";
+	for (const auto& it : PlayerKinList)
+	{
+		buffer << " " << it->KinNum + 1 << ") " << it->KinMenuStr << "\r\n";
+	}
 
     return buffer.str();
 };

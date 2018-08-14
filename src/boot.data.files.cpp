@@ -623,7 +623,7 @@ void WorldFile::setup_dir(int room, unsigned dir)
 		log("SYSERR: Format error, %s", line);
 		exit(1);
 	}
-	int result = sscanf(line, " %d %d %d %d", t, t + 1, t + 2, t + 3);
+	const int result = sscanf(line, " %d %d %d %d", t, t + 1, t + 2, t + 3);
 	if (result == 3)//Polud видимо "старый" формат (20.10.2010), прочитаем в старом
 	{
 		if (t[0] & 1)
@@ -747,7 +747,7 @@ void ObjectFile::parse_object(const int nr)
 	}
 	tobj->set_description(tmpptr ? tmpptr : "");
 
-	auto action_description = fread_string();
+	const auto action_description = fread_string();
 	tobj->set_action_description(action_description ? action_description : "");
 
 	if (!get_line(file(), m_line))
@@ -1429,7 +1429,7 @@ void MobileFile::parse_espec(char *buf, int i, int nr)
 	interpret_espec(buf, ptr, i, nr);
 }
 
-std::vector<std::string> split_string(const char *str, std::string separator = " ")
+std::vector<std::string> split_string(const char *str, const std::string& separator = " ")
 {
 	std::vector<std::string> array_string;
 	boost::split(array_string, std::string(str), boost::is_any_of(separator));
@@ -1439,9 +1439,9 @@ std::vector<std::string> split_string(const char *str, std::string separator = "
 void MobileFile::interpret_espec(const char *keyword, const char *value, int i, int nr)
 {
 	struct helper_data_type *helper;
-	int k, num_arg, matched = 0, t[MAX_NUMBER_RESISTANCE];
+	int matched = 0, t[MAX_NUMBER_RESISTANCE];
 
-	num_arg = atoi(value);
+	auto num_arg = atoi(value);
 
 #define CASE(test) if (!matched && !str_cmp(keyword, test) && (matched = 1))
 #define RANGE(low, high) (num_arg = MAX((low), MIN((high), (num_arg))))
@@ -1455,7 +1455,7 @@ void MobileFile::interpret_espec(const char *keyword, const char *value, int i, 
 			log("SYSERROR : Excepted format <# # # # # # # #> for RESISTANCES in MOB #%d", i);
 			return;
 		}
-		for (k = 0; k < array_string.size(); k++)
+		for (size_t k = 0; k < array_string.size(); k++)
 		{
 			GET_RESIST(mob_proto + i, k) = MIN(300, MAX(-1000, atoi(array_string[k].c_str())));
 		}
@@ -1476,8 +1476,11 @@ void MobileFile::interpret_espec(const char *keyword, const char *value, int i, 
 			log("SYSERROR : Excepted format <# # # #> for SAVES in MOB #%d", i);
 			return;
 		}
-		for (k = 0; k < SAVING_COUNT; k++)
+
+		for (size_t k = 0; k < SAVING_COUNT; k++)
+		{
 			GET_SAVE(mob_proto + i, k) = MIN(200, MAX(-200, t[k]));
+		}
 	}
 
 	CASE("HPReg")
@@ -1708,7 +1711,7 @@ void MobileFile::interpret_espec(const char *keyword, const char *value, int i, 
 	{
 		if (value && *value)
 		{
-			std::string str(value);
+			const std::string str(value);
 			CHAR_DATA::role_t tmp(str);
 			tmp.resize(mob_proto[i].get_role().size());
 			mob_proto[i].set_role(tmp);
@@ -2005,11 +2008,11 @@ bool HelpFile::load_help()
 		}
 		min_level = MAX(0, MIN(min_level, LVL_IMPL));
 		// now, add the entry to the index with each keyword on the keyword line
-		std::string entry_str(entry);
+		const std::string entry_str(entry);
 		scan = one_word(key, next_key);
 		while (*next_key)
 		{
-			std::string key_str(next_key);
+			const std::string key_str(next_key);
 			HelpSystem::add_static(key_str, entry_str, min_level);
 			scan = one_word(scan, next_key);
 		}

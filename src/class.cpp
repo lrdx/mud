@@ -2013,9 +2013,9 @@ void do_start(CHAR_DATA * ch, int newbie)
 	if (newbie)
 	{
 		std::vector<int> outfit_list(Noob::get_start_outfit(ch));
-		for (auto i = outfit_list.begin(); i != outfit_list.end(); ++i)
+		for (const auto& i : outfit_list)
 		{
-			const OBJ_DATA::shared_ptr obj = world_objects.create_from_prototype_by_vnum(*i);
+			const auto obj = world_objects.create_from_prototype_by_vnum(i);
 			if (obj)
 			{
 				obj->set_extra_flag(EExtraFlag::ITEM_NOSELL);
@@ -2279,7 +2279,7 @@ int invalid_anti_class(CHAR_DATA * ch, const OBJ_DATA* obj)
 	{
 		for (const OBJ_DATA* object = obj->get_contains(); object; object = object->get_next_content())
 		{
-			if (invalid_anti_class(ch, object) || NamedStuff::check_named(ch, object, 0))
+			if (invalid_anti_class(ch, object) || NamedStuff::check_named(ch, object, false))
 			{
 				return (TRUE);
 			}
@@ -2655,7 +2655,7 @@ void init_spell_levels(void)
 			log("Spell '%s' not found...", name);
 			graceful_exit(1);
 		}
-		size_t c = strlen(line3);
+		const size_t c = strlen(line3);
 		if (!strn_cmp(line3, "potion", c))
 		{
 			spell_create[sp_num].potion.items[0] = i[0];

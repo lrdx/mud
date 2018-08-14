@@ -11,7 +11,6 @@
 #include "world.objects.hpp"
 #include "object.prototypes.hpp"
 #include "obj.hpp"
-#include "screen.h"
 #include "spells.h"
 #include "skills.h"
 #include "constants.h"
@@ -31,12 +30,13 @@
 #include "utils.h"
 #include "sysdep.h"
 #include "conf.h"
+
 #include <cmath>
+#include <fstream>
 
 #define SpINFO   spell_info[spellnum]
 extern int material_value[];
 int slot_for_char(CHAR_DATA * ch, int i);
-void die(CHAR_DATA * ch, CHAR_DATA * killer);
 
 constexpr auto WEAR_TAKE = to_underlying(EWearFlag::ITEM_WEAR_TAKE);
 constexpr auto WEAR_TAKE_BOTHS_WIELD = WEAR_TAKE | to_underlying(EWearFlag::ITEM_WEAR_BOTHS) | to_underlying(EWearFlag::ITEM_WEAR_WIELD);
@@ -149,7 +149,7 @@ const char *create_weapon_quality[] = { "RESERVED",
 									  };
 MakeReceptList make_recepts;
 // Функция вывода в поток //
-CHAR_DATA *& operator<<(CHAR_DATA * &ch, string p)
+CHAR_DATA *& operator<<(CHAR_DATA * &ch, const std::string& p)
 {
 	send_to_char(p.c_str(), ch);
 	return ch;
@@ -730,7 +730,7 @@ void do_make_item(CHAR_DATA *ch, char *argument, int/* cmd*/, int subcmd)
 	tmpstr = string(tmpbuf);
 	size_t i = atoi(tmpbuf);
 	if ((i > 0) && (i <= canlist->size())
-			&& (tmpstr.find(".") > tmpstr.size()))
+			&& (tmpstr.find('.') > tmpstr.size()))
 	{
 		trec = (*canlist)[i - 1];
 	}
@@ -1246,7 +1246,7 @@ MakeReceptList::load()
 		if (tmpstr.substr(0, 2) == "//")
 			continue;
 //    cout << "Get str from file :" << tmpstr << endl;
-		if (tmpstr.size() == 0)
+		if (tmpstr.empty())
 			continue;
 		trec = new(MakeRecept);
 		if (trec->load_from_str(tmpstr))
@@ -1348,7 +1348,7 @@ MakeRecept *MakeReceptList::get_by_name(string & rname)
 	list<MakeRecept*>::iterator p = recepts.begin();
 	int k = 1;	// count
 	// split string by '.' character and convert first part into number (store to k)
-	size_t i = rname.find(".");
+	size_t i = rname.find('.');
 	if (std::string::npos != i)	// TODO: Check me.
 	{
 		// Строка не найдена.
@@ -1607,7 +1607,7 @@ void MakeRecept::make_value_wear(CHAR_DATA *ch, OBJ_DATA *obj, OBJ_DATA *ingrs[M
 }
 float MakeRecept::count_mort_requred(OBJ_DATA * obj)
 {
-    
+
 	float result = 0.0;
 	const float SQRT_MOD = 1.7095f;
 	const int AFF_SHIELD_MOD = 30;
@@ -1615,7 +1615,7 @@ float MakeRecept::count_mort_requred(OBJ_DATA * obj)
 	const int AFF_BLINK_MOD = 10;
 
 	result = 0.0;
-	
+
 	float total_weight = 0.0;
 
 	// аффекты APPLY_x
@@ -1634,49 +1634,49 @@ float MakeRecept::count_mort_requred(OBJ_DATA * obj)
 				return 1000000;
 			}
 		}
-		if ((obj->get_affected(k).modifier > 0)&&((obj->get_affected(k).location != APPLY_AC)&&
-                        (obj->get_affected(k).location != APPLY_SAVING_WILL)&&
-                        (obj->get_affected(k).location != APPLY_SAVING_CRITICAL)&&
-                        (obj->get_affected(k).location != APPLY_SAVING_STABILITY)&&
-                        (obj->get_affected(k).location != APPLY_SAVING_REFLEX)))
+		if ((obj->get_affected(k).modifier > 0) && ((obj->get_affected(k).location != APPLY_AC) &&
+			(obj->get_affected(k).location != APPLY_SAVING_WILL) &&
+			(obj->get_affected(k).location != APPLY_SAVING_CRITICAL) &&
+			(obj->get_affected(k).location != APPLY_SAVING_STABILITY) &&
+			(obj->get_affected(k).location != APPLY_SAVING_REFLEX)))
 		{
-                    float weight = count_affect_weight(obj->get_affected(k).location, obj->get_affected(k).modifier);
-        	    log("SYSERROR: negative weight=%f, obj_vnum=%d",
-					weight, GET_OBJ_VNUM(obj));
-                    total_weight += pow(weight, SQRT_MOD);
+			float weight = count_affect_weight(obj->get_affected(k).location, obj->get_affected(k).modifier);
+			log("SYSERROR: negative weight=%f, obj_vnum=%d",
+				weight, GET_OBJ_VNUM(obj));
+			total_weight += pow(weight, SQRT_MOD);
 		}
-                // савесы которые с минусом должны тогда понижать вес если в +
- 		else if ((obj->get_affected(k).modifier > 0)&&((obj->get_affected(k).location == APPLY_AC)||
-                        (obj->get_affected(k).location == APPLY_SAVING_WILL)||
-                        (obj->get_affected(k).location == APPLY_SAVING_CRITICAL)||
-                        (obj->get_affected(k).location == APPLY_SAVING_STABILITY)||
-                        (obj->get_affected(k).location == APPLY_SAVING_REFLEX)))
+		// савесы которые с минусом должны тогда понижать вес если в +
+		else if ((obj->get_affected(k).modifier > 0) && ((obj->get_affected(k).location == APPLY_AC) ||
+			(obj->get_affected(k).location == APPLY_SAVING_WILL) ||
+			(obj->get_affected(k).location == APPLY_SAVING_CRITICAL) ||
+			(obj->get_affected(k).location == APPLY_SAVING_STABILITY) ||
+			(obj->get_affected(k).location == APPLY_SAVING_REFLEX)))
 		{
-                    float weight = count_affect_weight(obj->get_affected(k).location, 0-obj->get_affected(k).modifier);
-                    total_weight -= pow(weight, -SQRT_MOD);
+			float weight = count_affect_weight(obj->get_affected(k).location, 0 - obj->get_affected(k).modifier);
+			total_weight -= pow(weight, -SQRT_MOD);
 		}
-               //Добавленый кусок учет савесов с - значениями
-                else if ((obj->get_affected(k).modifier < 0)
-                        &&((obj->get_affected(k).location == APPLY_AC)||
-                        (obj->get_affected(k).location == APPLY_SAVING_WILL)||
-                        (obj->get_affected(k).location == APPLY_SAVING_CRITICAL)||
-                        (obj->get_affected(k).location == APPLY_SAVING_STABILITY)||
-                        (obj->get_affected(k).location == APPLY_SAVING_REFLEX)))
-                {
-                    float weight = count_affect_weight(obj->get_affected(k).location, obj->get_affected(k).modifier);
-                    total_weight += pow(weight, SQRT_MOD);
-                }
-               //Добавленый кусок учет отрицательного значения но не савесов
-                else if ((obj->get_affected(k).modifier < 0)
-                        &&((obj->get_affected(k).location != APPLY_AC)&&
-                        (obj->get_affected(k).location != APPLY_SAVING_WILL)&&
-                        (obj->get_affected(k).location != APPLY_SAVING_CRITICAL)&&
-                        (obj->get_affected(k).location != APPLY_SAVING_STABILITY)&&
-                        (obj->get_affected(k).location != APPLY_SAVING_REFLEX)))
-                {
-                    float weight = count_affect_weight(obj->get_affected(k).location, 0-obj->get_affected(k).modifier);
-                    total_weight -= pow(weight, -SQRT_MOD);
-                }
+		//Добавленый кусок учет савесов с - значениями
+		else if ((obj->get_affected(k).modifier < 0)
+			&& ((obj->get_affected(k).location == APPLY_AC) ||
+			(obj->get_affected(k).location == APPLY_SAVING_WILL) ||
+				(obj->get_affected(k).location == APPLY_SAVING_CRITICAL) ||
+				(obj->get_affected(k).location == APPLY_SAVING_STABILITY) ||
+				(obj->get_affected(k).location == APPLY_SAVING_REFLEX)))
+		{
+			float weight = count_affect_weight(obj->get_affected(k).location, obj->get_affected(k).modifier);
+			total_weight += pow(weight, SQRT_MOD);
+		}
+		//Добавленый кусок учет отрицательного значения но не савесов
+		else if ((obj->get_affected(k).modifier < 0)
+			&& ((obj->get_affected(k).location != APPLY_AC) &&
+			(obj->get_affected(k).location != APPLY_SAVING_WILL) &&
+				(obj->get_affected(k).location != APPLY_SAVING_CRITICAL) &&
+				(obj->get_affected(k).location != APPLY_SAVING_STABILITY) &&
+				(obj->get_affected(k).location != APPLY_SAVING_REFLEX)))
+		{
+			float weight = count_affect_weight(obj->get_affected(k).location, 0 - obj->get_affected(k).modifier);
+			total_weight -= pow(weight, -SQRT_MOD);
+		}
 	}
 	// аффекты AFF_x через weapon_affect
 	for (const auto& m : weapon_affect)
@@ -1705,12 +1705,13 @@ float MakeRecept::count_mort_requred(OBJ_DATA * obj)
 			}
 		}
 	}
-        if (total_weight < 1) return result;
-	
-        result = ceil(pow(total_weight, 1/SQRT_MOD));
+
+	if (total_weight < 1) 
+		return result;
+
+	result = ceil(pow(total_weight, 1 / SQRT_MOD));
 
 	return result;
-    
 }
 
 float MakeRecept::count_affect_weight(int num, int mod)
@@ -2196,7 +2197,7 @@ int MakeRecept::make(CHAR_DATA * ch)
 				{
 					state = state - GET_OBJ_WEIGHT(ingrs[i]);
 					send_to_char(ch, "Вы полностью использовали %s и начали искать следующий ингредиент.\r\n", ingrs[i]->get_PName(3).c_str());
-					std::string tmpname = std::string(ingrs[i]->get_PName(1).c_str());
+					std::string tmpname = std::string(ingrs[i]->get_PName(1));
 					IS_CARRYING_W(ch) -= GET_OBJ_WEIGHT(ingrs[i]);
 					ingrs[i]->set_weight(0);
 					extract_obj(ingrs[i]);
@@ -2241,7 +2242,7 @@ int MakeRecept::make(CHAR_DATA * ch)
 			}
 			GET_HIT(ch) -= dam;
 			update_pos(ch);
-			char_dam_message(dam, ch, ch, 0);
+			char_dam_message(dam, ch, ch, false);
 			if (GET_POS(ch) == POS_DEAD)
 			{
 				// Убился веником.
@@ -2475,10 +2476,10 @@ int MakeRecept::load_from_str(string & rstr)
 	{
 		locked = false;
 	}
-	skill = static_cast<ESkill>(atoi(rstr.substr(0, rstr.find(" ")).c_str()));
-	rstr = rstr.substr(rstr.find(" ") + 1);
-	obj_proto = atoi((rstr.substr(0, rstr.find(" "))).c_str());
-	rstr = rstr.substr(rstr.find(" ") + 1);
+	skill = static_cast<ESkill>(atoi(rstr.substr(0, rstr.find(' ')).c_str()));
+	rstr = rstr.substr(rstr.find(' ') + 1);
+	obj_proto = atoi((rstr.substr(0, rstr.find(' '))).c_str());
+	rstr = rstr.substr(rstr.find(' ') + 1);
 
 	if (real_object(obj_proto) < 0)
 	{
@@ -2492,8 +2493,8 @@ int MakeRecept::load_from_str(string & rstr)
 	for (int i = 0; i < MAX_PARTS; i++)
 	{
 		// считали номер прототипа компонента
-		parts[i].proto = atoi((rstr.substr(0, rstr.find(" "))).c_str());
-		rstr = rstr.substr(rstr.find(" ") + 1);
+		parts[i].proto = atoi((rstr.substr(0, rstr.find(' '))).c_str());
+		rstr = rstr.substr(rstr.find(' ') + 1);
 		// Проверяем на конец компонентов.
 		if (parts[i].proto == 0)
 		{
@@ -2507,10 +2508,10 @@ int MakeRecept::load_from_str(string & rstr)
 			// блокируем рецепты без ингров.
 			locked = true;
 		}
-		parts[i].min_weight = atoi(rstr.substr(0, rstr.find(" ")).c_str());
-		rstr = rstr.substr(rstr.find(" ") + 1);
-		parts[i].min_power = atoi(rstr.substr(0, rstr.find(" ")).c_str());
-		rstr = rstr.substr(rstr.find(" ") + 1);
+		parts[i].min_weight = atoi(rstr.substr(0, rstr.find(' ')).c_str());
+		rstr = rstr.substr(rstr.find(' ') + 1);
+		parts[i].min_power = atoi(rstr.substr(0, rstr.find(' ')).c_str());
+		rstr = rstr.substr(rstr.find(' ') + 1);
 	}
 	return (TRUE);
 }

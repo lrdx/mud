@@ -4,11 +4,7 @@
 #ifndef OBJ_SETS_STUFF_HPP_INCLUDED
 #define OBJ_SETS_STUFF_HPP_INCLUDED
 
-#include "conf.h"
-
-#include "sysdep.h"
 #include "structs.h"
-#include "interpreter.h"
 #include "char_player.hpp"
 
 #include <array>
@@ -100,9 +96,9 @@ struct activ_node
 		{
 			return false;
 		}
-		for (auto i = apply.begin(); i != apply.end(); ++i)
+		for (const auto& i : apply)
 		{
-			if (i->location > 0)
+			if (i.location > 0)
 			{
 				return false;
 			}

@@ -23,17 +23,12 @@
 #include "utils.h"
 #include "comm.h"
 #include "handler.h"
-#include "interpreter.h"
 #include "db.h"
 #include "screen.h"
 #include "constants.h"
-#include "random.hpp"
 #include "char.hpp"
 #include "room.hpp"
 #include "celebrates.hpp"
-
-extern void script_timechange_trigger_check(const int time);//Эксопрт тригеров смены времени
-extern TIME_INFO_DATA time_info;
 
 void another_hour(int mode);
 void weather_change(void);

@@ -17,9 +17,6 @@
 
 #include "constants.h"
 #include "spells.h"
-#include "skills.h"
-#include "interpreter.h"	// alias_data
-#include "house.h"
 
 const char *circlemud_version = "CircleMUD, version 3.00 beta patchlevel 16";
 

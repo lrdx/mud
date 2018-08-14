@@ -26,7 +26,6 @@
 #include "olc.h"
 #include "features.hpp"
 #include "house.h"
-#include "privilege.hpp"
 #include "char.hpp"
 #include "skills.h"
 #include "genchar.h"
@@ -50,7 +49,6 @@ void show_string(DESCRIPTOR_DATA * d, char *input);
 #define PARSE_LIST_NUM    6
 #define PARSE_EDIT        7
 
-extern const char *MENU;
 extern const char *unused_spellname;	// spell_parser.cpp
 
 // local functions

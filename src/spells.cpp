@@ -39,7 +39,6 @@
 #include "liquid.hpp"
 #include "modify.h"
 #include "room.hpp"
-#include "birth_places.hpp"
 #include "obj_sets.hpp"
 #include "logger.hpp"
 #include "magic.h"
@@ -50,13 +49,6 @@
 
 #include <vector>
 
-extern room_rnum r_mortal_start_room;
-
-extern DESCRIPTOR_DATA *descriptor_list;
-extern struct zone_data *zone_table;
-extern const char *material_name[];
-extern const char *weapon_affects[];
-extern TIME_INFO_DATA time_info;
 extern int cmd_tell;
 extern char cast_argument[MAX_INPUT_LENGTH];
 extern int slot_for_char(CHAR_DATA * ch, int slot_num);
@@ -65,9 +57,6 @@ extern im_type *imtypes;
 extern int top_imtypes;
 //end by WorM
 
-ESkill get_magic_skill_number_by_spell(int spellnum);
-bool can_get_spell(CHAR_DATA *ch, int spellnum);
-bool can_get_spell_with_req(CHAR_DATA *ch, int spellnum, int req_lvl);
 void weight_change_object(OBJ_DATA * obj, int weight);
 int compute_armor_class(CHAR_DATA * ch);
 char *diag_weapon_to_char(const CObjectPrototype* obj, int show_wear);
@@ -78,7 +67,6 @@ void go_flee(CHAR_DATA * ch);
 void do_tell(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
 
 void perform_remove(CHAR_DATA * ch, int pos);
-int get_zone_rooms(int, int *, int *);
 
 int pk_action_type_summon(CHAR_DATA * agressor, CHAR_DATA * victim);
 void pk_increment_revenge(CHAR_DATA * agressor, CHAR_DATA * victim);
@@ -2090,9 +2078,9 @@ void mort_show_obj_values(const OBJ_DATA * obj, CHAR_DATA * ch, int fullness)
 			{
 				sprintf(buf, "Часть набора предметов: %s%s%s\r\n", CCNRM(ch, C_NRM), it->second.get_name().c_str(), CCNRM(ch, C_NRM));
 				send_to_char(buf, ch);
-				for (set_info::iterator vnum = it->second.begin(), iend = it->second.end(); vnum != iend; ++vnum)
+				for (const auto& vnum : it->second)
 				{
-					const int r_num = real_object(vnum->first);
+					const int r_num = real_object(vnum.first);
 					if (r_num < 0)
 					{
 						send_to_char("Неизвестный объект!!!\r\n", ch);
@@ -2443,10 +2431,10 @@ void imm_show_obj_values(OBJ_DATA * obj, CHAR_DATA * ch)
 			{
 				sprintf(buf, "Часть набора предметов: %s%s%s\r\n", CCNRM(ch, C_NRM), it->second.get_name().c_str(), CCNRM(ch, C_NRM));
 				send_to_char(buf, ch);
-				for (set_info::iterator vnum = it->second.begin(), iend = it->second.end(); vnum != iend; ++vnum)
+				for (const auto& vnum : it->second)
 				{
 					int r_num;
-					if ((r_num = real_object(vnum->first)) < 0)
+					if ((r_num = real_object(vnum.first)) < 0)
 					{
 						send_to_char("Неизвестный объект!!!\r\n", ch);
 						continue;

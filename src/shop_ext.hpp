@@ -5,11 +5,8 @@
 #ifndef SHOP_EXT_HPP_INCLUDED
 #define SHOP_EXT_HPP_INCLUDED
 
-#include "conf.h"
-#include "sysdep.h"
 #include "interpreter.h"
 #include "dictionary.hpp"
-
 
 namespace ShopExt
 {

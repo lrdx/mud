@@ -41,9 +41,6 @@
 // из spec_proc.c
 char *how_good(CHAR_DATA * ch, int percent);
 
-extern CHAR_DATA *mob_proto;
-extern INDEX_DATA *mob_index;
-
 void do_rset(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
 void do_recipes(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
 void do_cook(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
@@ -376,7 +373,7 @@ OBJ_DATA *load_ingredient(int index, int power, int rnum)
 {
 	int err;
 
-	while (1)
+	while (true)
 	{
 		if (imtypes[index].proto_vnum < 0)
 		{
@@ -412,15 +409,14 @@ OBJ_DATA *load_ingredient(int index, int power, int rnum)
 
 void im_translate_rskill_to_id(void)
 {
-	im_rskill *rs;
-	for (const auto ch : character_list)
+	for (const auto& ch : character_list)
 	{
 		if (IS_NPC(ch))
 		{
 			continue;
 		}
 
-		for (rs = GET_RSKILL(ch); rs; rs = rs->link)
+		for (auto rs = GET_RSKILL(ch); rs; rs = rs->link)
 		{
 			rs->rid = imrecipes[rs->rid].id;
 		}
@@ -429,16 +425,15 @@ void im_translate_rskill_to_id(void)
 
 void im_translate_rskill_to_rid(void)
 {
-	im_rskill *rs, **prs;
-	int rid;
-	for (const auto ch : character_list)
+	im_rskill *rs;
+	for (const auto& ch : character_list)
 	{
 		if (IS_NPC(ch))
 			continue;
-		prs = &GET_RSKILL(ch);
+		auto prs = &GET_RSKILL(ch);
 		while ((rs = *prs) != NULL)
 		{
-			rid = im_get_recipe(rs->rid);
+			const auto rid = im_get_recipe(rs->rid);
 			if (rid >= 0)
 			{
 				rs->rid = rid;
@@ -959,7 +954,7 @@ void im_parse(int **ing_list, char *line)
 	int *res;
 	int n, l, p, *ptr;
 
-	while (1)
+	while (true)
 	{
 		skip_spaces(&line);
 		if (*line == 0)
@@ -1410,7 +1405,7 @@ OBJ_DATA **im_obtain_ingredients(CHAR_DATA * ch, char *argument, int *count)
 	OBJ_DATA *o;
 	int i, n = 0;
 
-	while (1)
+	while (true)
 	{
 		argument = one_argument(argument, name);
 		if (!*name)

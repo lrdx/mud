@@ -760,7 +760,7 @@ namespace craft
 
 		std::stringstream ignored_applies;
 		bool first = true;
-		size_t i = 0;
+		const size_t i = 0;
 		for (const auto& apply : applies)
 		{
 			if (i < MAX_OBJ_AFFECT)
@@ -1085,7 +1085,7 @@ namespace craft
 			return false;
 		}
 
-		obj_vnum vnum = prototype->attribute("vnum").as_int(0);
+		const auto vnum = prototype->attribute("vnum").as_int(0);
 		if (0 == vnum)
 		{
 			logger("Failed to get VNUM of the %zd-%s prototype. This prototype entry will be skipped.\n",
@@ -1101,7 +1101,7 @@ namespace craft
 		}
 
 		CObject* p = new CObject(vnum);
-		CObjectPrototype::shared_ptr prototype_object(p);
+		const CObjectPrototype::shared_ptr prototype_object(p);
 		if (prototype->attribute("filename").empty())
 		{
 			if (!p->load_from_node(prototype))
@@ -1387,7 +1387,7 @@ namespace craft
 					std::swap(min, max);
 				}
 
-				CVNumRange r(min, max);
+				const CVNumRange r(min, max);
 				m_allowed_vnums.insert(r);
 				vnums_ok = true;
 			}
@@ -1414,7 +1414,7 @@ namespace craft
 			return EAVNR_ALREADY_EXISTS;
 		}
 
-		auto right = m_allowed_vnums.upper_bound(CVNumRange(vnum, 0));	// Here does not matter a value of the second argument
+		const auto right = m_allowed_vnums.upper_bound(CVNumRange(vnum, 0));	// Here does not matter a value of the second argument
 		decltype(m_allowed_vnums)::reverse_iterator p(right);	// going opposite direction
 		while (p != m_allowed_vnums.rend())
 		{

@@ -5,7 +5,6 @@
 #include "utils.h"
 #include "liquid.hpp"
 #include "char.hpp"
-#include "glory.hpp"
 #include "glory_const.hpp"
 #include "ext_money.hpp"
 #include "world.objects.hpp"
@@ -13,6 +12,7 @@
 #include "modify.h"
 #include "named_stuff.hpp"
 #include "pk.h"
+#include "features.hpp"
 
 #include <boost/lexical_cast.hpp>
 #include <boost/algorithm/string.hpp>
@@ -191,8 +191,8 @@ namespace ShopExt
 
 		const auto& desc = desc_i->second;
 
-		obj->set_description(desc.description.c_str());
-		obj->set_aliases(desc.name.c_str());
+		obj->set_description(desc.description);
+		obj->set_aliases(desc.name);
 		obj->set_short_description(desc.short_description.c_str());
 		obj->set_PName(0, desc.PNames[0].c_str());
 		obj->set_PName(1, desc.PNames[1].c_str());
@@ -549,7 +549,7 @@ namespace ShopExt
 				}
 			}
 
-			std::string numToShow = (count == -1 || count > 100 ? "Навалом" : boost::lexical_cast<std::string>(count));
+			std::string numToShow = (count == -1 || count > 100 ? "Навалом" : std::to_string(count));
 
 			// имхо вполне логично раз уж мы получаем эту надпись в ней и искать
 			if (arg.empty()
@@ -756,8 +756,8 @@ namespace ShopExt
 		EWearFlag wear = EWearFlag::ITEM_WEAR_UNDEFINED;
 		int type = -10;
 
-		std::string print_value = "";
-		std::string name_value = "";
+		std::string print_value;
+		std::string name_value;
 
 		std::string filtr_value;
 		const char *first_simvol = "";
@@ -850,7 +850,7 @@ namespace ShopExt
 
 			std::string numToShow = count == -1
 				? "Навалом"
-				: boost::lexical_cast<std::string>(count);
+				: std::to_string(count);
 
 			if (show_name)
 			{
@@ -1078,7 +1078,7 @@ namespace ShopExt
 			tell_to_char(keeper, ch, tell.str().c_str());
 			if (invalid_anti_class(ch, ident_obj)
 				|| invalid_unique(ch, ident_obj)
-				|| NamedStuff::check_named(ch, ident_obj, 0))
+				|| NamedStuff::check_named(ch, ident_obj, false))
 			{
 				tell.str("Но лучше бы тебе не заглядываться на эту вещь, не унесешь все равно.");
 				tell_to_char(keeper, ch, tell.str().c_str());
@@ -1184,7 +1184,7 @@ namespace ShopExt
 		}
 
 		int count = 0;
-		std::string name_value = "";
+		std::string name_value;
 		std::string print_value;
 		for (unsigned i = 0; i < items_list().size(); ++i)
 		{
@@ -1305,7 +1305,7 @@ namespace ShopExt
 		return MMAX(1, cost);
 	}
 
-	void shop_node::do_shop_cmd(CHAR_DATA* ch, CHAR_DATA *keeper, OBJ_DATA* obj, std::string cmd)
+	void shop_node::do_shop_cmd(CHAR_DATA* ch, CHAR_DATA *keeper, OBJ_DATA* obj, const std::string& cmd)
 	{
 		if (!obj)
 		{
@@ -1362,7 +1362,7 @@ namespace ShopExt
 			buy_price = buy_price_old;
 		}
 
-		std::string price_to_show = boost::lexical_cast<std::string>(buy_price) + " " + std::string(desc_count(buy_price, WHAT_MONEYu));
+		std::string price_to_show = std::to_string(buy_price) + " " + std::string(desc_count(buy_price, WHAT_MONEYu));
 
 		if (cmd == "Оценить")
 		{
@@ -1469,7 +1469,7 @@ namespace ShopExt
 			}
 
 			tell_to_char(keeper, ch, ("Починка " + std::string(GET_OBJ_PNAME(obj, 1)) + " обойдется в "
-				+ boost::lexical_cast<std::string>(repair_price) + " " + desc_count(repair_price, WHAT_MONEYu)).c_str());
+				+ std::to_string(repair_price) + " " + desc_count(repair_price, WHAT_MONEYu)).c_str());
 
 			if (!IS_GOD(ch) && repair_price > ch->get_gold())
 			{

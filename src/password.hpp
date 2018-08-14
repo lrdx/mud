@@ -5,11 +5,9 @@
 #ifndef PASSWORD_HPP_INCLUDED
 #define PASSWORD_HPP_INCLUDED
 
-#include "conf.h"
-#include <string>
-
-#include "sysdep.h"
 #include "structs.h"
+
+#include <string>
 
 /**
 * Вобщем вынес всю работу с паролями в один файл + прикрутил md5, хотя толку с него сейчас тоже уже не особо много.
@@ -20,8 +18,8 @@ namespace Password
 
 void set_password(CHAR_DATA *ch, const std::string &pwd);
 void set_password_to_email(CHAR_DATA *ch, const std::string &pwd);
-void send_password(std::string email, std::string password);
-void send_password(std::string email, std::string password, std::string name);
+void send_password(const std::string& email, const std::string& password);
+void send_password(const std::string& email, const std::string& password, const std::string& name);
 void set_all_password_to_email(const char* email, const std::string &pwd, const std::string &name);
 bool compare_password(CHAR_DATA *ch, const std::string &pwd);
 bool compare_password(std::string const &hash, std::string const &pass);

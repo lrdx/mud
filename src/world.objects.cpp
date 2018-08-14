@@ -224,9 +224,9 @@ void WorldObjects::foreach_on_copy(const foreach_f function) const
 void WorldObjects::foreach_on_copy_while(const foreach_while_f function) const
 {
 	const list_t list = get_list();
-	for (list_t::const_iterator i = list.begin(); i != list.end(); ++i)
+	for (const auto& i : list)
 	{
-		if (!function(*i))
+		if (!function(i))
 		{
 			break;
 		}

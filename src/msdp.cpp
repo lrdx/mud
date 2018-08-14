@@ -8,7 +8,6 @@
 #include "msdp.reporters.hpp"
 
 #include <string>
-#include <deque>
 #include <unordered_map>
 #include <memory>
 

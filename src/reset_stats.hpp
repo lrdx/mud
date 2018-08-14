@@ -4,8 +4,6 @@
 #ifndef RESET_STATS_HPP_INCLUDED
 #define RESET_STATS_HPP_INCLUDED
 
-#include "conf.h"
-#include "sysdep.h"
 #include "structs.h"
 
 ///

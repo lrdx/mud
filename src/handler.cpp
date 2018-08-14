@@ -25,7 +25,6 @@
 #include "spells.h"
 #include "skills.h"
 #include "screen.h"
-#include "dg_db_scripts.hpp"
 #include "dg_scripts.h"
 #include "auction.h"
 #include "features.hpp"
@@ -33,17 +32,11 @@
 #include "exchange.h"
 #include "char.hpp"
 #include "char_player.hpp"
-#include "liquid.hpp"
 #include "magic.h"
-#include "poison.hpp"
-#include "name_list.hpp"
 #include "room.hpp"
 #include "named_stuff.hpp"
-#include "glory_const.hpp"
 #include "fight.h"
-#include "pk.h"
 #include "ext_money.hpp"
-#include "noob.hpp"
 #include "obj_sets.hpp"
 #include "char_obj_utils.inl"
 #include "constants.h"
@@ -53,8 +46,6 @@
 #include "sysdep.h"
 #include "conf.h"
 #include <backtrace.hpp>
-
-#include <math.h>
 
 #include <unordered_set>
 #include <sstream>
@@ -111,11 +102,7 @@ int invalid_no_class(CHAR_DATA * ch, const OBJ_DATA * obj);
 int extra_damroll(int class_num, int level);
 void do_entergame(DESCRIPTOR_DATA * d);
 void do_return(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
-extern void check_auction(CHAR_DATA * ch, OBJ_DATA * obj);
-extern void check_exchange(OBJ_DATA * obj);
-int get_player_charms(CHAR_DATA * ch, int spellnum);
 extern std::vector<City> cities;
-extern struct zone_data *zone_table;
 extern int global_uid;
 extern void change_leader(CHAR_DATA *ch, CHAR_DATA *vict);
 extern char *find_exdesc(char *word, const EXTRA_DESCR_DATA::shared_ptr& list);
@@ -628,7 +615,7 @@ void affect_total(CHAR_DATA * ch)
 		if (GET_CON_ADD(ch))
 		{
 			GET_HIT_ADD(ch) += PlayerSystem::con_add_hp(ch);
-			int i = GET_MAX_HIT(ch) + GET_HIT_ADD(ch);
+			const int i = GET_MAX_HIT(ch) + GET_HIT_ADD(ch);
 			if (i < 1)
 			{
 				GET_HIT_ADD(ch) -= (i - 1);
@@ -770,7 +757,7 @@ void affect_total(CHAR_DATA * ch)
   Автоматически ставим нузные флаги */
 void affect_to_room(ROOM_DATA* room, const AFFECT_DATA<ERoomApplyLocation>& af)
 {
-	AFFECT_DATA<ERoomApplyLocation>::shared_ptr new_affect(new AFFECT_DATA<ERoomApplyLocation>(af));
+	const AFFECT_DATA<ERoomApplyLocation>::shared_ptr new_affect(new AFFECT_DATA<ERoomApplyLocation>(af));
 
 	room->affected.push_front(new_affect);
 
@@ -782,11 +769,11 @@ void affect_to_room(ROOM_DATA* room, const AFFECT_DATA<ERoomApplyLocation>& af)
    Automatically sets appropriate bits and apply's */
 void affect_to_char(CHAR_DATA* ch, const AFFECT_DATA<EApplyLocation>& af)
 {
-	long was_lgt = AFF_FLAGGED(ch, EAffectFlag::AFF_SINGLELIGHT) ? LIGHT_YES : LIGHT_NO;
-	long was_hlgt = AFF_FLAGGED(ch, EAffectFlag::AFF_HOLYLIGHT) ? LIGHT_YES : LIGHT_NO;
-	long was_hdrk = AFF_FLAGGED(ch, EAffectFlag::AFF_HOLYDARK) ? LIGHT_YES : LIGHT_NO;
+	const long was_lgt = AFF_FLAGGED(ch, EAffectFlag::AFF_SINGLELIGHT) ? LIGHT_YES : LIGHT_NO;
+	const long was_hlgt = AFF_FLAGGED(ch, EAffectFlag::AFF_HOLYLIGHT) ? LIGHT_YES : LIGHT_NO;
+	const long was_hdrk = AFF_FLAGGED(ch, EAffectFlag::AFF_HOLYDARK) ? LIGHT_YES : LIGHT_NO;
 
-	AFFECT_DATA<EApplyLocation>::shared_ptr affected_alloc(new AFFECT_DATA<EApplyLocation>(af));
+	const AFFECT_DATA<EApplyLocation>::shared_ptr affected_alloc(new AFFECT_DATA<EApplyLocation>(af));
 
 	ch->affected.push_front(affected_alloc);
 
@@ -857,11 +844,11 @@ bool affected_by_spell(CHAR_DATA* ch, int type)
 	{
 		if (affect->type == type)
 		{
-			return (TRUE);
+			return true;
 		}
 	}
 
-	return (FALSE);
+	return false;
 }
 // Проверяем а не висит ли на комнате закла ужо
 //bool room_affected_by_spell(ROOM_DATA * room, int type)
@@ -1234,7 +1221,7 @@ void char_to_room(CHAR_DATA * ch, room_rnum room)
 
 	if (!IS_NPC(ch))
 	{
-		zone_table[world[room]->zone].used = 1;
+		zone_table[world[room]->zone].used = true;
 		zone_table[world[room]->zone].activity++;
 	}
 	else
@@ -1262,7 +1249,7 @@ void char_to_room(CHAR_DATA * ch, room_rnum room)
 
 void restore_object(OBJ_DATA * obj, CHAR_DATA * ch)
 {
-	int i = GET_OBJ_RNUM(obj);
+	const int i = GET_OBJ_RNUM(obj);
 	if (i < 0)
 	{
 		return;
@@ -1283,14 +1270,14 @@ bool stockable_custom_labels(OBJ_DATA *obj_one, OBJ_DATA *obj_two)
 {
 	// без меток стокаются
 	if (!obj_one->get_custom_label() && !obj_two->get_custom_label())
-		return 1;
+		return true;
 
 	if (obj_one->get_custom_label() && obj_two->get_custom_label())
 	{
 		// с разными типами меток не стокаются
 		if (!obj_one->get_custom_label()->clan != !obj_two->get_custom_label()->clan)
 		{
-			return 0;
+			return false;
 		}
 		else
 		{
@@ -1300,7 +1287,7 @@ bool stockable_custom_labels(OBJ_DATA *obj_one, OBJ_DATA *obj_two)
 				&& obj_one->get_custom_label()->label_text && obj_two->get_custom_label()->label_text
 				&& !strcmp(obj_one->get_custom_label()->label_text, obj_two->get_custom_label()->label_text))
 			{
-				return 1;
+				return true;
 			}
 
 			// обе метки личные, один автор, текст совпадает -- стокается
@@ -1308,12 +1295,12 @@ bool stockable_custom_labels(OBJ_DATA *obj_one, OBJ_DATA *obj_two)
 				&& obj_one->get_custom_label()->label_text && obj_two->get_custom_label()->label_text
 				&& !strcmp(obj_one->get_custom_label()->label_text, obj_two->get_custom_label()->label_text))
 			{
-				return 1;
+				return true;
 			}
 		}
 	}
 
-	return 0;
+	return false;
 }
 
 // выяснение стокаются ли предметы
@@ -1330,10 +1317,10 @@ bool equal_obj(OBJ_DATA *obj_one, OBJ_DATA *obj_two)
 			&& GET_OBJ_VAL(obj_one, 1) != GET_OBJ_VAL(obj_two, 1))
 		|| !stockable_custom_labels(obj_one, obj_two))
 	{
-		return 0;
+		return false;
 	}
 
-	return 1;
+	return true;
 }
 
 namespace
@@ -1423,7 +1410,7 @@ void obj_to_char(OBJ_DATA * object, CHAR_DATA * ch)
 	{
 		restore_object(object, ch);
 
-		if (invalid_anti_class(ch, object) || invalid_unique(ch, object) || NamedStuff::check_named(ch, object, 0))
+		if (invalid_anti_class(ch, object) || invalid_unique(ch, object) || NamedStuff::check_named(ch, object, false))
 			may_carry = FALSE;
 
 		if (strstr(object->get_aliases().c_str(), "clan"))
@@ -1622,7 +1609,7 @@ int apply_armour(CHAR_DATA * ch, int eq_pos)
 		factor *= MOB_ARMOUR_MULT;
 
 	// чтобы не плюсовать левую броню на стафе с текущей прочностью выше максимальной
-	int cur_dur = MIN(GET_OBJ_MAX(obj), GET_OBJ_CUR(obj));
+	const int cur_dur = MIN(GET_OBJ_MAX(obj), GET_OBJ_CUR(obj));
 	return (factor * GET_OBJ_VAL(obj, 1) * cur_dur / MAX(1, GET_OBJ_MAX(obj)));
 }
 
@@ -1723,7 +1710,8 @@ int flag_data_by_char_class(const CHAR_DATA * ch)
 unsigned int activate_stuff(CHAR_DATA * ch, OBJ_DATA * obj,
 							id_to_set_info_map::const_iterator it, int pos, unsigned int set_obj_qty)
 {
-	int show_msg = IS_SET(pos, 0x80), no_cast = IS_SET(pos, 0x40);
+	const int show_msg = IS_SET(pos, 0x80);
+	const int no_cast = IS_SET(pos, 0x40);
 	std::string::size_type delim;
 
 	REMOVE_BIT(pos, (0x80 | 0x40));
@@ -1735,10 +1723,10 @@ unsigned int activate_stuff(CHAR_DATA * ch, OBJ_DATA * obj,
 		if (GET_EQ(ch, pos) && OBJ_FLAGGED(GET_EQ(ch, pos), EExtraFlag::ITEM_SETSTUFF) &&
 				(set_obj_info = it->second.find(GET_OBJ_VNUM(GET_EQ(ch, pos)))) != it->second.end())
 		{
-			unsigned int oqty = activate_stuff(ch, obj, it, (pos + 1) | (show_msg ? 0x80 : 0) | (no_cast ? 0x40 : 0),
+			const unsigned int oqty = activate_stuff(ch, obj, it, (pos + 1) | (show_msg ? 0x80 : 0) | (no_cast ? 0x40 : 0),
 											   set_obj_qty + 1);
 			qty_to_camap_map::const_iterator qty_info = set_obj_info->second.upper_bound(oqty);
-			qty_to_camap_map::const_iterator old_qty_info = GET_EQ(ch, pos) == obj ?
+			const qty_to_camap_map::const_iterator old_qty_info = GET_EQ(ch, pos) == obj ?
 					set_obj_info->second.begin() :
 					set_obj_info->second.upper_bound(oqty - 1);
 
@@ -1897,10 +1885,11 @@ bool check_armor_type(CHAR_DATA *ch, OBJ_DATA *obj)
 // 0x100 - show wear and activation messages
 void equip_char(CHAR_DATA * ch, OBJ_DATA * obj, int pos)
 {
-	int was_lgt = AFF_FLAGGED(ch, EAffectFlag::AFF_SINGLELIGHT) ? LIGHT_YES : LIGHT_NO,
-				  was_hlgt = AFF_FLAGGED(ch, EAffectFlag::AFF_HOLYLIGHT) ? LIGHT_YES : LIGHT_NO,
-							 was_hdrk = AFF_FLAGGED(ch, EAffectFlag::AFF_HOLYDARK) ? LIGHT_YES : LIGHT_NO,
-										was_lamp = FALSE;
+	const int was_lgt = AFF_FLAGGED(ch, EAffectFlag::AFF_SINGLELIGHT) ? LIGHT_YES : LIGHT_NO;	
+	const int was_hlgt = AFF_FLAGGED(ch, EAffectFlag::AFF_HOLYLIGHT) ? LIGHT_YES : LIGHT_NO;
+	const int was_hdrk = AFF_FLAGGED(ch, EAffectFlag::AFF_HOLYDARK) ? LIGHT_YES : LIGHT_NO;
+	int was_lamp = FALSE;
+
 	int j, show_msg = IS_SET(pos, 0x100), skip_total = IS_SET(pos, 0x80),
 					  no_cast = IS_SET(pos, 0x40);
 
@@ -2101,7 +2090,7 @@ void equip_char(CHAR_DATA * ch, OBJ_DATA * obj, int pos)
 unsigned int deactivate_stuff(CHAR_DATA * ch, OBJ_DATA * obj,
 							  id_to_set_info_map::const_iterator it, int pos, unsigned int set_obj_qty)
 {
-	int show_msg = IS_SET(pos, 0x40);
+	const int show_msg = IS_SET(pos, 0x40);
 	std::string::size_type delim;
 
 	REMOVE_BIT(pos, 0x40);
@@ -2114,7 +2103,7 @@ unsigned int deactivate_stuff(CHAR_DATA * ch, OBJ_DATA * obj,
 			&& OBJ_FLAGGED(GET_EQ(ch, pos), EExtraFlag::ITEM_SETSTUFF)
 			&& (set_obj_info = it->second.find(GET_OBJ_VNUM(GET_EQ(ch, pos)))) != it->second.end())
 		{
-			unsigned int oqty = deactivate_stuff(ch, obj, it, (pos + 1) | (show_msg ? 0x40 : 0),
+			const unsigned int oqty = deactivate_stuff(ch, obj, it, (pos + 1) | (show_msg ? 0x40 : 0),
 												 set_obj_qty + 1);
 			qty_to_camap_map::const_iterator old_qty_info = set_obj_info->second.upper_bound(oqty);
 			qty_to_camap_map::const_iterator qty_info = GET_EQ(ch, pos) == obj ?
@@ -2126,7 +2115,7 @@ unsigned int deactivate_stuff(CHAR_DATA * ch, OBJ_DATA * obj,
 				old_qty_info--;
 				unique_bit_flag_data flags1;
 				flags1.set(flag_data_by_char_class(ch));
-				class_to_act_map::const_iterator class_info = old_qty_info->second.find(flags1);
+				const class_to_act_map::const_iterator class_info = old_qty_info->second.find(flags1);
 				if (class_info != old_qty_info->second.end())
 				{
 					while (qty_info != set_obj_info->second.begin())
@@ -2134,7 +2123,7 @@ unsigned int deactivate_stuff(CHAR_DATA * ch, OBJ_DATA * obj,
 						qty_info--;
 						unique_bit_flag_data flags2;
 						flags2.set(flag_data_by_char_class(ch));
-						class_to_act_map::const_iterator class_info2 = qty_info->second.find(flags2);
+						const class_to_act_map::const_iterator class_info2 = qty_info->second.find(flags2);
 						if (class_info2 != qty_info->second.end())
 						{
 							for (int i = 0; i < MAX_OBJ_AFFECT; i++)
@@ -2286,9 +2275,10 @@ unsigned int deactivate_stuff(CHAR_DATA * ch, OBJ_DATA * obj,
 //  0x80 - no total affect update
 OBJ_DATA *unequip_char(CHAR_DATA * ch, int pos)
 {
-	int was_lgt = AFF_FLAGGED(ch, EAffectFlag::AFF_SINGLELIGHT) ? LIGHT_YES : LIGHT_NO,
-				  was_hlgt = AFF_FLAGGED(ch, EAffectFlag::AFF_HOLYLIGHT) ? LIGHT_YES : LIGHT_NO,
-							 was_hdrk = AFF_FLAGGED(ch, EAffectFlag::AFF_HOLYDARK) ? LIGHT_YES : LIGHT_NO, was_lamp = FALSE;
+	const int was_lgt = AFF_FLAGGED(ch, EAffectFlag::AFF_SINGLELIGHT) ? LIGHT_YES : LIGHT_NO;
+	const int was_hlgt = AFF_FLAGGED(ch, EAffectFlag::AFF_HOLYLIGHT) ? LIGHT_YES : LIGHT_NO;
+	const int was_hdrk = AFF_FLAGGED(ch, EAffectFlag::AFF_HOLYDARK) ? LIGHT_YES : LIGHT_NO;
+	int was_lamp = FALSE;
 
 	int j, skip_total = IS_SET(pos, 0x80), show_msg = IS_SET(pos, 0x40);
 
@@ -2409,14 +2399,14 @@ int get_number(char **name)
 
 int get_number(std::string &name)
 {
-	std::string::size_type pos = name.find('.');
+	const auto pos = name.find('.');
 
 	if (pos != std::string::npos)
 	{
 		for (std::string::size_type i = 0; i != pos; i++)
 			if (!a_isdigit(name[i]))
 				return (1);
-		int res = atoi(name.substr(0, pos).c_str());
+		const int res = atoi(name.substr(0, pos).c_str());
 		name.erase(0, pos + 1);
 		return (res);
 	}
@@ -2495,7 +2485,7 @@ CHAR_DATA *get_char_room(char *name, room_rnum room)
 // search all over the world for a char num, and return a pointer if found //
 CHAR_DATA *get_char_num(mob_rnum nr)
 {
-	for (const auto i : character_list)
+	for (const auto& i : character_list)
 	{
 		if (GET_MOB_RNUM(i) == nr)
 		{
@@ -2526,7 +2516,7 @@ bool obj_to_room(OBJ_DATA * object, room_rnum room)
 		debug::backtrace(runtime_config.logs(ERRLOG).handle());
 		log("SYSERR: Illegal value(s) passed to obj_to_room. (Room #%d/%d, obj %p)",
 			room, top_of_world, object);
-		return 0;
+		return false;
 	}
 	else
 	{
@@ -2561,7 +2551,7 @@ bool obj_to_room(OBJ_DATA * object, room_rnum room)
 			object->set_destroyer(room_destroy_timer);
 		}
 	}
-	return 1;
+	return true;
 }
 
 /* Функция для удаления обьектов после лоада в комнату
@@ -3049,7 +3039,7 @@ void extract_char(CHAR_DATA* ch, int clear_objs, bool zone_reset)
 			}
 
 			remove_otrigger(obj_eq, ch);
-			drop_obj_on_zreset(ch, obj_eq, 0, zone_reset);
+			drop_obj_on_zreset(ch, obj_eq, false, zone_reset);
 		}
 	}
 
@@ -3059,7 +3049,7 @@ void extract_char(CHAR_DATA* ch, int clear_objs, bool zone_reset)
 	{
 		OBJ_DATA *obj = ch->carrying;
 		obj_from_char(obj);
-		drop_obj_on_zreset(ch, obj, 1, zone_reset);
+		drop_obj_on_zreset(ch, obj, true, zone_reset);
 	}
 
 	if(IS_NPC(ch))
@@ -3352,7 +3342,7 @@ OBJ_DATA* get_obj_vis_and_dec_num(CHAR_DATA* ch, const char* name, OBJ_DATA* equ
 {
 	for (auto i = 0; i < NUM_WEARS; ++i)
 	{
-		auto item = equip[i];
+		const auto item = equip[i];
 		if (item && CAN_SEE_OBJ(ch, item))
 		{
 			if (isname(name, item->get_aliases())
@@ -4030,10 +4020,10 @@ void check_portals(CHAR_DATA * ch)
 //Функции для модифицированного чарма
 float get_damage_per_round(CHAR_DATA * victim)
 {
-	float dam_per_attack = GET_DR(victim) + str_bonus(victim->get_str(), STR_TO_DAM)
+	const float dam_per_attack = GET_DR(victim) + str_bonus(victim->get_str(), STR_TO_DAM)
 			+ victim->mob_specials.damnodice * (victim->mob_specials.damsizedice + 1) / 2.0
 			+ (AFF_FLAGGED(victim, EAffectFlag::AFF_CLOUD_OF_ARROWS) ? 14 : 0);
-	int num_attacks = 1 + victim->mob_specials.ExtraAttack
+	const int num_attacks = 1 + victim->mob_specials.ExtraAttack
 			+ (victim->get_skill(SKILL_ADDSHOT) ? 2 : 0);
 
 	float dam_per_round = dam_per_attack * num_attacks;
@@ -4052,7 +4042,7 @@ float get_effective_cha(CHAR_DATA * ch)
 	int key_value, key_value_add;
 
 	key_value = ch->get_cha();
-	auto max_cha = class_stats_limit[ch->get_class()][5];
+	const auto max_cha = class_stats_limit[ch->get_class()][5];
 	key_value_add = MIN(max_cha - ch->get_cha(), GET_CHA_ADD(ch));
 
 	float eff_cha = 0.0;
@@ -4078,7 +4068,7 @@ float get_effective_wis(CHAR_DATA * ch, int spellnum)
 {
 	int key_value, key_value_add;
 
-	auto max_wis = class_stats_limit[ch->get_class()][3];
+	const auto max_wis = class_stats_limit[ch->get_class()][3];
 
 	if (spellnum == SPELL_RESSURECTION || spellnum == SPELL_ANIMATE_DEAD)
 	{
@@ -4116,7 +4106,7 @@ float get_effective_int(CHAR_DATA * ch)
 	int key_value, key_value_add;
 
 	key_value = ch->get_int();
-	auto max_int = class_stats_limit[ch->get_class()][4];
+	const auto max_int = class_stats_limit[ch->get_class()][4];
 	key_value_add = MIN(max_int - ch->get_int(), GET_INT_ADD(ch));
 
 	float eff_int = 0.0;
@@ -4157,15 +4147,17 @@ float calc_cha_for_hire(CHAR_DATA * victim)
 
 int calc_hire_price(CHAR_DATA * ch, CHAR_DATA * victim)
 {
-	float needed_cha = calc_cha_for_hire(victim), dpr = 0.0;
-	float e_cha = get_effective_cha(ch), e_int = get_effective_int(ch);
-	float stat_overlimit = VPOSI<float>(e_cha + e_int - 1.0 -
+	float dpr = 0.0;
+	const float needed_cha = calc_cha_for_hire(victim);
+	const float e_cha = get_effective_cha(ch);
+	const float e_int = get_effective_int(ch);
+	const float stat_overlimit = VPOSI<float>(e_cha + e_int - 1.0 -
 								 min_stats2[(int) GET_CLASS(ch)][5] - 1 -
 								 min_stats2[(int) GET_CLASS(ch)][2], 0, 100);
 
 	float price = 0;
-	float real_cha = 1.0 + GET_LEVEL(ch) / 2.0 + stat_overlimit / 2.0;
-	float difference = needed_cha - real_cha;
+	const float real_cha = 1.0 + GET_LEVEL(ch) / 2.0 + stat_overlimit / 2.0;
+	const float difference = needed_cha - real_cha;
 
 	dpr = get_damage_per_round(victim);
 
@@ -4492,7 +4484,7 @@ int calculate_resistance_coeff(CHAR_DATA *ch, int resist_type, int effect)
 // * Берется минимальная цена ренты шмотки, не важно, одетая она будет или снятая.
 int get_object_low_rent(OBJ_DATA *obj)
 {
-	int rent = GET_OBJ_RENT(obj) > GET_OBJ_RENTEQ(obj) ? GET_OBJ_RENTEQ(obj) : GET_OBJ_RENT(obj);
+	const int rent = GET_OBJ_RENT(obj) > GET_OBJ_RENTEQ(obj) ? GET_OBJ_RENTEQ(obj) : GET_OBJ_RENT(obj);
 	return rent;
 }
 

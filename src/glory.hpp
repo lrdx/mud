@@ -9,7 +9,6 @@
 #include "conf.h"
 #include "sysdep.h"
 #include "structs.h"
-#include "interpreter.h"
 
 namespace Glory
 {
@@ -19,7 +18,7 @@ void add_glory(long uid, int amount);
 int remove_glory(long uid, int amount);
 
 void do_spend_glory(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
-bool parse_spend_glory_menu(CHAR_DATA *ch, char *arg);
+bool parse_spend_glory_menu(CHAR_DATA *ch, const char *arg);
 void spend_glory_menu(CHAR_DATA *ch);
 
 void load_glory();
@@ -29,7 +28,7 @@ void set_stats(CHAR_DATA *ch);
 int get_spend_glory(CHAR_DATA *ch);
 
 bool remove_stats(CHAR_DATA *ch, CHAR_DATA *god, int amount);
-void transfer_stats(CHAR_DATA *ch, CHAR_DATA *god, std::string name, char *reason);
+void transfer_stats(CHAR_DATA *ch, CHAR_DATA *god, const std::string& name, const char* reason);
 void show_glory(CHAR_DATA *ch, CHAR_DATA *god);
 void show_stats(CHAR_DATA *ch);
 

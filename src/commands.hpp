@@ -4,7 +4,6 @@
 #include <string>
 #include <list>
 #include <memory>
-#include <map>
 
 class CHAR_DATA;	// to avoid inclusion of char.hpp
 

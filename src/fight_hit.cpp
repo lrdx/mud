@@ -10,10 +10,10 @@
 #include "house_exp.hpp"
 #include "poison.hpp"
 #include "bonus.h"
+#include "features.hpp"
 
 // extern
 int extra_aco(int class_num, int level);
-void alt_equip(CHAR_DATA * ch, int pos, int dam, int chance);
 int thaco(int class_num, int level);
 void npc_groupbattle(CHAR_DATA * ch);
 void set_wait(CHAR_DATA * ch, int waittime, int victim_in_room);
@@ -819,10 +819,10 @@ int calculate_strconc_damage(CHAR_DATA * ch, OBJ_DATA* /*wielded*/, int damage)
 	{
 		return damage;
 	}
-	float str_mod = (GET_REAL_STR(ch) - 25) * 0.4;
-	float lvl_mod = GET_LEVEL(ch) * 0.2;
-	float rmt_mod = MIN(5, GET_REMORT(ch)) / 5.0;
-	float res_mod = 1 + (str_mod + lvl_mod) / 10.0 * rmt_mod;
+	const float str_mod = (GET_REAL_STR(ch) - 25) * 0.4;
+	const float lvl_mod = GET_LEVEL(ch) * 0.2;
+	const float rmt_mod = MIN(5, GET_REMORT(ch)) / 5.0;
+	const float res_mod = 1 + (str_mod + lvl_mod) / 10.0 * rmt_mod;
 
 	return static_cast<int>(damage * res_mod);
 }
@@ -835,10 +835,10 @@ int calculate_noparryhit_dmg(CHAR_DATA * ch, OBJ_DATA * wielded)
 {
 	if (!ch->get_skill(SKILL_NOPARRYHIT)) return 0;
 
-	float weap_dmg = (((GET_OBJ_VAL(wielded, 2) + 1) / 2.0) * GET_OBJ_VAL(wielded, 1));
-	float weap_mod = weap_dmg / (10 + weap_dmg / 2);
-	float level_mod = static_cast<float>(GET_LEVEL(ch)) / 30;
-	float skill_mod = static_cast<float>(ch->get_skill(SKILL_NOPARRYHIT)) / 5;
+	const float weap_dmg = (((GET_OBJ_VAL(wielded, 2) + 1) / 2.0) * GET_OBJ_VAL(wielded, 1));
+	const float weap_mod = weap_dmg / (10 + weap_dmg / 2);
+	const float level_mod = static_cast<float>(GET_LEVEL(ch)) / 30;
+	const float skill_mod = static_cast<float>(ch->get_skill(SKILL_NOPARRYHIT)) / 5;
 
 	return static_cast<int>((skill_mod + GET_REMORT(ch) * 3) * weap_mod * level_mod);
 }
@@ -910,7 +910,7 @@ void addshot_damage(CHAR_DATA * ch, int type, int weapon)
 	float remort_mod = static_cast<float>(GET_REMORT(ch)) / 5;
 	if (remort_mod > 1) remort_mod = 1;
 	// на жопе процентовка снижается на 70% от текущего максимума каждого допа
-	float sit_mod = (GET_POS(ch) >= POS_FIGHTING) ? 1 : 0.7;
+	const float sit_mod = (GET_POS(ch) >= POS_FIGHTING) ? 1 : 0.7;
 
 	// у чармисов никаких плюшек от 100+ скилла и максимум 2 доп атаки
 	if (IS_CHARMICE(ch))
@@ -1577,7 +1577,7 @@ void hit_touching(CHAR_DATA *ch, CHAR_DATA *vict, int *dam)
 
 void hit_deviate(CHAR_DATA *ch, CHAR_DATA *victim, int *dam)
 {
-	int range = number(1, skill_info[SKILL_DEVIATE].max_percent);
+	const int range = number(1, skill_info[SKILL_DEVIATE].max_percent);
 	int prob = train_skill(victim, SKILL_DEVIATE, skill_info[SKILL_DEVIATE].max_percent, ch);
 	if (GET_GOD_FLAG(victim, GF_GODSCURSE))
 	{
@@ -1636,7 +1636,7 @@ void hit_parry(CHAR_DATA *ch, CHAR_DATA *victim, int skill, int hit_type, int *d
 	}
 	else
 	{
-		int range = number(1, skill_info[SKILL_PARRY].max_percent);
+		const int range = number(1, skill_info[SKILL_PARRY].max_percent);
 		int prob = train_skill(victim, SKILL_PARRY,
 				skill_info[SKILL_PARRY].max_percent, ch);
 		prob = prob * 100 / range;
@@ -1703,7 +1703,7 @@ void hit_multyparry(CHAR_DATA *ch, CHAR_DATA *victim, int skill, int hit_type, i
 	}
 	else
 	{
-		int range = number(1,
+		const int range = number(1,
 				skill_info[SKILL_MULTYPARRY].max_percent) + 15 * BATTLECNTR(victim);
 		int prob = train_skill(victim, SKILL_MULTYPARRY,
 				skill_info[SKILL_MULTYPARRY].max_percent + BATTLECNTR(ch) * 15, ch);
@@ -1764,7 +1764,7 @@ void hit_block(CHAR_DATA *ch, CHAR_DATA *victim, int *dam)
 	}
 	else
 	{
-		int range = number(1, skill_info[SKILL_BLOCK].max_percent);
+		const int range = number(1, skill_info[SKILL_BLOCK].max_percent);
 		int prob =
 			train_skill(victim, SKILL_BLOCK, skill_info[SKILL_BLOCK].max_percent, ch);
 		prob = prob * 100 / range;
@@ -2276,7 +2276,7 @@ bool Damage::dam_absorb(CHAR_DATA *ch, CHAR_DATA *victim)
 		&& !flags[FightSystem::IGNORE_ABSORBE])
 	{
 		// маг урон - по 1% за каждые 2 абсорба, максимум 25% (цифры из mag_damage)
-		int absorb = MIN(GET_ABSORBE(victim) / 2, 25);
+		const int absorb = MIN(GET_ABSORBE(victim) / 2, 25);
 		dam -= dam * absorb / 100;
 	}
 	return false;
@@ -2718,7 +2718,7 @@ int Damage::process(CHAR_DATA *ch, CHAR_DATA *victim)
 	{
 		if (PRF_FLAGGED(victim, PRF_TESTER))
 		{
-			int ResultDam = dam - (dam * GET_PR(victim) / 100);
+			const int ResultDam = dam - (dam * GET_PR(victim) / 100);
 			sprintf(buf, "&CУчет поглощения урона: %d начислено, %d применено.&n\r\n", dam, ResultDam);
 			send_to_char(buf, victim);
 			dam = ResultDam;
@@ -2732,11 +2732,11 @@ int Damage::process(CHAR_DATA *ch, CHAR_DATA *victim)
 	// зб, щиты, броня, поглощение
 	if (victim != ch)
 	{
-		bool shield_full_absorb = magic_shields_dam(ch, victim);
+		const bool shield_full_absorb = magic_shields_dam(ch, victim);
 		// сначала броня
 		armor_dam_reduce(ch, victim);
 		// потом абсорб
-		bool armor_full_absorb = dam_absorb(ch, victim);
+		const bool armor_full_absorb = dam_absorb(ch, victim);
 		// полное поглощение
 		if (shield_full_absorb
 			|| armor_full_absorb)
@@ -2851,7 +2851,7 @@ int Damage::process(CHAR_DATA *ch, CHAR_DATA *victim)
 	{
 		if (GET_POS(victim) == POS_DEAD)
 		{
-			int souls = victim->get_souls();
+			const int souls = victim->get_souls();
 			if (souls >= 10)
 			{
 				GET_HIT(victim) = 0 + souls * 10;
@@ -3083,7 +3083,7 @@ send_to_char(ch, "Вычисление молота: Prob == %d, Percent == %d, Might == %d, Sta
 
 void HitData::try_stupor_dam(CHAR_DATA *ch, CHAR_DATA *victim)
 {
-	int percent = number(1, skill_info[SKILL_STUPOR].max_percent);
+	const int percent = number(1, skill_info[SKILL_STUPOR].max_percent);
 	int prob = train_skill(ch, SKILL_STUPOR, skill_info[SKILL_STUPOR].max_percent, victim);
 	int lag = 0;
 
@@ -3304,7 +3304,7 @@ void HitData::init(CHAR_DATA *ch, CHAR_DATA *victim)
 	//* обработка SKILL_NOPARRYHIT //
 	if (skill_num == TYPE_UNDEFINED && ch->get_skill(SKILL_NOPARRYHIT))
 	{
-		int tmp_skill = train_skill(ch, SKILL_NOPARRYHIT, skill_info[SKILL_NOPARRYHIT].max_percent, victim);
+		const int tmp_skill = train_skill(ch, SKILL_NOPARRYHIT, skill_info[SKILL_NOPARRYHIT].max_percent, victim);
 		// TODO: max_percent в данный момент 100 (хорошо бы не тупо 200, а с % фейла)
 		if (tmp_skill >= number(1, skill_info[SKILL_NOPARRYHIT].max_percent))
 		{
@@ -3483,7 +3483,7 @@ void HitData::calc_base_hr(CHAR_DATA *ch)
 	}
 
 	//Вычисляем штраф за голод
-	float p_hitroll = ch->get_cond_penalty(P_HITROLL);
+	const float p_hitroll = ch->get_cond_penalty(P_HITROLL);
 
 	calc_thaco -= GET_REAL_HR(ch) ? GET_REAL_HR(ch) * p_hitroll : GET_REAL_HR(ch);
 	
@@ -3535,7 +3535,7 @@ void HitData::calc_base_hr(CHAR_DATA *ch)
 void HitData::calc_rand_hr(CHAR_DATA *ch, CHAR_DATA *victim)
 {
 	//считаем штраф за голод
-	float p_hitroll = ch->get_cond_penalty(P_HITROLL);
+	const float p_hitroll = ch->get_cond_penalty(P_HITROLL);
 	// штраф в размере 1 хитролла за каждые
 	// недокачанные 10% скилла "удар левой рукой"
 	
@@ -3552,8 +3552,8 @@ void HitData::calc_rand_hr(CHAR_DATA *ch, CHAR_DATA *victim)
 	// courage
 	if (affected_by_spell(ch, SPELL_COURAGE))
 	{
-		int range = number(1, skill_info[SKILL_COURAGE].max_percent + GET_REAL_MAX_HIT(ch) - GET_HIT(ch));
-		int prob = train_skill(ch, SKILL_COURAGE, skill_info[SKILL_COURAGE].max_percent, victim);
+		const int range = number(1, skill_info[SKILL_COURAGE].max_percent + GET_REAL_MAX_HIT(ch) - GET_HIT(ch));
+		const int prob = train_skill(ch, SKILL_COURAGE, skill_info[SKILL_COURAGE].max_percent, victim);
 		if (prob > range)
 		{
 			dam += ((ch->get_skill(SKILL_COURAGE) + 19) / 20);
@@ -3589,7 +3589,7 @@ void HitData::calc_rand_hr(CHAR_DATA *ch, CHAR_DATA *victim)
 	// "Dirty" methods for battle
 	if (skill_num != SKILL_THROW && skill_num != SKILL_BACKSTAB)
 	{
-		int prob = (ch->get_skill(weap_skill) + cha_app[GET_REAL_CHA(ch)].illusive) -
+		const int prob = (ch->get_skill(weap_skill) + cha_app[GET_REAL_CHA(ch)].illusive) -
 			   (victim->get_skill(weap_skill) + int_app[GET_REAL_INT(victim)].observation);
 		if (prob >= 30 && !GET_AF_BATTLE(victim, EAF_AWAKE)
 				&& (IS_NPC(ch) || !GET_AF_BATTLE(ch, EAF_PUNCTUAL)))
@@ -3627,7 +3627,7 @@ void HitData::calc_rand_hr(CHAR_DATA *ch, CHAR_DATA *victim)
 void HitData::calc_stat_hr(CHAR_DATA *ch)
 {
 	//считаем штраф за голод
-	float p_hitroll = ch->get_cond_penalty(P_HITROLL);
+	const float p_hitroll = ch->get_cond_penalty(P_HITROLL);
 	// штраф в размере 1 хитролла за каждые
 	// недокачанные 10% скилла "удар левой рукой"
 	if (weapon == LEFT_WEAPON
@@ -3649,8 +3649,8 @@ void HitData::calc_stat_hr(CHAR_DATA *ch)
 	// Horse modifier for attacker
 	if (!IS_NPC(ch) && skill_num != SKILL_THROW && skill_num != SKILL_BACKSTAB && on_horse(ch))
 	{
-		int prob = ch->get_skill(SKILL_HORSE);
-		int range = skill_info[SKILL_HORSE].max_percent / 2;
+		const int prob = ch->get_skill(SKILL_HORSE);
+		const int range = skill_info[SKILL_HORSE].max_percent / 2;
 
 		dam += ((prob + 19) / 10);
 
@@ -3679,7 +3679,7 @@ void HitData::calc_ac(CHAR_DATA *victim)
 	victim_ac /= 10;
 	//считаем штраф за голод
 	if (!IS_NPC(victim) && victim_ac<5) { //для голодных
-		int p_ac = (1 - victim->get_cond_penalty(P_AC))*40;
+		const int p_ac = (1 - victim->get_cond_penalty(P_AC))*40;
 		if (p_ac)  {
 			if (victim_ac+p_ac>5) {
 				victim_ac = 5;
@@ -4048,8 +4048,8 @@ void hit(CHAR_DATA *ch, CHAR_DATA *victim, int type, int weapon)
 	// рандом разброс базового дамага
 	if (hit_params.dam > 0)
 	{
-		int min_rnd = hit_params.dam - hit_params.dam / 4;
-		int max_rnd = hit_params.dam + hit_params.dam / 4;
+		const int min_rnd = hit_params.dam - hit_params.dam / 4;
+		const int max_rnd = hit_params.dam + hit_params.dam / 4;
 		hit_params.dam = MAX(1, number(min_rnd, max_rnd));
 	}
 
@@ -4070,11 +4070,11 @@ void hit(CHAR_DATA *ch, CHAR_DATA *victim, int type, int weapon)
 	{
 		hit_params.add_weapon_damage(ch);
 		// скрытый удар
-		int tmp_dam = calculate_noparryhit_dmg(ch, hit_params.wielded);
+		const int tmp_dam = calculate_noparryhit_dmg(ch, hit_params.wielded);
 		if (tmp_dam > 0)
 		{
 			// 0 раунд и стаб = 70% скрытого, дальше раунд * 0.4 (до 5 раунда)
-			int round_dam = tmp_dam * 7 / 10;
+			const int round_dam = tmp_dam * 7 / 10;
 			if (can_use_feat(ch, SNEAKRAGE_FEAT))
 			{
 				if (ROUND_COUNTER(ch) >= 1 && ROUND_COUNTER(ch) <= 3)
@@ -4191,7 +4191,7 @@ void hit(CHAR_DATA *ch, CHAR_DATA *victim, int type, int weapon)
 			}
 		}
 
-		int initial_dam = hit_params.dam;
+		const int initial_dam = hit_params.dam;
 		//Adept: учитываем резисты от крит. повреждений
 		hit_params.dam = calculate_resistance_coeff(victim, VITALITY_RESISTANCE, hit_params.dam);
 		// выводим временно влияние живучести
@@ -4243,7 +4243,7 @@ void hit(CHAR_DATA *ch, CHAR_DATA *victim, int type, int weapon)
 		&& (hit_params.diceroll >= 18 - GET_MOB_HOLD(victim))
 		&& !MOB_FLAGGED(victim, MOB_NOTKILLPUNCTUAL))
 	{
-		int percent = train_skill(ch, SKILL_PUNCTUAL, skill_info[SKILL_PUNCTUAL].max_percent, victim);
+		const int percent = train_skill(ch, SKILL_PUNCTUAL, skill_info[SKILL_PUNCTUAL].max_percent, victim);
 		if (!PUNCTUAL_WAITLESS(ch))
 		{
 			PUNCTUAL_WAIT_STATE(ch, 1 * PULSE_VIOLENCE);
@@ -4294,7 +4294,7 @@ void hit(CHAR_DATA *ch, CHAR_DATA *victim, int type, int weapon)
 	if (hit_params.dam)
 		hit_params.dam *= ch->get_cond_penalty(P_DAMROLL);
 	// итоговый дамаг
-	int made_dam = hit_params.extdamage(ch, victim);
+	const int made_dam = hit_params.extdamage(ch, victim);
 
 	//Обнуление лага, когда виктим убит с применением
 	//оглушить или молотить. Чтобы все это было похоже на

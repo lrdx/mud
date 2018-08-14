@@ -6,14 +6,10 @@
 
 #include "boards.message.hpp"
 #include "boards.types.hpp"
-#include "db.h"
-#include "interpreter.h"
 #include "structs.h"
-#include "conf.h"
 #include "sysdep.h"
 
 #include <string>
-#include <vector>
 #include <bitset>
 
 namespace Boards
@@ -30,7 +26,7 @@ public:
 	static std::string print_stats(CHAR_DATA *ch, Board::shared_ptr board, int num);
 	static void reload_all();
 	static void clear_god_boards();
-	static void init_god_board(long uid, std::string name);
+	static void init_god_board(long uid, const std::string& name);
 	static void do_list(CHAR_DATA* ch, const Board::shared_ptr board);
 
 	static bool can_see(CHAR_DATA *ch, const Board::shared_ptr board);

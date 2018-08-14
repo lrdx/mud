@@ -19,6 +19,8 @@
 #include <boost/tokenizer.hpp>
 #include <boost/algorithm/string.hpp>
 
+#include <fstream>
+
 /**
 * Система привилегий иммов и демигодов, совмещенная с бывшим god.lst.
 * Убрано редактирование из мада и запись уида автоматом -> все изменения производятся прямой правкой файла на сервере.
@@ -285,13 +287,13 @@ void load()
 bool god_list_check(const std::string &name, long unique)
 {
 #ifdef TEST_BUILD
-	return 1;
+	return true;
 #endif
 	GodListType::const_iterator it = god_list.find(unique);
 	if (it != god_list.end())
 		if (it->second.name == name)
-			return 1;
-	return 0;
+			return true;
+	return false;
 }
 
 // * Создание и лоад/релоад блокнотов иммам.
@@ -323,7 +325,7 @@ bool can_do_priv(CHAR_DATA *ch, const std::string &cmd_name, int cmd_number, int
 		return true;
 #endif
 	GodListType::const_iterator it = god_list.find(GET_UNIQUE(ch));
-	if (it != god_list.end() && CompareParam(it->second.name, GET_NAME(ch), 1))
+	if (it != god_list.end() && CompareParam(it->second.name, GET_NAME(ch), true))
 	{
 		if (GET_LEVEL(ch) == LVL_IMPL)
 			return true;
@@ -362,7 +364,7 @@ bool check_flag(const CHAR_DATA *ch, int flag)
 	if (flag >= FLAGS_NUM || flag < 0) return false;
 	bool result = false;
 	GodListType::const_iterator it = god_list.find(GET_UNIQUE(ch));
-	if (it != god_list.end() && CompareParam(it->second.name, GET_NAME(ch), 1))
+	if (it != god_list.end() && CompareParam(it->second.name, GET_NAME(ch), true))
 		if (it->second.flags[flag])
 			result = true;
 	if (flag == USE_SKILLS && (IS_IMPL(ch)))

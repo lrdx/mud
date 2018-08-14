@@ -20,9 +20,7 @@
 
 #include <vector>
 #include <list>
-#include <bitset>
 #include <string>
-#include <fstream>
 #include <iterator>
 #include <cstdint>
 #include <unordered_set>
@@ -1474,7 +1472,7 @@ public:
 	using shared_ptr = std::shared_ptr<AFFECT_DATA<TLocation>>;
 
 	AFFECT_DATA() : type(0), duration(0), modifier(0), location(static_cast<TLocation>(0)),
-		battleflag(0), bitvector(0), caster_id(0), must_handled(0),
+		battleflag(0), bitvector(0), caster_id(0), must_handled(false),
 		apply_time(0) {};
 	bool removable() const;
 

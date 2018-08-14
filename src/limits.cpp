@@ -21,13 +21,10 @@
 #include "db.h"
 #include "handler.h"
 #include "screen.h"
-#include "interpreter.h"
 #include "constants.h"
 #include "dg_scripts.h"
 #include "house.h"
-#include "constants.h"
 #include "exchange.h"
-#include "top.h"
 #include "deathtrap.hpp"
 #include "ban.hpp"
 #include "depot.hpp"
@@ -36,7 +33,6 @@
 #include "char.hpp"
 #include "char_player.hpp"
 #include "room.hpp"
-#include "birth_places.hpp"
 #include "objsave.h"
 #include "fight.h"
 #include "ext_money.hpp"
@@ -50,22 +46,12 @@
 
 #include <boost/format.hpp>
 
-extern int check_dupes_host(DESCRIPTOR_DATA * d, bool autocheck = 0);
+extern int check_dupes_host(DESCRIPTOR_DATA * d, bool autocheck = false);
 
-extern room_rnum r_unreg_start_room;
-
-extern CHAR_DATA *mob_proto;
-
-extern DESCRIPTOR_DATA *descriptor_list;
-extern struct zone_data *zone_table;
 extern int idle_rent_time;
 extern int idle_max_level;
 extern int idle_void;
 extern int free_rent;
-extern room_rnum r_mortal_start_room;
-extern room_rnum r_immort_start_room;
-extern room_rnum r_helled_start_room;
-extern room_rnum r_named_start_room;
 extern struct spell_create_type spell_create[];
 extern const unsigned RECALL_SPELLS_INTERVAL;
 extern int CheckProxy(DESCRIPTOR_DATA * ch);
@@ -81,7 +67,6 @@ int graf(int age, int p0, int p1, int p2, int p3, int p4, int p5, int p6);
 int level_exp(CHAR_DATA * ch, int level);
 void update_char_objects(CHAR_DATA * ch);	// handler.cpp
 // Delete this, if you delete overflow fix in beat_points_update below.
-void die(CHAR_DATA * ch, CHAR_DATA * killer);
 // When age < 20 return the value p0 //
 // When age in 20..29 calculate the line between p1 & p2 //
 // When age in 30..34 calculate the line between p2 & p3 //
@@ -680,7 +665,7 @@ void beat_punish(const CHAR_DATA::shared_ptr& i)
 		if (restore != r_unreg_start_room
 			&& !RENTABLE(i)
 			&& !DeathTrap::is_slow_dt(IN_ROOM(i))
-			&& !check_dupes_host(i->desc, 1))
+			&& !check_dupes_host(i->desc, true))
 		{
 			if (IN_ROOM(i) == STRANGE_ROOM)
 			{
@@ -698,7 +683,7 @@ void beat_punish(const CHAR_DATA::shared_ptr& i)
 				i->set_was_in_room(NOWHERE);
 			};
 		}
-		else if (restore == r_unreg_start_room && check_dupes_host(i->desc, 1) && !IS_IMMORTAL(i))
+		else if (restore == r_unreg_start_room && check_dupes_host(i->desc, true) && !IS_IMMORTAL(i))
 		{
 			send_to_char("Неведомая вытолкнула вас из комнаты для незарегистрированных игроков.\r\n", i.get());
 			act("$n появил$u в центре комнаты, правда без штампика регистрации...\r\n",
@@ -1587,7 +1572,7 @@ void obj_point_update()
 			&& GET_ROOM_VNUM(j->get_in_obj()->get_in_room()) % 100 != 99)
 		{
 			int zone = world[j->get_in_obj()->get_in_room()]->zone;
-			bool find = 0;
+			bool find = false;
 			const auto clan = Clan::GetClanByRoom(j->get_in_obj()->get_in_room());
 			if (!clan)   // внутри замков даже и смотреть не будем
 			{
@@ -1597,7 +1582,7 @@ void obj_point_update()
 							&& zone_table[zone].cmd[cmd_no].arg1 == GET_OBJ_RNUM(j->get_in_obj())
 							&& zone_table[zone].cmd[cmd_no].arg3 == j->get_in_obj()->get_in_room())
 					{
-						find = 1;
+						find = true;
 						break;
 					}
 				}

@@ -19,6 +19,7 @@
 #include <boost/algorithm/string.hpp>
 
 #include <map>
+#include <fstream>
 
 namespace GloryMisc
 {
@@ -118,7 +119,7 @@ void save_log()
 }
 
 // * Добавление записи в лог славы (время, тип, кол-во, строка из кармы).
-void add_log(int type, int num, std::string punish, std::string reason, CHAR_DATA *vict)
+void add_log(int type, int num, const std::string& punish, const std::string& reason, CHAR_DATA *vict)
 {
 	if (!vict || vict->get_name().empty())
 	{
@@ -214,9 +215,9 @@ bool bad_start_stats(CHAR_DATA *ch)
 			|| ch->get_start_stat(G_CHA) < MIN_CHA(ch)
 			|| start_stats_count(ch) != SUM_ALL_STATS)
 	{
-		return 1;
+		return true;
 	}
-	return 0;
+	return false;
 }
 
 /**
@@ -243,10 +244,10 @@ bool check_stats(CHAR_DATA *ch)
 	// иммов травмировать не стоит
 	if (IS_IMMORTAL(ch))
 	{
-		return 1;
+		return true;
 	}
 
-	int have_stats = ch->get_inborn_str() + ch->get_inborn_dex() + ch->get_inborn_int() + ch->get_inborn_wis()
+	const int have_stats = ch->get_inborn_str() + ch->get_inborn_dex() + ch->get_inborn_int() + ch->get_inborn_wis()
 		+ ch->get_inborn_con() + ch->get_inborn_cha();
 
 	// чар со старым роллом статов или после попыток поправить статы в файле
@@ -276,14 +277,14 @@ bool check_stats(CHAR_DATA *ch)
 
 		genchar_disp_menu(ch);
 		STATE(ch->desc) = CON_RESET_STATS;
-		return 0;
+		return false;
 	}
 	// стартовые статы в поряде, но слава не сходится (снялась по времени или иммом)
 	if (bad_real_stats(ch, have_stats))
 	{
 		recalculate_stats(ch);
 	}
-	return 1;
+	return true;
 }
 
 // * Пересчет статов чара на основании стартовых статов, ремортов и славы.

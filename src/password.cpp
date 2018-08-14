@@ -70,7 +70,7 @@ void set_password(CHAR_DATA *ch, const std::string &pwd)
 // отправляет пароль на мыло через внешний скрипт
 // такое, конечно же, правильнее делать через либу openssl прямо в плюсах
 // но там гемора много
-void send_password(std::string email, std::string password, std::string name)
+void send_password(const std::string& email, const std::string& password, const std::string& name)
 {
 	std::string cmd_line = "python3 change_pass.py " + email + " " + password + " " + name + " &";
 	auto result = system(cmd_line.c_str());
@@ -78,7 +78,7 @@ void send_password(std::string email, std::string password, std::string name)
 }
 
 
-void send_password(std::string email, std::string password)
+void send_password(const std::string& email, const std::string& password)
 {
 	std::string cmd_line = "python3 change_pass.py " + email + " " + password + " &";
 	auto result = system(cmd_line.c_str());
@@ -89,17 +89,15 @@ void send_password(std::string email, std::string password)
 void set_password_to_email(CHAR_DATA *ch, const std::string &pwd)
 {
 	ch->set_passwd(generate_md5_hash(pwd));
-	send_password(std::string(GET_EMAIL(ch)), pwd.c_str(), std::string(GET_NAME(ch)));
+	send_password(std::string(GET_EMAIL(ch)), pwd, std::string(GET_NAME(ch)));
 }
 
 // дубликат set_password, который отправляет пароль на мыло
 // и говорит, что всем его персонажам изменены пароли
  void set_all_password_to_email(const char* email, const std::string &pwd, const std::string &name)
  {
-	send_password(std::string(email), pwd.c_str(), name.c_str());
+	send_password(std::string(email), pwd, name);
  }
-
-
 
 /**
 * Тип хэша у плеера
@@ -116,9 +114,9 @@ bool get_password_type(const CHAR_DATA *ch)
 */
 bool compare_password(CHAR_DATA *ch, const std::string &pwd)
 {
-	bool result = 0;
+	bool result = false;
 	if (get_password_type(ch))
-		result = CompareParam(ch->get_passwd(), CRYPT(pwd.c_str(), ch->get_passwd().c_str()), 1);
+		result = CompareParam(ch->get_passwd(), CRYPT(pwd.c_str(), ch->get_passwd().c_str()), true);
 	else
 	{
 		// если пароль des сошелся - конвертим сразу в md5 (10 - бывший MAX_PWD_LENGTH)
@@ -126,12 +124,12 @@ bool compare_password(CHAR_DATA *ch, const std::string &pwd)
 		if (s && !strncmp(s, ch->get_passwd().c_str(), 10))
 		{
 			set_password(ch, pwd);
-			result = 1;
+			result = true;
 		}
 		else if (s == NULL)
 		{
 			send_to_char("Возникли проблемы при проверке вашего пароля. Обратитесь к старшим богам для его сброса.\r\n", ch);
-			result = 0;
+			result = false;
 		}
 	}
 	return result;
@@ -151,7 +149,7 @@ bool check_password(const CHAR_DATA *ch, const char *pwd)
 	UNUSED_ARG(ch);
 	UNUSED_ARG(pwd);
 #endif
-	return 1;
+	return true;
 }
 
 /**
@@ -160,7 +158,7 @@ bool check_password(const CHAR_DATA *ch, const char *pwd)
 */
 bool compare_password(std::string const &hash, std::string const &pass)
 {
-	return CompareParam(hash.c_str(), CRYPT(pass.c_str(), hash.c_str()), 1);
+	return CompareParam(hash, CRYPT(pass.c_str(), hash.c_str()), true);
 }
 
 } // namespace Password

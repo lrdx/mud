@@ -18,7 +18,6 @@
 #include "handler.h"
 #include "db.h"
 #include "screen.h"
-#include "im.h"
 #include "constants.h"
 #include "skills.h"
 #include "char.hpp"
@@ -37,6 +36,7 @@
 
 #include <stdexcept>
 #include <sstream>
+#include <fstream>
 
 //Используемые внешние ф-ии.
 extern int get_buf_line(char **source, char *target);
@@ -67,8 +67,6 @@ int exchange_setfilter(CHAR_DATA * ch, char *arg);
 
 int exchange_database_load();
 int exchange_database_reload(bool loadbackup);
-void check_exchange(OBJ_DATA * obj);
-void extract_exchange_item(EXCHANGE_ITEM_DATA * item);
 int get_unique_lot(void);
 void message_exchange(char *message, CHAR_DATA * ch, EXCHANGE_ITEM_DATA * j);
 void show_lots(char *filter, short int show_type, CHAR_DATA * ch);
@@ -531,7 +529,7 @@ int exchange_information(CHAR_DATA * ch, char *arg)
 	strcat(buf, diag_timer_to_char(GET_EXCHANGE_ITEM(item)));
 	obj_info(ch, GET_EXCHANGE_ITEM(item), buf);
 	strcat(buf, "\n");
-	if (invalid_anti_class(ch, GET_EXCHANGE_ITEM(item)) || invalid_unique(ch, GET_EXCHANGE_ITEM(item)) || NamedStuff::check_named(ch, GET_EXCHANGE_ITEM(item), 0))
+	if (invalid_anti_class(ch, GET_EXCHANGE_ITEM(item)) || invalid_unique(ch, GET_EXCHANGE_ITEM(item)) || NamedStuff::check_named(ch, GET_EXCHANGE_ITEM(item), false))
 	{
 		sprintf(buf2, "Эта вещь вам недоступна!");
 		strcat(buf, buf2);
@@ -612,7 +610,7 @@ int exchange_identify(CHAR_DATA * ch, char *arg)
 
 CHAR_DATA *get_char_by_id(int id)
 {
-	for (const auto i : character_list)
+	for (const auto& i : character_list)
 	{
 		if (!IS_NPC(i) && GET_IDNUM(i) == id)
 		{
@@ -1215,7 +1213,7 @@ int exchange_database_load()
 
 	CREATE(readdata, fsize + 1);
 	fseek(fl, 0L, SEEK_SET);
-	auto actual_size = fread(readdata, 1, fsize, fl);
+	const auto actual_size = fread(readdata, 1, fsize, fl);
 	if (!actual_size || ferror(fl))
 	{
 		fclose(fl);
@@ -1315,7 +1313,7 @@ int exchange_database_reload(bool loadbackup)
 
 	CREATE(readdata, fsize + 1);
 	fseek(fl, 0L, SEEK_SET);
-	auto actual_size = fread(readdata, 1, fsize, fl);
+	const auto actual_size = fread(readdata, 1, fsize, fl);
 	if (!actual_size || ferror(fl))
 	{
 		fclose(fl);
@@ -1499,7 +1497,7 @@ void show_lots(char *filter, short int show_type, CHAR_DATA * ch)
 	11 - аффект
 	*/
 	char tmpbuf[MAX_INPUT_LENGTH];
-	bool any_item = 0;
+	bool any_item = false;
 
 	ParseFilter params(ParseFilter::EXCHANGE);
 	if (!parse_exch_filter(params, filter, true))
@@ -1623,7 +1621,7 @@ void show_lots(char *filter, short int show_type, CHAR_DATA * ch)
 			sprintf(tmpbuf, "%s %9d  %-s\r\n", colored_name(tmpbuf, 63, true), GET_EXCHANGE_ITEM_COST(j), diag_obj_timer(GET_EXCHANGE_ITEM(j)));
 		// Такое вот кино, на выделения для каждой строчки тут уходило до 0.6 секунды при выводе всего базара. стринги рулят -- Krodo
 		buffer += tmpbuf;
-		any_item = 1;
+		any_item = true;
 	}
 
 	if (!any_item)

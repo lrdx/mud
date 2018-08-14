@@ -13,7 +13,6 @@
 #include "remember.hpp"
 #include "char.hpp"
 #include "dps.hpp"
-#include "morph.hpp"
 #include "map.hpp"
 #include "reset_stats.hpp"
 #include "boards.types.hpp"
@@ -98,7 +97,7 @@ public:
 	void dps_add_exp(int exp, bool battle = false);
 
 	void save_char();
-	int load_char_ascii(const char *name, bool reboot = 0, const bool find_id = true);
+	int load_char_ascii(const char *name, bool reboot = false, const bool find_id = true);
 
 	bool get_disposable_flag(int num);
 	void set_disposable_flag(int num);

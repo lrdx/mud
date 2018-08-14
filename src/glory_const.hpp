@@ -42,7 +42,7 @@ int remove_glory(long uid, int amount);
 void do_glory(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
 void do_spend_glory(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
 void spend_glory_menu(CHAR_DATA *ch);
-bool parse_spend_glory_menu(CHAR_DATA *ch, char *arg);
+bool parse_spend_glory_menu(CHAR_DATA *ch, const char *arg);
 
 void save();
 void load();

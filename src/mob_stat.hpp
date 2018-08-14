@@ -4,14 +4,12 @@
 #ifndef MOB_STAT_HPP_INCLUDED
 #define MOB_STAT_HPP_INCLUDED
 
-#include "conf.h"
+#include "structs.h"
+
 #include <unordered_map>
 #include <array>
 #include <list>
 #include <string>
-
-#include "sysdep.h"
-#include "structs.h"
 
 /// Статистика по убийствам мобов/мобами с делением на размер группы и месяцы
 namespace mob_stat

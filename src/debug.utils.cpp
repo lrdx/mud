@@ -1,7 +1,5 @@
 #include "debug.utils.hpp"
 
-#include <iostream>
-
 namespace debug
 {
 	void LogQueue::push(const std::string& s)

@@ -5,6 +5,7 @@
 #include "char.hpp"
 #include "obj.hpp"
 #include "utils.h"
+#include "features.hpp"
 
 inline bool INVIS_OK_OBJ(const CHAR_DATA* sub, const CObjectPrototype* obj)
 {

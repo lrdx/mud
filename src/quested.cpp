@@ -65,18 +65,18 @@ std::string Quested::get_text(int vnum) const
 std::string Quested::print() const
 {
 	std::stringstream text;
-	for (QuestedType::const_iterator it = quested_.begin(); it != quested_.end(); ++it)
+	for (const auto& it : quested_)
 	{
-		text << " " << it->first << " " << it->second << "\r\n";
+		text << " " << it.first << " " << it.second << "\r\n";
 	}
 	return text.str();
 }
 
 void Quested::save(FILE *saved) const
 {
-	for (QuestedType::const_iterator it = quested_.begin(); it != quested_.end(); ++it)
+	for (const auto& it : quested_)
 	{
-		fprintf(saved, "Qst : %d %s~\n", it->first, it->second.c_str());
+		fprintf(saved, "Qst : %d %s~\n", it.first, it.second.c_str());
 	}
 }
 

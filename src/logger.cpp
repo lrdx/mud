@@ -208,7 +208,7 @@ void ip_log(const char *ip)
 /*
  * Перезагрузка для функции mudlog, которая первым параметром вместо char *, принимает строку
  */
-void mudlog(std::string str, int type, int level, EOutputStream channel, int file)
+void mudlog(const std::string& str, int type, int level, EOutputStream channel, int file)
 {
 	mudlog(str.c_str(), type, level, channel, file);
 }

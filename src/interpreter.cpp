@@ -30,15 +30,12 @@
 #include "house.h"
 #include "mail.h"
 #include "screen.h"
-#include "olc.h"
 #include "dg_scripts.h"
-#include "pk.h"
 #include "genchar.h"
 #include "ban.hpp"
 #include "item.creation.hpp"
 #include "features.hpp"
 #include "boards.h"
-#include "top.h"
 #include "title.hpp"
 #include "password.hpp"
 #include "privilege.hpp"
@@ -48,7 +45,6 @@
 #include "char_player.hpp"
 #include "parcel.hpp"
 #include "liquid.hpp"
-#include "name_list.hpp"
 #include "modify.h"
 #include "room.hpp"
 #include "glory_const.hpp"
@@ -85,12 +81,7 @@
 #include <arpa/inet.h>
 #endif
 
-extern room_rnum r_mortal_start_room;
-extern room_rnum r_immort_start_room;
 extern room_rnum r_frozen_start_room;
-extern room_rnum r_helled_start_room;
-extern room_rnum r_named_start_room;
-extern room_rnum r_unreg_start_room;
 extern const char *class_menu;
 extern const char *class_menu_vik;
 extern const char *class_menu_step;
@@ -99,14 +90,11 @@ extern const char *color_menu;
 extern char *motd;
 extern char *rules;
 extern char *background;
-extern const char *MENU;
 extern const char *WELC_MESSG;
 extern const char *START_MESSG;
-extern DESCRIPTOR_DATA *descriptor_list;
 extern int circle_restrict;
 extern int no_specials;
 extern int max_bad_pws;
-extern INDEX_DATA *mob_index;
 extern const char *default_race[];
 extern void add_karma(CHAR_DATA * ch, const char * punish , const char * reason);
 extern struct pclean_criteria_data pclean_criteria[];
@@ -139,16 +127,14 @@ void zedit_parse(DESCRIPTOR_DATA * d, char *arg);
 void medit_parse(DESCRIPTOR_DATA * d, char *arg);
 void trigedit_parse(DESCRIPTOR_DATA * d, char *arg);
 int find_social(char *name);
-void do_aggressive_room(CHAR_DATA * ch, int check_sneak);
 extern int process_auto_agreement(DESCRIPTOR_DATA * d);
 extern int CheckProxy(DESCRIPTOR_DATA * ch);
 extern void NewNameShow(CHAR_DATA * ch);
-extern void NewNameAdd(CHAR_DATA * ch, bool save = 1);
+extern void NewNameAdd(CHAR_DATA * ch, bool save = true);
 extern void check_max_hp(CHAR_DATA *ch);
 // local functions
 int perform_dupe_check(DESCRIPTOR_DATA * d);
 struct alias_data *find_alias(struct alias_data *alias_list, char *str);
-void free_alias(struct alias_data *a);
 void perform_complex_alias(struct txt_q *input_q, char *orig, struct alias_data *a);
 int perform_alias(DESCRIPTOR_DATA * d, char *orig);
 int reserved_word(const char *argument);
@@ -186,8 +172,6 @@ void do_date(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
 void do_dc(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
 void do_diagnose(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
 void do_display(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
-void do_drink(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
-void do_drunkoff(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
 void do_features(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
 void do_featset(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
 void do_findhelpee(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
@@ -263,7 +247,6 @@ void do_order(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
 void do_page(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
 void do_pray(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
 void do_poofset(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
-void do_pour(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
 void do_skills(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
 void do_statistic(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
 void do_spells(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
@@ -391,7 +374,6 @@ void DoHcontrol(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
 void DoWhoClan(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
 void DoClanPkList(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
 void DoStoreHouse(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
-void do_clanstuff(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
 void DoBest(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
 void do_offtop(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
 void do_dmeter(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
@@ -404,12 +386,10 @@ void do_morphset(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
 void do_console(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
 void do_shops_list(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
 void do_unfreeze(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
-void Bonus::do_bonus_by_character(CHAR_DATA*, char*, int, int);
 void do_summon(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
 void do_check_occupation(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
 void do_delete_obj(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
 void do_arena_restore(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
-void Bonus::do_bonus_info(CHAR_DATA*, char*, int, int);
 void do_stun(CHAR_DATA*, char*, int, int);
 void do_showzonestats(CHAR_DATA*, char*, int, int);
 void do_overstuff(CHAR_DATA *ch, char*, int, int);
@@ -2123,7 +2103,7 @@ int pre_help(CHAR_DATA * ch, char *arg)
 // вобщем флажок для зареганных ип, потому что при очередной автопроверке, если превышен
 // лимит коннектов с ип - сядут все сместе, что выглядит имхо странно, может там комп новый воткнули
 // и просто еще до иммов не достучались лимит поднять... вобщем сидит тот, кто не успел Ж)
-int check_dupes_host(DESCRIPTOR_DATA * d, bool autocheck = 0)
+int check_dupes_host(DESCRIPTOR_DATA * d, bool autocheck = false)
 {
 	if (!d->character || IS_IMMORTAL(d->character))
 		return 1;
@@ -2138,7 +2118,7 @@ int check_dupes_host(DESCRIPTOR_DATA * d, bool autocheck = 0)
 
 		if (RegisterSystem::is_registered_email(GET_EMAIL(d->character)))
 		{
-			d->registered_email = 1;
+			d->registered_email = true;
 			return 1;
 		}
 	}
@@ -2199,7 +2179,7 @@ int check_dupes_email(DESCRIPTOR_DATA * d)
 		return (1);
 	}
 
-	for (const auto ch : character_list)
+	for (const auto& ch : character_list)
 	{
 		if (ch == d->character
 			|| IS_NPC(ch))
@@ -2427,7 +2407,7 @@ void do_entergame(DESCRIPTOR_DATA * d)
 	send_to_char(WELC_MESSG, d->character.get());
 
 	CHAR_DATA* character = nullptr;
-	for (const auto character_i : character_list)
+	for (const auto& character_i : character_list)
 	{
 		if (character_i == d->character)
 		{
@@ -2724,7 +2704,7 @@ void DoAfterPassword(DESCRIPTOR_DATA * d)
 		subnets.insert(current_subnet);
 		log_info = log_info->next;
 	}
-	if (subnets.size() != 0)
+	if (!subnets.empty())
 	{
 		if (subnets.count(inet_addr(d->host) & MASK) == 0)
 		{
@@ -3914,7 +3894,7 @@ Sventovit
 			break;
 
 		case '2':
-			if (d->character->player_data.description != "")
+			if (!d->character->player_data.description.empty())
 			{
 				SEND_TO_Q("Ваше ТЕКУЩЕЕ описание:\r\n", d);
 				SEND_TO_Q(d->character->player_data.description.c_str(), d);
@@ -4426,17 +4406,17 @@ void GetOneParam(std::string & in_buffer, std::string & out_buffer)
 bool CompareParam(const std::string & buffer, const char *arg, bool full)
 {
 	if (!arg || !*arg || buffer.empty() || (full && buffer.length() != strlen(arg)))
-		return 0;
+		return false;
 
 	std::string::size_type i;
 	for (i = 0; i != buffer.length() && *arg; ++i, ++arg)
 		if (LOWER(buffer[i]) != LOWER(*arg))
-			return (0);
+			return (false);
 
 	if (i == buffer.length())
-		return (1);
+		return (true);
 	else
-		return (0);
+		return (false);
 }
 
 // тоже самое с обоими аргументами стринг
@@ -4444,17 +4424,17 @@ bool CompareParam(const std::string & buffer, const std::string & buffer2, bool 
 {
 	if (buffer.empty() || buffer2.empty()
 			|| (full && buffer.length() != buffer2.length()))
-		return 0;
+		return false;
 
 	std::string::size_type i;
 	for (i = 0; i != buffer.length() && i != buffer2.length(); ++i)
 		if (LOWER(buffer[i]) != LOWER(buffer2[i]))
-			return (0);
+			return (false);
 
 	if (i == buffer.length())
-		return (1);
+		return (true);
 	else
-		return (0);
+		return (false);
 }
 
 // ищет дескриптор игрока(онлайн состояние) по его УИДу
@@ -4568,20 +4548,22 @@ std::string ExpFormat(long long exp)
 		prefix = "-";
 	}
 	if (exp < 1000000)
-		return (prefix + boost::lexical_cast<std::string>(exp));
+		return (prefix + std::to_string(exp));
 	else if (exp < 1000000000)
-		return (prefix + boost::lexical_cast<std::string>(exp / 1000) + " тыс");
+		return (prefix + std::to_string(exp / 1000) + " тыс");
 	else if (exp < 1000000000000LL)
-		return (prefix + boost::lexical_cast<std::string>(exp / 1000000) + " млн");
+		return (prefix + std::to_string(exp / 1000000) + " млн");
 	else
-		return (prefix + boost::lexical_cast<std::string>(exp / 1000000000LL) + " млрд");
+		return (prefix + std::to_string(exp / 1000000000LL) + " млрд");
 }
 
 // * Конвертация входной строки в нижний регистр
 void lower_convert(std::string& text)
 {
-	for (std::string::iterator it = text.begin(); it != text.end(); ++it)
-		*it = LOWER(*it);
+	for (auto& it : text)
+	{
+		it = LOWER(it);
+	}
 }
 
 // * Конвертация входной строки в нижний регистр

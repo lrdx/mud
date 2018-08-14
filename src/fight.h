@@ -6,8 +6,6 @@
 #include "fight_constants.hpp"
 #include "char.hpp"
 #include "structs.h"
-#include "conf.h"
-#include "sysdep.h"
 
 /**
  * Для входа со скила без инита остальных полей:
