@@ -1,6 +1,7 @@
 #ifndef __DEBUG_UTILS_HPP__
 #define __DEBUG_UTILS_HPP__
 
+#include <iostream>
 #include <string>
 #include <list>
 #include <unordered_map>
