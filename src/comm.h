@@ -86,6 +86,8 @@ void write_to_output(const char *txt, DESCRIPTOR_DATA * d);
 void string_add(DESCRIPTOR_DATA * d, char *str);
 void string_write(DESCRIPTOR_DATA * d, const AbstractStringWriter::shared_ptr& writer, size_t len, int mailto, void *data);
 
+int toggle_compression(DESCRIPTOR_DATA * d);
+
 #define SEND_TO_Q(messg, desc)		write_to_output((messg), desc)
 #define SEND_TO_SOCKET(messg, desc)	write_to_descriptor((desc), (messg), strlen(messg))
 
