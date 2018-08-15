@@ -30,12 +30,6 @@
 #include "room.hpp"
 #include "celebrates.hpp"
 
-void another_hour(int mode);
-void weather_change(void);
-
-void calc_easter(void);
-
-
 int EasterMonth = 0;
 int EasterDay = 0;
 

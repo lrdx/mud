@@ -26,28 +26,6 @@
 #include "room.hpp"
 #include "noob.hpp"
 
-extern int dts_are_dumps;
-
-int dump(CHAR_DATA *ch, void *me, int cmd, char* argument);
-int puff(CHAR_DATA *ch, void *me, int cmd, char* argument);
-int horse_keeper(CHAR_DATA *ch, void *me, int cmd, char* argument);
-int exchange(CHAR_DATA *ch, void *me, int cmd, char* argument);
-int torc(CHAR_DATA *ch, void *me, int cmd, char* argument);
-
-void assign_kings_castle(void);
-
-// local functions
-void assign_mobiles(void);
-void assign_objects(void);
-void assign_rooms(void);
-
-typedef int special_f(CHAR_DATA*, void*, int, char*);
-
-void ASSIGNROOM(room_vnum room, special_f);
-void ASSIGNMOB(mob_vnum mob, special_f);
-void ASSIGNOBJ(obj_vnum obj, special_f);
-void clear_mob_charm(CHAR_DATA *mob);
-
 // functions to perform assignments
 
 void ASSIGNMOB(mob_vnum mob, int fname(CHAR_DATA*, void*, int, char*))

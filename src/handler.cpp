@@ -86,26 +86,11 @@ int min_stats2[][6] =
 	{15, 10, 19, 15, 12, 12}	// Волхв //
 };
 
-// local functions //
-int apply_ac(CHAR_DATA * ch, int eq_pos);
-int apply_armour(CHAR_DATA * ch, int eq_pos);
-void update_object(OBJ_DATA * obj, int use);
-void update_char_objects(CHAR_DATA * ch);
-bool is_wear_light(CHAR_DATA *ch);
-
-// external functions //
-void perform_drop_gold(CHAR_DATA * ch, int amount, byte mode, room_rnum RDR);
-int slot_for_char(CHAR_DATA * ch, int i);
-int invalid_anti_class(CHAR_DATA * ch, const OBJ_DATA * obj);
-int invalid_unique(CHAR_DATA * ch, const OBJ_DATA * obj);
-int invalid_no_class(CHAR_DATA * ch, const OBJ_DATA * obj);
-int extra_damroll(int class_num, int level);
-void do_entergame(DESCRIPTOR_DATA * d);
-void do_return(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
-extern std::vector<City> cities;
-extern int global_uid;
-extern void change_leader(CHAR_DATA *ch, CHAR_DATA *vict);
-extern char *find_exdesc(char *word, const EXTRA_DESCR_DATA::shared_ptr& list);
+void set_wait(CHAR_DATA * ch, int waittime, int victim_in_room)
+{
+	if (!WAITLESS(ch) && (!victim_in_room || (ch->get_fighting() && ch->in_room == IN_ROOM(ch->get_fighting()))))
+		WAIT_STATE(ch, waittime * PULSE_VIOLENCE);
+}
 
 char *fname(const char *namelist)
 {

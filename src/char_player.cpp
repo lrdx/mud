@@ -41,10 +41,6 @@
 #include <sstream>
 #include <bitset>
 
-
-int level_exp(CHAR_DATA * ch, int level);
-extern std::vector<City> cities;
-extern std::string default_str_cities;
 namespace
 {
 
@@ -98,7 +94,6 @@ Player::Player()
 	board_date_.fill(now);
 }
 
-extern std::vector<Stigma> stigmas;
 void Player::add_stigma(int wear, int id_stigma)
 {
 	for (auto i : ::stigmas)
@@ -296,7 +291,6 @@ void Player::dec_hryvn(int value)
 	this->hryvn += value;
 }
 
-extern std::vector<DailyQuest> d_quest;
 void Player::dquest(int id)
 {
 	for (auto x : d_quest)

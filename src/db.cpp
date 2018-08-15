@@ -115,15 +115,11 @@ int top_of_trigt = 0;		// top of trigger index table
 
 INDEX_DATA *mob_index;		// index table for mobile file
 mob_rnum top_of_mobt = 0;	// top of mobile index table
-void Load_Criterion(pugi::xml_node XMLCriterion, int type);
-void load_speedwalk();
-void load_class_limit();
 int global_uid = 0;
 
 struct zone_data *zone_table;	// zone table
 zone_rnum top_of_zone_table = 0;	// top element of zone tab
 struct message_list fight_messages[MAX_MESSAGES];	// fighting messages
-extern int slot_for_char(CHAR_DATA * ch, int slot_num);
 PlayersIndex player_table;	// index to plr file
 
 bool player_exists(const long id) { return player_table.player_exists(id); }
@@ -159,9 +155,6 @@ const FLAG_DATA clear_flags;
 
 struct portals_list_type *portals_list;	// Список проталов для townportal
 
-extern int number_of_social_messages;
-extern int number_of_social_commands;
-
 guardian_type guardian_list;
 
 insert_wanted_gem iwg;
@@ -173,81 +166,6 @@ GameLoader::GameLoader()
 GameLoader world_loader;
 
 QuestBodrich qb;
-
-
-// local functions
-void LoadGlobalUID(void);
-void parse_room(FILE * fl, int virtual_nr, int virt);
-void parse_object(FILE * obj_f, const int nr);
-void load_help(FILE * fl);
-void assign_mobiles(void);
-void assign_objects(void);
-void assign_rooms(void);
-void init_spec_procs(void);
-void build_player_index(void);
-int is_empty(zone_rnum zone_nr);
-void reset_zone(zone_rnum zone);
-int file_to_string(const char *name, char *buf);
-int file_to_string_alloc(const char *name, char **buf);
-void do_reboot(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
-void check_start_rooms(void);
-void renum_world(void);
-void renum_zone_table(void);
-void log_zone_error(zone_rnum zone, int cmd_no, const char *message);
-void reset_time(void);
-int mobs_in_room(int m_num, int r_num);
-void new_build_player_index(void);
-void renum_obj_zone(void);
-void renum_mob_zone(void);
-void init_guilds(void);
-void init_basic_values(void);
-void init_portals(void);
-void init_im(void);
-void init_zone_types();
-void load_guardians();
-
-// external functions
-TIME_INFO_DATA *mud_time_passed(time_t t2, time_t t1);
-void load_messages(void);
-void mag_assign_spells(void);
-void sort_commands(void);
-void Read_Invalid_List(void);
-int csort(const void *a, const void *b);
-void prune_crlf(char *txt);
-int Crash_read_timer(const std::size_t index, int temp);
-void Crash_clear_objects(const std::size_t index);
-extern void extract_trigger(TRIG_DATA * trig);
-//F@N|
-int exchange_database_load(void);
-
-void create_rainsnow(int *wtype, int startvalue, int chance1, int chance2, int chance3);
-void calc_easter(void);
-void do_start(CHAR_DATA * ch, int newbie);
-extern void repop_decay(zone_rnum zone);	// рассыпание обьектов ITEM_REPOP_DECAY
-int real_zone(int number);
-int level_exp(CHAR_DATA * ch, int level);
-extern void NewNameRemove(CHAR_DATA * ch);
-extern void NewNameLoad();
-extern char *fread_action(FILE * fl, int nr);
-
-//polud
-void load_mobraces();
-//-polud
-
-// external vars
-extern int no_specials;
-extern room_vnum mortal_start_room;
-extern room_vnum immort_start_room;
-extern room_vnum frozen_start_room;
-extern room_vnum helled_start_room;
-extern room_vnum named_start_room;
-extern room_vnum unreg_start_room;
-extern struct month_temperature_type year_temp[];
-extern const char *pc_class_types[];
-extern char *house_rank[];
-extern struct pclean_criteria_data pclean_criteria[];
-extern void LoadProxyList();
-extern void add_karma(CHAR_DATA * ch, const char * punish , const char * reason);
 
 int strchrn(const char *s, int c)
 {
@@ -1007,7 +925,6 @@ void load_cases()
 	}
 }
 
-std::vector<City> cities;
 std::string default_str_cities;
 /* Загрузка городов из xml файлов */
 void load_cities()
@@ -1029,11 +946,6 @@ void load_cities()
 		default_str_cities += "0";
 	}
 }
-
-
-
-
-
 
 std::vector<RandomObj> random_objs;
 

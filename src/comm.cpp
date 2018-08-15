@@ -157,7 +157,6 @@
 #define ESC "\x1B"  /* esc character */
 
 #define MXPMODE(arg) ESC "[" #arg "z"
-extern void save_zone_count_reset();
 // flags for show_list_to_char 
 
 enum {
@@ -372,22 +371,6 @@ void our_terminate()
 		log("Unknown exception :(");
     }
 }
-
-// externs
-extern int num_invalid;
-extern char *GREETINGS;
-extern int circle_restrict;
-extern FILE *player_fl;
-extern ush_int DFLT_PORT;
-extern const char *DFLT_DIR;
-extern const char *DFLT_IP;
-extern const char *LOGNAME;
-extern int max_playing;
-extern int nameserver_is_slow;	// see config.cpp
-extern const char *save_info_msg[];	// In olc.cpp
-extern int proc_color(char *inbuf, int color);
-extern void tact_auction(void);
-extern void log_code_date();
 
 // local globals
 DESCRIPTOR_DATA *descriptor_list = NULL;	// master desc list

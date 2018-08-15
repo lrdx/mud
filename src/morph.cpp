@@ -20,7 +20,6 @@
 MorphListType IdToMorphMap;
 
 short MIN_WIS_FOR_MORPH=0;
-void perform_remove(CHAR_DATA * ch, int pos);
 
 std::string AnimalMorph::GetMorphDesc() const
 {

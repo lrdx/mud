@@ -29,22 +29,8 @@
 
 #include <algorithm>
 
-// extern
-void perform_drop_gold(CHAR_DATA * ch, int amount, byte mode, room_rnum RDR);
-int level_exp(CHAR_DATA * ch, int chlevel);
-int max_exp_gain_pc(CHAR_DATA * ch);
-int max_exp_loss_pc(CHAR_DATA * ch);
-void get_from_container(CHAR_DATA * ch, OBJ_DATA * cont, char *arg, int mode, int amount, bool autoloot);
-int slot_for_char(CHAR_DATA * ch, int i);
-void do_flee(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
-void set_wait(CHAR_DATA * ch, int waittime, int victim_in_room);
-
-extern int material_value[];
-extern int max_exp_gain_npc;
-
-//интервал в секундах между восстановлением кругов после рипа
-extern const unsigned RECALL_SPELLS_INTERVAL;
 const unsigned RECALL_SPELLS_INTERVAL = 28;
+
 void process_mobmax(CHAR_DATA *ch, CHAR_DATA *killer)
 {
 	bool leader_partner = false;

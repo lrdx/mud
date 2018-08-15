@@ -18,14 +18,11 @@
 #include "screen.h"
 #include "boards.h"
 #include "skills.h"
-#include "spells.h"
-#include "privilege.hpp"
 #include "char.hpp"
 #include "char_player.hpp"
 #include "modify.h"
 #include "room.hpp"
 #include "objsave.h"
-#include "handler.h"
 #include "named_stuff.hpp"
 #include "help.hpp"
 #include "conf.h"
@@ -44,17 +41,6 @@
 #include <limits>
 
 using namespace ClanSystem;
-
-extern int mortal_start_room;
-extern void list_obj_to_char(OBJ_DATA * list, CHAR_DATA * ch, int mode, int show);
-extern int file_to_string_alloc(const char *name, char **buf);
-// TODO: думать надо с этим, или глобально следить за спамом, или игноров напихать на все случаи жизни, или так и оставить
-extern void set_wait(CHAR_DATA * ch, int waittime, int victim_in_room);
-extern const char *show_obj_to_char(OBJ_DATA * object, CHAR_DATA * ch, int mode, int show_state, int how);
-extern void imm_show_obj_values(OBJ_DATA * obj, CHAR_DATA * ch);
-extern void mort_show_obj_values(const OBJ_DATA * obj, CHAR_DATA * ch, int fullness);
-extern char const *class_abbrevs[];
-extern bool char_to_pk_clan(CHAR_DATA *ch);
 
 void fix_ingr_chest_rnum(const int room_rnum)//Нужно чтоб позиция короба не съехала
 {

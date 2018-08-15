@@ -33,42 +33,9 @@
 #include <array>
 #include <stack>
 
-// * External variable declarations.
-extern int top_imrecipes;
-extern void extract_obj(OBJ_DATA * obj);
-int real_zone(int number);
-
-//------------------------------------------------------------------------
 
 // * Handy macros.
 #define S_PRODUCT(s, i) ((s)->producing[(i)])
-
-//------------------------------------------------------------------------
-void oedit_setup(DESCRIPTOR_DATA * d, int real_num);
-
-void oedit_object_copy(OBJ_DATA * dst, CObjectPrototype* src);
-
-void oedit_save_internally(DESCRIPTOR_DATA * d);
-void oedit_save_to_disk(int zone);
-
-void oedit_parse(DESCRIPTOR_DATA * d, char *arg);
-void oedit_disp_spells_menu(DESCRIPTOR_DATA * d);
-void oedit_liquid_type(DESCRIPTOR_DATA * d);
-void oedit_disp_container_flags_menu(DESCRIPTOR_DATA * d);
-void oedit_disp_extradesc_menu(DESCRIPTOR_DATA * d);
-void oedit_disp_weapon_menu(DESCRIPTOR_DATA * d);
-void oedit_disp_val1_menu(DESCRIPTOR_DATA * d);
-void oedit_disp_val2_menu(DESCRIPTOR_DATA * d);
-void oedit_disp_val3_menu(DESCRIPTOR_DATA * d);
-void oedit_disp_val4_menu(DESCRIPTOR_DATA * d);
-void oedit_disp_type_menu(DESCRIPTOR_DATA * d);
-void oedit_disp_extra_menu(DESCRIPTOR_DATA * d);
-void oedit_disp_wear_menu(DESCRIPTOR_DATA * d);
-void oedit_disp_menu(DESCRIPTOR_DATA * d);
-void oedit_disp_skills_menu(DESCRIPTOR_DATA * d);
-void oedit_disp_receipts_menu(DESCRIPTOR_DATA * d);
-void oedit_disp_feats_menu(DESCRIPTOR_DATA * d);
-void oedit_disp_skills_mod_menu(DESCRIPTOR_DATA* d);
 
 // ------------------------------------------------------------------------
 //  Utility and exported functions

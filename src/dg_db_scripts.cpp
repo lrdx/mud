@@ -26,7 +26,6 @@
 #include "char.hpp"
 #include "room.hpp"
 #include "magic.h"
-#include "boards.h"
 #include "logger.hpp"
 #include "utils.h"
 #include "structs.h"
@@ -38,13 +37,9 @@
 #include <stack>
 #include <iostream>
 
-//External functions
-extern void extract_trigger(TRIG_DATA * trig);
 
 //внум_триггера : [внум_триггера_который_прикрепил_данный тригер : [перечисление к чему прикрепленно (внумы объектов/мобов/комнат)]]
 trigger_to_owners_map_t owner_trig;
-
-int check_recipe_values(CHAR_DATA * ch, int spellnum, int spelltype, int showrecipe);
 
 // TODO: Get rid of me
 char* dirty_indent_trigger(char* cmd , int* level)

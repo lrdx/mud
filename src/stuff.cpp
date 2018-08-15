@@ -30,11 +30,6 @@
 
 #include <fstream>
 
-extern std::vector<RandomObj> random_objs;
-extern void set_obj_eff(OBJ_DATA *itemobj, const EApplyLocation type, int mod);
-extern void set_obj_aff(OBJ_DATA *itemobj, const EAffectFlag bitv);
-extern int planebit(const char *str, int *plane, int *bit);
-
 void LoadRandomObj(OBJ_DATA *obj)
 {
 	// костыли, привет

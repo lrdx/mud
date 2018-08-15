@@ -35,8 +35,6 @@
 #include <fstream>
 
 #define SpINFO   spell_info[spellnum]
-extern int material_value[];
-int slot_for_char(CHAR_DATA * ch, int i);
 
 constexpr auto WEAR_TAKE = to_underlying(EWearFlag::ITEM_WEAR_TAKE);
 constexpr auto WEAR_TAKE_BOTHS_WIELD = WEAR_TAKE | to_underlying(EWearFlag::ITEM_WEAR_BOTHS) | to_underlying(EWearFlag::ITEM_WEAR_WIELD);

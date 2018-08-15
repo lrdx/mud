@@ -26,11 +26,6 @@
 #include <sstream>
 #include <memory>
 
-extern void get_from_container(CHAR_DATA * ch, OBJ_DATA * cont, char *arg, int mode, int amount, bool autoloot);
-extern void set_obj_eff(OBJ_DATA *itemobj, const EApplyLocation type, int mod);
-extern void set_obj_aff(OBJ_DATA *itemobj, const EAffectFlag bitv);
-extern void extract_trigger(TRIG_DATA* trig);
-
 id_to_set_info_map OBJ_DATA::set_table;
 
 OBJ_DATA::OBJ_DATA(const obj_vnum vnum):

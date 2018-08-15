@@ -62,94 +62,13 @@
 #include <sstream>
 #include <vector>
 
-using std::string;
-
-// extern variables
-extern int number_of_social_commands;
-extern char *credits;
-extern char *info;
-extern char *motd;
-extern char *rules;
-extern char *immlist;
-extern char *policies;
-extern char *handbook;
-extern char const *class_abbrevs[];
-extern char const *kin_abbrevs[];
-extern im_type *imtypes;
-extern int top_imtypes;
-extern void show_code_date(CHAR_DATA *ch);
-extern int nameserver_is_slow; //config.cpp
-extern void login_change_invoice(CHAR_DATA *ch);
-extern std::vector<City> cities;
-// extern functions
-long find_class_bitvector(char arg);
-int level_exp(CHAR_DATA * ch, int level);
-TIME_INFO_DATA *real_time_passed(time_t t2, time_t t1);
-// local functions
-const char *show_obj_to_char(OBJ_DATA * object, CHAR_DATA * ch, int mode, int show_state, int how);
-void list_obj_to_char(OBJ_DATA * list, CHAR_DATA * ch, int mode, int show);
-char *diag_obj_to_char(CHAR_DATA * i, OBJ_DATA * obj, int mode);
-const char *diag_obj_timer(const OBJ_DATA * obj);
-char *diag_timer_to_char(const OBJ_DATA* obj);
-const char * print_god_or_player(int level);
-int get_pick_chance(int skill_pick, int lock_complexity);
-int thaco(int class_num, int level);
-
-void do_affects(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
-void do_look(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
-void do_examine(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
-void do_gold(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
-void do_score(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
-void do_inventory(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
-void do_equipment(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
-void do_time(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
-void do_weather(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
-void do_who(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
-void do_users(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
-void do_gen_ps(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
-void perform_mortal_where(CHAR_DATA * ch, char *arg);
-void perform_immort_where(CHAR_DATA * ch, char *arg);
-void do_where(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
-void do_levels(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
-void do_consider(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
-void do_diagnose(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
-void do_color(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
-void do_toggle(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
-void sort_commands(void);
-void do_commands(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
-void do_looking(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
-void do_hearing(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
-void do_sides(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
-void do_quest(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
-void do_check(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
-void do_cities(CHAR_DATA *ch, char*, int, int);
-void diag_char_to_char(CHAR_DATA * i, CHAR_DATA * ch);
-void look_at_char(CHAR_DATA * i, CHAR_DATA * ch);
-void list_one_char(CHAR_DATA * i, CHAR_DATA * ch, int skill_mode);
-void list_char_to_char(const ROOM_DATA::people_t& list, CHAR_DATA* ch);
-void do_auto_exits(CHAR_DATA * ch);
-void do_exits(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
-void look_in_direction(CHAR_DATA * ch, int dir, int info_is);
-void look_in_obj(CHAR_DATA * ch, char *arg);
-char *find_exdesc(char *word, const EXTRA_DESCR_DATA::shared_ptr& list);
-bool look_at_target(CHAR_DATA * ch, char *arg, int subcmd);
-void gods_day_now(CHAR_DATA * ch);
-void do_blind_exits(CHAR_DATA *ch);
-const char *diag_liquid_timer(const OBJ_DATA * obj);
 #define EXIT_SHOW_WALL    (1 << 0)
 #define EXIT_SHOW_LOOKING (1 << 1)
 
 void do_quest(CHAR_DATA *ch, char* /*argument*/, int/* cmd*/, int/* subcmd*/)
-{
-	
+{	
 	send_to_char("У Вас нет никаких ежедневных поручений.\r\nЧтобы взять новые, наберите &Wпоручения получить&n.\r\n", ch);
 }
-
-/*
- * This function screams bitvector... -gg 6/45/98
- */
-
-int param_sort = 0;
 
 const char *Dirs[NUM_OF_DIRS + 1] = { "Север",
 									  "Восток",
@@ -239,6 +158,7 @@ char *diag_obj_to_char(CHAR_DATA* i, OBJ_DATA* obj, int mode)
 		sprintf(out_str, " %s<%s>%s", color, ObjState[percent][0], CCNRM(i, C_NRM));
 	else if (mode == 2)
 		strcpy(out_str, ObjState[percent][1]);
+
 	return out_str;
 }
 
@@ -445,10 +365,9 @@ const char *diag_obj_timer(const OBJ_DATA* obj)
 		const int tm = (obj->get_timer() * 100 / prot_timer); // если вещь скрафчена, смотрим ее таймер а не у прототипа
 		return print_obj_state(tm);
 	}
+
 	return "";
 }
-
-
 
 char *diag_timer_to_char(const OBJ_DATA* obj)
 {
@@ -773,7 +692,6 @@ void do_cities(CHAR_DATA *ch, char*, int, int)
 		send_to_char(buf, ch);
 	}
 }
-
 
 bool quest_item(OBJ_DATA *obj)
 {
@@ -1795,6 +1713,43 @@ void do_auto_exits(CHAR_DATA * ch)
 	send_to_char(buf2, ch);
 }
 
+void do_blind_exits(CHAR_DATA *ch)
+{
+	int door;
+
+	*buf = '\0';
+
+	if (AFF_FLAGGED(ch, EAffectFlag::AFF_BLIND))
+	{
+		send_to_char("Вы слепы, как котенок!\r\n", ch);
+		return;
+	}
+	for (door = 0; door < NUM_OF_DIRS; door++)
+		if (EXIT(ch, door) && EXIT(ch, door)->to_room != NOWHERE && !EXIT_FLAGGED(EXIT(ch, door), EX_CLOSED))
+		{
+			if (IS_GOD(ch))
+				sprintf(buf2, "&W%-5s - [%5d] %s ", Dirs[door],
+					GET_ROOM_VNUM(EXIT(ch, door)->to_room), world[EXIT(ch, door)->to_room]->name);
+			else
+			{
+				sprintf(buf2, "&W%-5s - ", Dirs[door]);
+				if (IS_DARK(EXIT(ch, door)->to_room) && !CAN_SEE_IN_DARK(ch))
+					strcat(buf2, "слишком темно");
+				else
+				{
+					strcat(buf2, world[EXIT(ch, door)->to_room]->name);
+					strcat(buf2, "");
+				}
+			}
+			strcat(buf, CAP(buf2));
+		}
+	send_to_char("Видимые выходы:\r\n", ch);
+	if (*buf)
+		send_to_char(ch, "%s&n\r\n", buf);
+	else
+		send_to_char("&W Замуровали, ДЕМОНЫ!&n\r\n", ch);
+}
+
 void do_exits(CHAR_DATA *ch, char* /*argument*/, int/* cmd*/, int/* subcmd*/)
 {
 	int door;
@@ -1835,42 +1790,6 @@ void do_exits(CHAR_DATA *ch, char* /*argument*/, int/* cmd*/, int/* subcmd*/)
 		send_to_char(buf, ch);
 	else
 		send_to_char(" Замуровали, ДЕМОНЫ!\r\n", ch);
-}
-void do_blind_exits(CHAR_DATA *ch)
-{
-	int door;
-
-	*buf = '\0';
-
-	if (AFF_FLAGGED(ch, EAffectFlag::AFF_BLIND))
-	{
-		send_to_char("Вы слепы, как котенок!\r\n", ch);
-		return;
-	}
-	for (door = 0; door < NUM_OF_DIRS; door++)
-		if (EXIT(ch, door) && EXIT(ch, door)->to_room != NOWHERE && !EXIT_FLAGGED(EXIT(ch, door), EX_CLOSED))
-		{
-			if (IS_GOD(ch))
-				sprintf(buf2, "&W%-5s - [%5d] %s ", Dirs[door],
-						GET_ROOM_VNUM(EXIT(ch, door)->to_room), world[EXIT(ch, door)->to_room]->name);
-			else
-			{
-				sprintf(buf2, "&W%-5s - ", Dirs[door]);
-				if (IS_DARK(EXIT(ch, door)->to_room) && !CAN_SEE_IN_DARK(ch))
-					strcat(buf2, "слишком темно");
-				else
-				{
-					strcat(buf2, world[EXIT(ch, door)->to_room]->name);
-					strcat(buf2, "");
-				}
-			}
-			strcat(buf, CAP(buf2));
-		}
-	send_to_char("Видимые выходы:\r\n", ch);
-	if (*buf)
-		send_to_char(ch, "%s&n\r\n", buf);
-	else
-		send_to_char("&W Замуровали, ДЕМОНЫ!&n\r\n", ch);
 }
 
 #define MAX_FIRES 6
@@ -6335,89 +6254,6 @@ void do_affects(CHAR_DATA *ch, char* /*argument*/, int/* cmd*/, int/* subcmd*/)
 			}
 		}
 	}
-}
-
-// Create web-page with users list
-void make_who2html(void)
-{
-	FILE *opf;
-	DESCRIPTOR_DATA *d;
-
-	int imms_num = 0, morts_num = 0;
-
-	char *imms = NULL;
-	char *morts = NULL;
-	char *buffer = NULL;
-
-	if ((opf = fopen(WHOLIST_FILE, "w")) == 0)
-		return;		// or log it ? *shrug*
-	fprintf(opf, "<HTML><HEAD><TITLE>Кто сейчас в Былинах?</TITLE></HEAD>\n");
-	fprintf(opf, "<BODY><H1>Кто сейчас живет в Былинах?</H1><HR>\n");
-
-	sprintf(buf, "БОГИ <BR> \r\n");
-	imms = str_add(imms, buf);
-
-	sprintf(buf, "<BR>Игроки<BR> \r\n  ");
-	morts = str_add(morts, buf);
-
-	for (d = descriptor_list; d; d = d->next)
-	{
-		if (STATE(d) == CON_PLAYING
-			&& GET_INVIS_LEV(d->character) < 31)
-		{
-			const auto ch = d->character;
-			sprintf(buf, "%s <BR> \r\n ", ch->race_or_title().c_str());
-
-			if (IS_IMMORTAL(ch))
-			{
-				imms_num++;
-				imms = str_add(imms, buf);
-			}
-			else
-			{
-				morts_num++;
-				morts = str_add(morts, buf);
-			}
-		}
-	}
-
-	if (morts_num + imms_num == 0)
-	{
-		sprintf(buf, "Все ушли на фронт! <BR>");
-		buffer = str_add(buffer, buf);
-	}
-	else
-	{
-		if (imms_num > 0)
-			buffer = str_add(buffer, imms);
-		if (morts_num > 0)
-			buffer = str_add(buffer, morts);
-		buffer = str_add(buffer, " <BR> \r\n Всего :");
-		if (imms_num)
-		{
-			// sprintf(buf+strlen(buf)," бессмертных %d",imms_num);
-			sprintf(buf, " бессмертных %d", imms_num);
-			buffer = str_add(buffer, buf);
-		}
-		if (morts_num)
-		{
-			// sprintf(buf+strlen(buf)," смертных %d",morts_num);
-			sprintf(buf, " смертных %d", morts_num);
-			buffer = str_add(buffer, buf);
-		}
-
-		buffer = str_add(buffer, ".\n");
-	}
-
-	fprintf(opf, "%s", buffer);
-
-	free(buffer);
-	free(imms);
-	free(morts);
-
-
-	fprintf(opf, "<HR></BODY></HTML>\n");
-	fclose(opf);
 }
 
 // vim: ts=4 sw=4 tw=0 noet syntax=cpp :

@@ -214,10 +214,7 @@ private:
 	bool setmode_dontbot;
 	// гривны
 	int hryvn;
-
 };
-
-
 
 namespace PlayerSystem
 {

@@ -27,11 +27,6 @@
 #include <vector>
 #include <fstream>
 
-extern CHAR_DATA *get_player_of_name(const char *name);
-extern int get_buf_line(char **source, char *target);
-extern void olc_update_object(int robj_num, OBJ_DATA *obj, OBJ_DATA *olc_proto);
-extern int invalid_anti_class(CHAR_DATA * ch, const OBJ_DATA * obj);
-
 namespace Parcel
 {
 

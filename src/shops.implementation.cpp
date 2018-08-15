@@ -20,15 +20,6 @@
 
 #include <sstream>
 
-extern int do_social(CHAR_DATA * ch, char *argument);	// implemented in the act.social.cpp
-extern void do_echo(CHAR_DATA *ch, char *argument, int cmd, int subcmd);	// implemented in the act.wizard.cpp
-extern char *diag_weapon_to_char(const CObjectPrototype* obj, int show_wear);	// implemented in the act.informative.cpp
-extern char *diag_timer_to_char(const OBJ_DATA * obj);	// implemented in the act.informative.cpp
-extern int invalid_anti_class(CHAR_DATA * ch, const OBJ_DATA * obj);	// implemented in class.cpp
-extern int invalid_unique(CHAR_DATA * ch, const OBJ_DATA * obj);	// implemented in class.cpp
-extern int invalid_no_class(CHAR_DATA * ch, const OBJ_DATA * obj);	// implemented in class.cpp
-extern void mort_show_obj_values(const OBJ_DATA * obj, CHAR_DATA * ch, int fullness);	// implemented in spells.cpp
-
 namespace ShopExt
 {
 	const int IDENTIFY_COST = 110;

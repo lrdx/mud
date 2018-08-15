@@ -25,14 +25,6 @@
 #include <iomanip>
 #include <vector>
 
-int exchange(CHAR_DATA *ch, void *me, int cmd, char* argument);
-int horse_keeper(CHAR_DATA *ch, void *me, int cmd, char* argument);
-int guild_mono(CHAR_DATA *ch, void *me, int cmd, char* argument);
-int guild_poly(CHAR_DATA *ch, void *me, int cmd, char* argument);
-int torc(CHAR_DATA *ch, void *me, int cmd, char* argument);
-
-extern int has_boat(CHAR_DATA *ch);
-
 namespace MapSystem
 {
 

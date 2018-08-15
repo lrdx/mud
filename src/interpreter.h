@@ -376,6 +376,9 @@ T three_arguments(T argument, char *first_arg, char *second_arg, char *third_arg
 
 bool who_spamcontrol(CHAR_DATA *, unsigned short int);
 
+
+void login_change_invoice(CHAR_DATA* ch);
+
 #endif // _INTERPRETER_H_
 
 // vim: ts=4 sw=4 tw=0 noet syntax=cpp :

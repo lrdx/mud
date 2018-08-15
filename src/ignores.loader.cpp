@@ -5,6 +5,7 @@
 #include "char.hpp"
 
 #include <boost/algorithm/string.hpp>
+
 class IgnoreParser
 {
 public:

@@ -1,4 +1,5 @@
 #include "AffectHandler.hpp"
+
 #include "handler.h"
 #include "spells.h"
 

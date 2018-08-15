@@ -22,8 +22,6 @@
 #include <sstream>
 #include <fstream>
 
-extern void send_to_gods(char *text, bool demigod);
-
 namespace TitleSystem
 {
 

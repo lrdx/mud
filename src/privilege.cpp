@@ -92,7 +92,6 @@ typedef std::map<long, GodListNode> GodListType;
 GodListType god_list; // основной список иммов и привилегий
 std::map<std::string, std::string> group_list; // имя группы, строка команд (для парса при лоаде файла)
 GodListNode tmp_god; // так удобнее
-void parse_command_line(const std::string &command, int other_flags = 0); // прототип
 
 /**
 * Группы и флаги идут одним полем (причем флаг может быть и группой одновременно),

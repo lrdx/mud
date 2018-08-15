@@ -38,46 +38,7 @@
 #include <sstream>
 #include <fstream>
 
-//Используемые внешние ф-ии.
-extern int get_buf_line(char **source, char *target);
-extern int get_buf_lines(char **source, char *target);
-
-extern int invalid_anti_class(CHAR_DATA * ch, const OBJ_DATA * obj);
-extern int invalid_unique(CHAR_DATA * ch, const OBJ_DATA * obj);
-extern int invalid_no_class(CHAR_DATA * ch, const OBJ_DATA * obj);
-extern int invalid_align(CHAR_DATA * ch, const OBJ_DATA * obj);
-extern char *diag_weapon_to_char(const CObjectPrototype* obj, int show_wear);
-extern const char *diag_obj_timer(const OBJ_DATA* obj);
-extern char *diag_timer_to_char(const OBJ_DATA* obj);
-extern void imm_show_obj_values(OBJ_DATA * obj, CHAR_DATA * ch);
-extern void mort_show_obj_values(const OBJ_DATA * obj, CHAR_DATA * ch, int fullness);
-extern void set_wait(CHAR_DATA * ch, int waittime, int victim_in_room);
-extern bool is_dig_stone(OBJ_DATA *obj);
-
-//свои ф-ии
-int exchange_exhibit(CHAR_DATA * ch, char *arg);
-int exchange_change_cost(CHAR_DATA * ch, char *arg);
-int exchange_withdraw(CHAR_DATA * ch, char *arg);
-int exchange_information(CHAR_DATA * ch, char *arg);
-int exchange_identify(CHAR_DATA * ch, char *arg);
-int exchange_purchase(CHAR_DATA * ch, char *arg);
-int exchange_offers(CHAR_DATA * ch, char *arg);
-int exchange_setfilter(CHAR_DATA * ch, char *arg);
-
-
-int exchange_database_load();
-int exchange_database_reload(bool loadbackup);
-int get_unique_lot(void);
-void message_exchange(char *message, CHAR_DATA * ch, EXCHANGE_ITEM_DATA * j);
-void show_lots(char *filter, short int show_type, CHAR_DATA * ch);
-int parse_exch_filter(ParseFilter &filter, char *buf, bool parse_affects);
-void clear_exchange_lot(EXCHANGE_ITEM_DATA * lot);
-extern void obj_info(CHAR_DATA * ch, OBJ_DATA *obj, char buf[MAX_STRING_LENGTH]);
-
-//Polud
-void do_exchange(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
-
-EXCHANGE_ITEM_DATA *create_exchange_item(void);
+EXCHANGE_ITEM_DATA *create_exchange_item();
 
 EXCHANGE_ITEM_DATA *exchange_item_list = NULL;
 std::vector<bool> lot_usage;

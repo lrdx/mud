@@ -22,30 +22,6 @@
 
 #include <vector>
 
-//------------------------------------------------------------------------
-
-// * Function prototypes.
-void zedit_disp_menu(DESCRIPTOR_DATA * d);
-void zedit_setup(DESCRIPTOR_DATA * d, int room_num);
-//void add_cmd_to_list(struct reset_com **list, struct reset_com *newcmd, int pos);
-//void remove_cmd_from_list(struct reset_com **list, int pos);
-int delete_command(DESCRIPTOR_DATA * d, int pos);
-int move_command(DESCRIPTOR_DATA * d, int src, int dst);
-int new_command(DESCRIPTOR_DATA * d, int pos);
-int start_change_command(DESCRIPTOR_DATA * d, int pos);
-void zedit_disp_comtype(DESCRIPTOR_DATA * d);
-void zedit_disp_arg1(DESCRIPTOR_DATA * d);
-void zedit_disp_arg2(DESCRIPTOR_DATA * d);
-void zedit_disp_arg3(DESCRIPTOR_DATA * d);
-void zedit_disp_arg4(DESCRIPTOR_DATA * d);
-void zedit_save_internally(DESCRIPTOR_DATA * d);
-void zedit_save_to_disk(int zone_num);
-void zedit_create_index(int znum, char *type);
-void zedit_new_zone(CHAR_DATA * ch, int vzone_num);
-
-void renum_single_table(int zone);
-//------------------------------------------------------------------------
-
 // Количество команд для отображения без фильтра
 #define		CMD_PAGE_SIZE		16
 

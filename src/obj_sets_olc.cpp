@@ -24,10 +24,6 @@
 #include <array>
 #include <algorithm>
 
-void show_weapon_affects_olc(DESCRIPTOR_DATA *d, const FLAG_DATA &flags);
-void show_apply_olc(DESCRIPTOR_DATA *d);
-int planebit(const char *str, int *plane, int *bit);
-
 using namespace obj_sets;
 
 namespace obj_sets_olc

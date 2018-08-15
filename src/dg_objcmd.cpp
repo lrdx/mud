@@ -31,18 +31,6 @@
 #include "sysdep.h"
 #include "conf.h"
 
-extern int up_obj_where(OBJ_DATA * obj);
-extern int reloc_target;
-
-CHAR_DATA *get_char_by_obj(OBJ_DATA * obj, char *name);
-OBJ_DATA *get_obj_by_obj(OBJ_DATA * obj, char *name);
-void sub_write(char *arg, CHAR_DATA * ch, byte find_invis, int targets);
-void obj_command_interpreter(OBJ_DATA * obj, char *argument);
-
-ROOM_DATA *get_room(char *name);
-
-bool mob_script_command_interpreter(CHAR_DATA* ch, char *argument);
-
 struct obj_command_info
 {
 	const char *command;

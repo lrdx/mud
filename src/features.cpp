@@ -34,14 +34,7 @@
 
 #include <string>
 
-extern const char *unused_spellname;
-
 struct SFeatInfo feat_info[MAX_FEATS];
-
-void unused_feat(int feat);
-
-void do_lightwalk(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
-extern void fix_name_feat(char *name);
 
 ///
 /// Поиск номера способности по имени

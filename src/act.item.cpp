@@ -43,49 +43,6 @@
 #include "char_obj_utils.inl"
 
 #include <boost/format.hpp>
-// extern variables
-extern struct house_control_rec house_control[];
-extern std::array<int, MAX_MOB_LEVEL / 11 + 1> animals_levels;
-// from act.informative.cpp
-char *find_exdesc(char *word, const EXTRA_DESCR_DATA::shared_ptr& list);
-
-// local functions
-int can_take_obj(CHAR_DATA * ch, OBJ_DATA * obj);
-void get_check_money(CHAR_DATA *ch, OBJ_DATA *obj, OBJ_DATA *cont);
-int perform_get_from_room(CHAR_DATA * ch, OBJ_DATA * obj);
-void perform_give_gold(CHAR_DATA * ch, CHAR_DATA * vict, int amount);
-void perform_give(CHAR_DATA * ch, CHAR_DATA * vict, OBJ_DATA * obj);
-int perform_drop(CHAR_DATA * ch, OBJ_DATA * obj, byte mode, const int sname, room_rnum RDR);
-void perform_drop_gold(CHAR_DATA * ch, int amount, byte mode, room_rnum RDR);
-CHAR_DATA *give_find_vict(CHAR_DATA * ch, char *arg);
-void weight_change_object(OBJ_DATA * obj, int weight);
-int perform_put(CHAR_DATA * ch, OBJ_DATA::shared_ptr obj, OBJ_DATA * cont);
-void perform_wear(CHAR_DATA * ch, OBJ_DATA * obj, int where);
-int find_eq_pos(CHAR_DATA * ch, OBJ_DATA * obj, char *arg);
-bool perform_get_from_container(CHAR_DATA * ch, OBJ_DATA * obj, OBJ_DATA * cont, int mode);
-void perform_remove(CHAR_DATA * ch, int pos);
-int invalid_anti_class(CHAR_DATA * ch, const OBJ_DATA * obj);
-void feed_charmice(CHAR_DATA * ch, char *arg);
-OBJ_DATA *create_skin(CHAR_DATA * mob, CHAR_DATA* ch);
-int invalid_unique(CHAR_DATA * ch, const OBJ_DATA * obj);
-bool unique_stuff(const CHAR_DATA *ch, const OBJ_DATA *obj);
-
-// from class.cpp
-int invalid_no_class(CHAR_DATA * ch, const OBJ_DATA * obj);
-
-void do_split(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
-void do_split(CHAR_DATA *ch, char *argument, int cmd, int subcmd,int currency);
-void do_remove(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
-void do_put(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
-void do_get(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
-void do_drop(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
-void do_give(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
-void do_eat(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
-void do_wear(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
-void do_wield(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
-void do_grab(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
-void do_upgrade(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
-void do_refill(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
 
 // чтобы словить невозможность положить в клан-сундук,
 // иначе при пол все сун будет спам на каждый предмет, мол низя
@@ -702,7 +659,6 @@ void do_refill(CHAR_DATA *ch, char *argument, int/* cmd*/, int/* subcmd*/)
 		}
 	}
 }
-
 
 int can_take_obj(CHAR_DATA * ch, OBJ_DATA * obj)
 {

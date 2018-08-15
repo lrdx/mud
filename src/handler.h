@@ -75,6 +75,7 @@ void obj_from_char(OBJ_DATA * object);
 
 void equip_char(CHAR_DATA * ch, OBJ_DATA * obj, int pos);
 OBJ_DATA *unequip_char(CHAR_DATA * ch, int pos);
+void set_wait(CHAR_DATA * ch, int waittime, int victim_in_room);
 int invalid_align(CHAR_DATA * ch, OBJ_DATA * obj);
 
 OBJ_DATA *get_obj_in_list(char *name, OBJ_DATA * list);

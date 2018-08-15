@@ -30,8 +30,6 @@
 #include <fstream>
 #include <sstream>
 
-extern void send_to_gods(char *text, bool demigod);
-
 static const char *god_text = "Богом";
 static const char *player_text = "привилегированным игроком";
 

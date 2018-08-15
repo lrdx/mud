@@ -14,6 +14,7 @@
 #include "interpreter.h"
 #include "char.hpp"
 #include "char_player.hpp"
+
 // для ручного отключения крипования (на локалке лучше собирайте через make test и не парьтесь)
 //#define NOCRYPT
 // в случае сборки без криптования просто пишем пароль в открытом виде

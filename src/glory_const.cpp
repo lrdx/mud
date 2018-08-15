@@ -26,9 +26,6 @@
 #include <string>
 #include <iomanip>
 
-extern void add_karma(CHAR_DATA * ch, const char * punish , const char * reason);
-extern void check_max_hp(CHAR_DATA *ch);
-
 namespace GloryConst
 {
 

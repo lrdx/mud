@@ -3,7 +3,6 @@
 #include "logger.hpp"
 #include "obj.hpp"
 #include "db.h"
-#include "dg_db_scripts.hpp"
 #include "dg_scripts.h"
 #include "char.hpp"
 #include "room.hpp"
@@ -15,8 +14,6 @@
 #include "backtrace.hpp"
 
 #include <boost/lexical_cast.hpp>
-
-extern void extract_trigger(TRIG_DATA * trig);
 
 namespace Celebrates
 {

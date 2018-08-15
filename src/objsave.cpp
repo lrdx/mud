@@ -45,38 +45,8 @@
 #define MAX_BAG_ROWS	5
 #define ITEM_DESTROYED  100
 
-extern int rent_file_timeout, crash_file_timeout;
-extern int free_crashrent_period;
-extern int free_rent;
-
 #define RENTCODE(number) (player_table[(number)].timer->rent.rentcode)
 #define GET_INDEX(ch) (get_ptable_by_name(GET_NAME(ch)))
-
-// Extern functions
-void do_tell(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
-int cryogenicist(CHAR_DATA *ch, void *me, int cmd, char* argument);
-int invalid_no_class(CHAR_DATA * ch, const OBJ_DATA * obj);
-int invalid_anti_class(CHAR_DATA * ch, const OBJ_DATA * obj);
-int invalid_unique(CHAR_DATA * ch, const OBJ_DATA * obj);
-int min_rent_cost(CHAR_DATA * ch);
-extern bool check_obj_in_system_zone(int vnum);
-// local functions
-void Crash_extract_norent_eq(CHAR_DATA * ch);
-int auto_equip(CHAR_DATA * ch, OBJ_DATA * obj, int location);
-int Crash_report_unrentables(CHAR_DATA * ch, CHAR_DATA * recep, OBJ_DATA * obj);
-void Crash_report_rent(CHAR_DATA * ch, CHAR_DATA * recep, OBJ_DATA * obj,
-					   int *cost, long *nitems, int display, int factor, int equip, int recursive);
-int gen_receptionist(CHAR_DATA * ch, CHAR_DATA * recep, int cmd, char *arg, int mode);
-void Crash_save(std::stringstream &write_buffer, int iplayer, OBJ_DATA * obj, int location, int savetype);
-void Crash_rent_deadline(CHAR_DATA * ch, CHAR_DATA * recep, long cost);
-void Crash_restore_weight(OBJ_DATA * obj);
-void Crash_extract_objs(OBJ_DATA * obj);
-int Crash_is_unrentable(CHAR_DATA *ch, OBJ_DATA * obj);
-void Crash_extract_norents(CHAR_DATA *ch, OBJ_DATA * obj);
-int Crash_calculate_rent(OBJ_DATA * obj);
-int Crash_calculate_rent_eq(OBJ_DATA * obj);
-void Crash_save_all_rent();
-int Crash_calc_charmee_items(CHAR_DATA *ch);
 
 #define DIV_CHAR  '#'
 #define END_CHAR  '$'

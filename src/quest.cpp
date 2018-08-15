@@ -1,7 +1,6 @@
 // by bodrich (2014)
 // http://mud.ru
 
-#include <vector>
 #include <string>
 #include "quest.hpp"
 

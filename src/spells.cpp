@@ -49,28 +49,6 @@
 
 #include <vector>
 
-extern int cmd_tell;
-extern char cast_argument[MAX_INPUT_LENGTH];
-extern int slot_for_char(CHAR_DATA * ch, int slot_num);
-// added by WorM  опознание магических ингров 2011.05.21
-extern im_type *imtypes;
-extern int top_imtypes;
-//end by WorM
-
-void weight_change_object(OBJ_DATA * obj, int weight);
-int compute_armor_class(CHAR_DATA * ch);
-char *diag_weapon_to_char(const CObjectPrototype* obj, int show_wear);
-void create_rainsnow(int *wtype, int startvalue, int chance1, int chance2, int chance3);
-int calc_anti_savings(CHAR_DATA * ch);
-void go_flee(CHAR_DATA * ch);
-
-void do_tell(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
-
-void perform_remove(CHAR_DATA * ch, int pos);
-
-int pk_action_type_summon(CHAR_DATA * agressor, CHAR_DATA * victim);
-void pk_increment_revenge(CHAR_DATA * agressor, CHAR_DATA * victim);
-
 int what_sky = SKY_CLOUDLESS;
 // * Special spells appear below.
 

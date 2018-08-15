@@ -82,107 +82,6 @@
 using std::ifstream;
 using std::fstream;
 
-// external vars
-extern bool need_warn;
-extern FILE *player_fl;
-
-extern char const *class_abbrevs[];
-extern char const *kin_abbrevs[];
-extern int circle_restrict;
-extern int load_into_inventory;
-extern int buf_switches, buf_largecount, buf_overflows;
-void medit_save_to_disk(int zone_num);
-extern const char *Dirs[];
-extern unsigned long int number_of_bytes_read;
-extern unsigned long int number_of_bytes_written;
-// for chars
-extern const char *pc_class_types[];
-// for name auto-agree
-extern void agree_name(CHAR_DATA * d, const char *immname, int immlev);
-extern void disagree_name(CHAR_DATA * d, const char *immname, int immlev);
-extern int check_dupes_host(DESCRIPTOR_DATA * d, bool autocheck = false);
-extern bool CompareBits(const FLAG_DATA& flags, const char *names[], int affect);	// to avoid inclusion of utils.h
-void do_recall(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
-void save_zone_count_reset();
-// extern functions
-int level_exp(CHAR_DATA * ch, int level);
-void appear(CHAR_DATA * ch);
-void reset_zone(zone_rnum zone);
-int parse_class(char arg);
-void rename_char(CHAR_DATA * ch, char *oname);
-int _parse_name(char *arg, char *name);
-int Valid_Name(char *name);
-int reserved_word(const char *name);
-extern int is_empty(zone_rnum zone_nr);
-void list_feats(CHAR_DATA * ch, CHAR_DATA * vict, bool all_feats);
-void list_skills(CHAR_DATA * ch, CHAR_DATA * vict, const char* filter = NULL);
-void list_spells(CHAR_DATA * ch, CHAR_DATA * vict, int all_spells);
-extern void NewNameShow(CHAR_DATA * ch);
-extern void NewNameRemove(CHAR_DATA * ch);
-extern void NewNameRemove(const std::string& name, CHAR_DATA * ch);
-extern void print_rune_stats(CHAR_DATA *ch);
-extern int real_zone(int number);
-extern void reset_affects(CHAR_DATA *ch);
-// local functions
-int perform_set(CHAR_DATA * ch, CHAR_DATA * vict, int mode, char *val_arg);
-void perform_immort_invis(CHAR_DATA * ch, int level);
-void do_echo(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
-void do_send(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
-room_rnum find_target_room(CHAR_DATA * ch, char *rawroomstr, int trig);
-void do_at(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
-void do_goto(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
-void do_teleport(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
-void do_vnum(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
-void do_stat_room(CHAR_DATA * ch, const int rnum = 0);
-void do_stat_object(CHAR_DATA * ch, OBJ_DATA * j, const int virt = 0);//added by WorM virt при vstat'е 1 чтобы считалось реальное кол-во объектов в мире
-void do_stat_character(CHAR_DATA * ch, CHAR_DATA * k, const int virt = 0);//added by WorM virt при vstat'е 1 чтобы считалось реальное кол-во мобов в мире
-void do_statip(CHAR_DATA * ch, CHAR_DATA * k);
-void do_stat(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
-void do_shutdown(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
-void stop_snooping(CHAR_DATA * ch);
-void do_snoop(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
-void do_switch(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
-void do_return(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
-void do_load(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
-void do_vstat(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
-void do_purge(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
-void do_inspect(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
-void do_syslog(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
-void do_advance(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
-void do_restore(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
-void perform_immort_vis(CHAR_DATA * ch);
-void do_invis(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
-void do_gecho(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
-void do_poofset(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
-void do_dc(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
-void do_wizlock(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
-void do_date(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
-void do_last(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
-void do_force(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
-void do_wiznet(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
-void do_zreset(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
-void do_wizutil(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
-void print_zone_to_buf(char **bufptr, zone_rnum zone);
-void do_show(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
-void do_set(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
-void do_liblist(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
-void do_name(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
-//
-void do_godtest(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
-void do_sdemigod(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
-void do_unfreeze(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
-void do_setall(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
-void do_check_occupation(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
-void do_delete_obj(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
-void do_arena_restore(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
-void do_showzonestats(CHAR_DATA*, char*, int, int);
-void do_overstuff(CHAR_DATA *ch, char*, int, int);
-void do_send_text_to_char(CHAR_DATA *ch, char*, int, int);
-void generate_magic_enchant(OBJ_DATA *obj);
-void do_add_wizard(CHAR_DATA *ch, char*, int, int);
-
-extern std::vector<Stigma> stigmas;
-
 void save_zone_count_reset()
 {
 	for (int i = 0; i <= top_of_zone_table; ++i)
@@ -308,9 +207,6 @@ void send_to_gods(char *text, bool demigod)
 }
 
 #define MAX_TIME 0x7fffffff
-
-extern const char *deaf_social;
-
 
 // Adds karma string to KARMA
 void add_karma(CHAR_DATA * ch, const char * punish, const char * reason)

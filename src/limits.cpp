@@ -46,26 +46,6 @@
 
 #include <boost/format.hpp>
 
-extern int check_dupes_host(DESCRIPTOR_DATA * d, bool autocheck = false);
-
-extern int idle_rent_time;
-extern int idle_max_level;
-extern int idle_void;
-extern int free_rent;
-extern struct spell_create_type spell_create[];
-extern const unsigned RECALL_SPELLS_INTERVAL;
-extern int CheckProxy(DESCRIPTOR_DATA * ch);
-extern int check_death_ice(int room, CHAR_DATA * ch);
-
-void decrease_level(CHAR_DATA * ch);
-int max_exp_gain_pc(CHAR_DATA * ch);
-int max_exp_loss_pc(CHAR_DATA * ch);
-int average_day_temp(void);
-
-// local functions
-int graf(int age, int p0, int p1, int p2, int p3, int p4, int p5, int p6);
-int level_exp(CHAR_DATA * ch, int level);
-void update_char_objects(CHAR_DATA * ch);	// handler.cpp
 // Delete this, if you delete overflow fix in beat_points_update below.
 // When age < 20 return the value p0 //
 // When age in 20..29 calculate the line between p1 & p2 //

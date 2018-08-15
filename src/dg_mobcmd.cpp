@@ -68,16 +68,6 @@ struct mob_command_info
 
 #define IS_CHARMED(ch)          (IS_HORSE(ch)||AFF_FLAGGED(ch, EAffectFlag::AFF_CHARM))
 
-extern int reloc_target;
-extern TRIG_DATA *cur_trig;
-
-void sub_write(char *arg, CHAR_DATA * ch, byte find_invis, int targets);
-ROOM_DATA *get_room(char *name);
-OBJ_DATA *get_obj_by_char(CHAR_DATA * ch, char *name);
-// * Local functions.
-void mob_command_interpreter(CHAR_DATA* ch, char *argument);
-bool mob_script_command_interpreter(CHAR_DATA* ch, char *argument);
-
 // attaches mob's name and vnum to msg and sends it to script_log
 void mob_log(CHAR_DATA * mob, const char *msg, const int type = 0)
 {

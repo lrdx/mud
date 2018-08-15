@@ -18,11 +18,7 @@
 #include <boost/algorithm/string.hpp>
 #include <iostream>
 
-extern int scheck;						// TODO: get rid of this line
-extern const char *unused_spellname;	// TODO: get rid of this line
 CHAR_DATA *mob_proto;					// TODO: get rid of this global variable
-
-extern void extract_trigger(TRIG_DATA* trig);
 
 class DataFile : public BaseDataFile
 {

@@ -17,10 +17,6 @@
 #include "skills.h"
 #include "fight.h"
 
-extern void drop_from_horse(CHAR_DATA *victim);
-extern void set_wait(CHAR_DATA * ch, int waittime, int victim_in_room);
-extern int interpolate(int min_value, int pulse);
-
 namespace
 {
 // * Наложение ядов с пушек, аффект стакается до трех раз.

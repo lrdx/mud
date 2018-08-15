@@ -22,8 +22,6 @@
 #include <vector>
 #include <sstream>
 
-int find_eq_pos(CHAR_DATA * ch, OBJ_DATA * obj, char *arg);
-
 namespace Noob
 {
 

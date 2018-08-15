@@ -19,11 +19,6 @@
 #include <array>
 #include <algorithm>
 
-extern void add_karma(CHAR_DATA * ch, const char * punish , const char * reason);
-extern bool ValidateStats(DESCRIPTOR_DATA * d);
-extern int check_dupes_email(DESCRIPTOR_DATA * d);
-extern void do_entergame(DESCRIPTOR_DATA * d);
-
 namespace ResetStats
 {
 

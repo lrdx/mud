@@ -55,16 +55,6 @@
 #include <algorithm>
 #include <sstream>
 
-extern const char *weapon_class[];
-// local functions
-TIME_INFO_DATA *real_time_passed(time_t t2, time_t t1);
-TIME_INFO_DATA *mud_time_passed(time_t t2, time_t t1);
-void prune_crlf(char *txt);
-
-// external functions
-int attack_best(CHAR_DATA * ch, CHAR_DATA * victim);
-void perform_drop_gold(CHAR_DATA * ch, int amount, byte mode, room_rnum RDR);
-
 char AltToKoi[] =
 {
 	"áâ÷çäåöúéêëìíîïğòóôõæèãşûıÿùøüàñÁÂ×ÇÄÅÖÚÉÊËÌÍÎÏĞ‘’‡²+++µ¡¨®+¬ƒ„‰ˆ†€Š¯°«¥»¸± ¾¹º++ª©¢++¼…‚Œ‹ÒÓÔÕÆÈÃŞÛİßÙØÜÀÑ³£½­´¤¶¦·§–??”š"

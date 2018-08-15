@@ -130,19 +130,6 @@ TorcReq::TorcReq(int rmrt)
 	}
 }
 
-// обмен гривн
-void parse_inc_exch(CHAR_DATA *ch, int amount, int num);
-void parse_dec_exch(CHAR_DATA *ch, int amount, int num);
-int check_input_amount(CHAR_DATA *ch, int num1, int num2);
-bool check_equal_exch(CHAR_DATA *ch);
-// дроп гривн
-std::string create_message(CHAR_DATA *ch, int gold, int silver, int bronze);
-bool has_connected_bosses(CHAR_DATA *ch);
-unsigned calc_type_by_zone_lvl(int zone_lvl);
-int calc_drop_torc(int zone_lvl, int members);
-int check_daily_limit(CHAR_DATA *ch, int drop);
-void gain_torc(CHAR_DATA *ch, int drop);
-
 } // namespace ExtMoney
 
 namespace ExtMoney

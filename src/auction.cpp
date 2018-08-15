@@ -25,18 +25,6 @@
 #include "conf.h"
 #include "sysdep.h"
 
-// external functions
-extern int invalid_anti_class(CHAR_DATA * ch, const OBJ_DATA * obj);
-extern int invalid_unique(CHAR_DATA * ch, const OBJ_DATA * obj);
-extern int invalid_no_class(CHAR_DATA * ch, const OBJ_DATA * obj);
-extern char *diag_weapon_to_char(const CObjectPrototype* obj, int show_wear);
-extern char *diag_timer_to_char(const OBJ_DATA* obj);
-extern void set_wait(CHAR_DATA * ch, int waittime, int victim_in_room);
-extern void obj_info(CHAR_DATA * ch, OBJ_DATA *obj, char buf[MAX_STRING_LENGTH]);
-extern void imm_show_obj_values(OBJ_DATA * obj, CHAR_DATA * ch);
-extern void mort_show_obj_values(const OBJ_DATA * obj, CHAR_DATA * ch, int fullness);
-
-
 AUCTION_DATA auction_lots[MAX_AUCTION_LOT] = { { -1, NULL, -1, NULL, -1, NULL, -1, NULL, 0, 0},
 	{ -1, NULL, -1, NULL, -1, NULL, -1, NULL, 0, 0},
 	{ -1, NULL, -1, NULL, -1, NULL, -1, NULL, 0, 0}	/*,

@@ -41,28 +41,6 @@
 #include "random.hpp"
 #include <cmath>
 
-// external functs
-void set_wait(CHAR_DATA * ch, int waittime, int victim_in_room);
-int find_eq_pos(CHAR_DATA * ch, OBJ_DATA * obj, char *arg);
-int attack_best(CHAR_DATA * ch, CHAR_DATA * victim);
-// local functions
-void check_ice(int room);
-int has_boat(CHAR_DATA * ch);
-int find_door(CHAR_DATA * ch, const char *type, char *dir, const char *cmdname);
-int has_key(CHAR_DATA * ch, obj_vnum key);
-void do_doorcmd(CHAR_DATA * ch, OBJ_DATA * obj, int door, int scmd);
-bool ok_pick(CHAR_DATA * ch, obj_vnum keynum, OBJ_DATA* obj, int door, int scmd);
-extern int get_pick_chance(int skill_pick, int lock_complexity);
-
-void do_gen_door(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
-void do_enter(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
-void do_stand(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
-void do_sit(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
-void do_rest(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
-void do_sleep(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
-void do_wake(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
-void do_follow(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
-
 const int Reverse[NUM_OF_DIRS] = { 2, 3, 0, 1, 5, 4 };
 const char *DirIs[] =
 {
@@ -1408,7 +1386,6 @@ inline void LOCK_DOOR(const room_rnum room, OBJ_DATA* obj, const int door)
 }
 
 // для кейсов
-extern std::vector<_case> cases;;
 void do_doorcmd(CHAR_DATA * ch, OBJ_DATA * obj, int door, int scmd)
 {
 	int other_room = 0;

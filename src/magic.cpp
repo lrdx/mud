@@ -45,21 +45,7 @@
 
 #include <boost/format.hpp>
 
-extern int what_sky;
-extern struct spell_create_type spell_create[];
-extern bool check_agr_in_house(CHAR_DATA *agressor);
 FLAG_DATA  EMPTY_FLAG_DATA;
-extern int interpolate(int min_value, int pulse);
-
-byte saving_throws(int class_num, int type, int level);	// class.cpp
-byte extend_saving_throws(int class_num, int type, int level);
-int check_charmee(CHAR_DATA * ch, CHAR_DATA * victim, int spellnum);
-int slot_for_char(CHAR_DATA * ch, int slotnum);
-void cast_reaction(CHAR_DATA * victim, CHAR_DATA * caster, int spellnum);
-
-bool material_component_processing(CHAR_DATA *caster, CHAR_DATA *victim, int spellnum);
-bool material_component_processing(CHAR_DATA *caster, int vnum, int spellnum);
-void pulse_affect_update(CHAR_DATA * ch);
 
 CHAR_DATA * find_char_in_room(long char_id, ROOM_DATA *room)
 {

@@ -28,9 +28,6 @@
 #include <iomanip>
 #include <map>
 
-extern char *help;
-extern const char *class_name[];
-
 ////////////////////////////////////////////////////////////////////////////////
 namespace PrintActivators
 {

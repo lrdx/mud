@@ -54,28 +54,6 @@ char cast_argument[MAX_STRING_LENGTH];
 #define SkINFO skill_info[skillnum]
 // Во сколько раз манакост манакастеров меньше манакоста НЕманакастеров
 #define DRUID_MANA_COST_MODIFIER 0.5
-
-extern int what_sky;
-int check_recipe_values(CHAR_DATA * ch, int spellnum, int spelltype, int showrecipe);
-
-int attack_best(CHAR_DATA * ch, CHAR_DATA * victim);
-// local functions
-void say_spell(CHAR_DATA * ch, int spellnum, CHAR_DATA * tch, OBJ_DATA * tobj);
-void spello(int spl, const char *name, const char *syn, int max_mana, int min_mana, int mana_change,
-			int minpos, int targets, int violent, int routines, int danger, int remort, int spell_class);
-void do_cast(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
-void do_warcry(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
-void do_ident(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
-void do_create(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
-void do_forget(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
-void do_remember(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
-void do_mixture(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
-void do_stun(CHAR_DATA*, char*, int, int);
-
-void unused_spell(int spl);
-void unused_skill(int spl);
-void mag_assign_spells(void);
-
 /*
  * This arrangement is pretty stupid, but the number of skills is limited by
  * the playerfile.  We can arbitrarily increase the number of skills by

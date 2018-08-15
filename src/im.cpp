@@ -38,14 +38,6 @@
 
 #define imlog(lvl,str)	mudlog(str, lvl, LVL_BUILDER, IMLOG, TRUE)
 
-// из spec_proc.c
-char *how_good(CHAR_DATA * ch, int percent);
-
-void do_rset(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
-void do_recipes(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
-void do_cook(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
-void do_imlist(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
-
 im_type *imtypes = NULL;	// Список зарегестрированных ТИПОВ/МЕТАТИПОВ
 int top_imtypes = -1;		// Последний номер типа ИМ
 
@@ -1099,8 +1091,6 @@ void im_reset_room(ROOM_DATA * room, int level, int type)
 	-MZ*/
 }
 //-MZ.load
-
-extern MobRaceListType mobraces_list;
 
 OBJ_DATA* try_make_ingr(int *ing_list, int vnum, int max_prob)
 {

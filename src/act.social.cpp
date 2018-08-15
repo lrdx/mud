@@ -30,11 +30,6 @@ int number_of_social_commands = -1;
 struct social_messg *soc_mess_list = NULL;
 struct social_keyword *soc_keys_list = NULL;
 
-// local functions
-int find_action(char *cmd);
-int do_social(CHAR_DATA * ch, char *argument);
-void do_insult(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
-
 int find_action(char *cmd)
 {
 	int bot, top, mid, chk;

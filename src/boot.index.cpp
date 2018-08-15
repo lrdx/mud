@@ -334,9 +334,6 @@ private:
 	virtual int process_line() { return 1; }
 };
 
-extern int number_of_social_messages;	// TODO: get rid of me
-extern int number_of_social_commands;	// TODO: get rid of me
-
 IndexFile::shared_ptr IndexFileFactory::get_index(const EBootType mode)
 {
 	switch (mode)

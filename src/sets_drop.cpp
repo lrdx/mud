@@ -32,8 +32,6 @@
 #include <iomanip>
 #include <algorithm>
 
-extern int real_zone(int number);
-
 namespace SetsDrop
 {
 // список сетин на дроп

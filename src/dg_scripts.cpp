@@ -51,43 +51,9 @@
 
 // Вывод сообщений о неверных управляющих конструкциях DGScript
 #define	DG_CODE_ANALYZE
-
-// external vars from triggers.cpp
-extern const char *trig_types[], *otrig_types[], *wtrig_types[];
 const char *attach_name[] = { "mob", "obj", "room", "unknown!!!" };
 
 int last_trig_vnum = 0;
-
-// other external vars
-
-extern const char *pc_class_types[];
-
-extern int can_take_obj(CHAR_DATA * ch, OBJ_DATA * obj);
-extern void split_or_clan_tax(CHAR_DATA *ch, long amount);
-
-// external functions
-room_rnum find_target_room(CHAR_DATA * ch, char *rawroomstr, int trig);
-void free_varlist(struct trig_var_data *vd);
-int obj_room(OBJ_DATA * obj);
-int is_empty(int zone_nr);
-OBJ_DATA *get_object_in_equip(CHAR_DATA * ch, char *name);
-void extract_trigger(TRIG_DATA * trig);
-int eval_lhs_op_rhs(const char *expr, char *result, void *go, SCRIPT_DATA * sc, TRIG_DATA * trig, int type);
-const char * skill_percent(CHAR_DATA * ch, char *skill);
-bool feat_owner(TRIG_DATA* trig, CHAR_DATA * ch, char *feat);
-const char * spell_count(TRIG_DATA* trig, CHAR_DATA * ch, char *spell);
-const char * spell_knowledge(TRIG_DATA* trig, CHAR_DATA * ch, char *spell);
-int find_eq_pos(CHAR_DATA * ch, OBJ_DATA * obj, char *arg);
-void reset_zone(int znum);
-
-void do_restore(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
-void do_mpurge(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
-void do_mjunk(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
-void do_arena_restore(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
-// function protos from this file
-void extract_value(SCRIPT_DATA * sc, TRIG_DATA * trig, char *cmd);
-int script_driver(void *go, TRIG_DATA * trig, int type, int mode);
-int trgvar_in_room(int vnum);
 
 /*
 йНЯРШКЭ, МН БЯЕФ.

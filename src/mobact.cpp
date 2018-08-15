@@ -35,44 +35,6 @@
 #include "conf.h"
 #include "features.hpp"
 
-// external structs
-extern int no_specials;
-extern int guild_poly(CHAR_DATA*, void*, int, char*);
-extern guardian_type guardian_list;
-
-void do_get(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
-void go_bash(CHAR_DATA * ch, CHAR_DATA * vict);
-void go_backstab(CHAR_DATA * ch, CHAR_DATA * vict);
-void go_disarm(CHAR_DATA * ch, CHAR_DATA * vict);
-void go_chopoff(CHAR_DATA * ch, CHAR_DATA * vict);
-void go_mighthit(CHAR_DATA * ch, CHAR_DATA * vict);
-void go_stupor(CHAR_DATA * ch, CHAR_DATA * vict);
-void go_throw(CHAR_DATA * ch, CHAR_DATA * vict);
-void go_strangle(CHAR_DATA * ch, CHAR_DATA * vict);
-int skip_hiding(CHAR_DATA * ch, CHAR_DATA * vict);
-int skip_sneaking(CHAR_DATA * ch, CHAR_DATA * vict);
-int skip_camouflage(CHAR_DATA * ch, CHAR_DATA * vict);
-int legal_dir(CHAR_DATA * ch, int dir, int need_specials_check, int show_msg);
-int npc_track(CHAR_DATA * ch);
-int npc_scavenge(CHAR_DATA * ch);
-int npc_loot(CHAR_DATA * ch);
-int npc_move(CHAR_DATA * ch, int dir, int need_specials_check);
-void npc_wield(CHAR_DATA * ch);
-void npc_armor(CHAR_DATA * ch);
-void npc_group(CHAR_DATA * ch);
-void npc_groupbattle(CHAR_DATA * ch);
-int npc_walk(CHAR_DATA * ch);
-int npc_steal(CHAR_DATA * ch);
-void npc_light(CHAR_DATA * ch);
-void pulse_affect_update(CHAR_DATA * ch);
-extern void set_wait(CHAR_DATA * ch, int waittime, int victim_in_room);
-bool guardian_attack(CHAR_DATA *ch, CHAR_DATA *vict);
-extern bool is_room_forbidden(ROOM_DATA*room);
-void drop_obj_on_zreset(CHAR_DATA *ch, OBJ_DATA *obj, bool inv, bool zone_reset);
-
-// local functions
-CHAR_DATA *try_protect(CHAR_DATA * victim, CHAR_DATA * ch);
-
 #define MOB_AGGR_TO_ALIGN (MOB_AGGR_EVIL | MOB_AGGR_NEUTRAL | MOB_AGGR_GOOD)
 
 int extra_aggressive(CHAR_DATA * ch, CHAR_DATA * victim)

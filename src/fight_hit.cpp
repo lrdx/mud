@@ -12,13 +12,6 @@
 #include "bonus.h"
 #include "features.hpp"
 
-// extern
-int extra_aco(int class_num, int level);
-int thaco(int class_num, int level);
-void npc_groupbattle(CHAR_DATA * ch);
-void set_wait(CHAR_DATA * ch, int waittime, int victim_in_room);
-void go_autoassist(CHAR_DATA * ch);
-
 int armor_class_limit(CHAR_DATA * ch)
 {
 	if (IS_CHARMICE(ch))

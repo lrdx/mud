@@ -35,39 +35,11 @@
 
 #include <cmath>
 
-// extern functions
-void appear(CHAR_DATA * ch);
-int legal_dir(CHAR_DATA * ch, int dir, int need_specials_check, int show_msg);
-void go_protect(CHAR_DATA * ch, CHAR_DATA * vict);
-void go_stun(CHAR_DATA * ch, CHAR_DATA * vict);
-
-// local functions
-void do_assist(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
-void do_hit(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
-void do_kill(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
-void do_backstab(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
-void do_order(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
-void do_flee(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
-void do_bash(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
-void do_rescue(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
-void do_kick(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
-void do_manadrain(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
-void do_strangle(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
-void do_expedient_cut(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
-CHAR_DATA *try_protect(CHAR_DATA * victim, CHAR_DATA * ch);
-
-
 int have_mind(CHAR_DATA * ch)
 {
 	if (!AFF_FLAGGED(ch, EAffectFlag::AFF_CHARM) && !IS_HORSE(ch))
 		return (TRUE);
 	return (FALSE);
-}
-
-void set_wait(CHAR_DATA * ch, int waittime, int victim_in_room)
-{
-	if (!WAITLESS(ch) && (!victim_in_room || (ch->get_fighting() && ch->in_room == IN_ROOM(ch->get_fighting()))))
-		WAIT_STATE(ch, waittime * PULSE_VIOLENCE);
 }
 
 int set_hit(CHAR_DATA * ch, CHAR_DATA * victim)
@@ -2883,7 +2855,6 @@ void do_manadrain(CHAR_DATA *ch, char *argument, int/* cmd*/, int/* subcmd*/)
 
 }
 
-extern char cast_argument[MAX_INPUT_LENGTH];
 void do_townportal(CHAR_DATA *ch, char *argument, int/* cmd*/, int/* subcmd*/)
 {
 

@@ -28,16 +28,9 @@
 
 #include <boost/lexical_cast.hpp>
 
-//extrernal functions
-extern void mob_command_interpreter(CHAR_DATA* ch, char *argument);
-
 #ifndef LVL_BUILDER
 #define LVL_BUILDER LVL_GOD
 #endif
-
-// external functions from scripts.cpp
-extern int script_driver(void *go, TRIG_DATA * trig, int type, int mode);
-char *matching_quote(char *p);
 
 void ADD_UID_CHAR_VAR(char* buf, TRIG_DATA* trig, const OBJ_DATA* go, const char* name, const long context)
 {

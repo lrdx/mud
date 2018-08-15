@@ -32,17 +32,6 @@
 #include "sysdep.h"
 #include "conf.h"
 
-void sub_write(char *arg, CHAR_DATA * ch, byte find_invis, int targets);
-void send_to_zone(char *messg, int zone_rnum);
-CHAR_DATA *get_char_by_room(ROOM_DATA * room, char *name);
-ROOM_DATA *get_room(char *name);
-OBJ_DATA *get_obj_by_room(ROOM_DATA * room, char *name);
-
-bool mob_script_command_interpreter(CHAR_DATA* ch, char *argument);
-
-extern int reloc_target;
-extern TRIG_DATA *cur_trig;
-
 struct wld_command_info
 {
 	const char *command;

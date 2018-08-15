@@ -29,15 +29,6 @@
 #include "sysdep.h"
 #include "conf.h"
 
-extern const char *trig_types[], *otrig_types[], *wtrig_types[];
-
-// prototype externally defined functions
-void free_varlist(struct trig_var_data *vd);
-
-void trigedit_disp_menu(DESCRIPTOR_DATA * d);
-void trigedit_save(DESCRIPTOR_DATA * d);
-void trigedit_create_index(int znum, const char *type);
-
 inline void fprint_script(FILE * fp, const OBJ_DATA::triggers_list_t& scripts)
 {
 	for (const auto vnum : scripts)

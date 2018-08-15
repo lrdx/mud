@@ -45,7 +45,6 @@
 #include "sysdep.h"
 #include "char_obj_utils.inl"
 #include "msdp.constants.hpp"
-#include <sys/stat.h>
 
 #include <sstream>
 #include <fstream>
@@ -54,56 +53,6 @@
 #include <iterator>
 #include <set>
 #include <utility>
-
-// extern variables
-extern char const *class_abbrevs[];
-extern int free_rent;
-extern int max_filesize;
-extern int nameserver_is_slow;
-extern struct skillvariables_dig dig_vars;
-extern struct skillvariables_insgem insgem_vars;
-
-// extern procedures
-void list_feats(CHAR_DATA * ch, CHAR_DATA * vict, bool all_feats);
-void list_skills(CHAR_DATA * ch, CHAR_DATA * vict, const char* filter = NULL);
-void list_spells(CHAR_DATA * ch, CHAR_DATA * vict, int all_spells);
-void appear(CHAR_DATA * ch);
-void write_aliases(CHAR_DATA * ch);
-void perform_immort_vis(CHAR_DATA * ch);
-int have_mind(CHAR_DATA * ch);
-void do_gen_comm(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
-extern char *color_value(CHAR_DATA * ch, int real, int max);
-int invalid_no_class(CHAR_DATA * ch, const OBJ_DATA * obj);
-extern void split_or_clan_tax(CHAR_DATA *ch, long amount);
-extern bool is_wear_light(CHAR_DATA *ch);
-// local functions
-void do_antigods(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
-void do_quit(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
-void do_save(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
-void do_not_here(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
-void do_sneak(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
-void do_hide(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
-void do_steal(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
-void do_spells(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
-void do_features(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
-void do_skills(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
-void do_visible(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
-void print_group(CHAR_DATA * ch);
-void do_group(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
-void do_ungroup(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
-void do_report(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
-void do_split(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
-void do_split(CHAR_DATA *ch, char *argument, int cmd, int subcmd,int currency);
-void do_use(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
-void do_wimpy(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
-void do_display(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
-void do_gen_tog(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
-void do_courage(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
-void do_toggle(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
-void do_color(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
-void do_recall(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
-void do_dig(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
-void do_summon(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
 
 void do_antigods(CHAR_DATA *ch, char* /*argument*/, int/* cmd*/, int/* subcmd*/)
 {
@@ -3493,7 +3442,7 @@ void set_obj_aff(OBJ_DATA *itemobj, const EAffectFlag bitv)
 	}
 }
 
-extern void set_obj_eff(OBJ_DATA *itemobj, const EApplyLocation type, int mod)
+void set_obj_eff(OBJ_DATA *itemobj, const EApplyLocation type, int mod)
 {
 	for (auto i = 0; i < MAX_OBJ_AFFECT; i++)
 	{
@@ -3510,8 +3459,6 @@ extern void set_obj_eff(OBJ_DATA *itemobj, const EApplyLocation type, int mod)
 		}
 	}
 }
-
-extern struct index_data *obj_index;
 
 bool is_dig_stone(OBJ_DATA *obj)
 {

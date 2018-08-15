@@ -30,19 +30,6 @@
 
 #include <vector>
 
-// Externals
-void do_say(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
-void do_sense(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
-extern int track_through_doors;
-int attack_best(CHAR_DATA * ch, CHAR_DATA * vict);
-
-// local functions
-void bfs_enqueue(room_rnum room, int dir);
-void bfs_dequeue(void);
-void bfs_clear_queue(void);
-int find_first_step(room_rnum src, room_rnum target, CHAR_DATA * ch);
-void do_track(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
-
 struct bfs_queue_struct
 {
 	room_rnum room;

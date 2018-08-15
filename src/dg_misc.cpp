@@ -27,9 +27,6 @@
 #define SINFO spell_info[spellnum]
 
 #define SpINFO spell_info[spellnum]
-extern const char *what_sky_type[];
-extern int what_sky;
-extern const char *what_weapon[];
 /*
  * Функция осуществляет поиск цели для DG_CAST
  * Облегченная версия find_cast_target

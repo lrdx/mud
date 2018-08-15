@@ -34,30 +34,13 @@
 #include <sstream>
 #include <string>
 
-// local functions
-void perform_tell(CHAR_DATA * ch, CHAR_DATA * vict, char *arg);
-int is_tell_ok(CHAR_DATA * ch, CHAR_DATA * vict);
-bool tell_can_see(CHAR_DATA *ch, CHAR_DATA *vict);
-
-// external functions
-extern char *diag_timer_to_char(const OBJ_DATA* obj);
-extern void set_wait(CHAR_DATA * ch, int waittime, int victim_in_room);
-
-void do_say(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
-void do_gsay(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
-void do_tell(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
-void do_reply(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
-void do_spec_comm(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
-void do_write(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
-void do_page(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
-void do_gen_comm(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
-void do_pray_gods(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
-void do_remember_char(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
-// shapirus
-void do_ignore(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
-
 #define SIELENCE ("Вы немы, как рыба об лед.\r\n")
 #define SOUNDPROOF ("Стены заглушили ваши слова.\r\n")
+
+bool tell_can_see(CHAR_DATA *ch, CHAR_DATA *vict)
+{
+	return (CAN_SEE_CHAR(vict, ch) || IS_IMMORTAL(ch) || GET_INVIS_LEV(ch));
+}
 
 void do_say(CHAR_DATA *ch, char *argument, int/* cmd*/, int/* subcmd*/)
 {
@@ -206,18 +189,6 @@ void do_gsay(CHAR_DATA *ch, char *argument, int/* cmd*/, int/* subcmd*/)
 			ch->remember_add(buf, Remember::GROUP);
 			//end by WorM
 		}
-	}
-}
-
-bool tell_can_see(CHAR_DATA *ch, CHAR_DATA *vict)
-{
-	if (CAN_SEE_CHAR(vict, ch) || IS_IMMORTAL(ch) || GET_INVIS_LEV(ch))
-	{
-		return true;
-	}
-	else
-	{
-		return false;
 	}
 }
 

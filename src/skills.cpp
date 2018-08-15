@@ -38,8 +38,6 @@
 
 // Хз откуда :(
 
-extern struct message_list fight_messages[MAX_MESSAGES];
-
 class WeapForAct
 {
 public:

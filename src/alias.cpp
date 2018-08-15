@@ -20,9 +20,6 @@
 #include "utils.h"
 #include "interpreter.h"
 
-void write_aliases(CHAR_DATA * ch);
-void read_aliases(CHAR_DATA * ch);
-
 void write_aliases(CHAR_DATA * ch)
 
 {

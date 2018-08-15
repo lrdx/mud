@@ -24,8 +24,6 @@
 
 #include <cmath>
 
-extern void weight_change_object(OBJ_DATA * obj, int weight);
-
 // виды жидскостей, наливаемых в контейнеры
 const int LIQ_WATER = 0;
 const int LIQ_BEER = 1;
@@ -58,7 +56,6 @@ const int LIQ_POISON_BELENA = 27;
 const int LIQ_POISON_DATURA = 28;
 // терминатор
 const int NUM_LIQ_TYPES = 29;
-const char *diag_liquid_timer(const OBJ_DATA * obj);
 
 // LIQ_x
 const char *drinks[] = { "воды",

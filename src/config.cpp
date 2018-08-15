@@ -16,7 +16,6 @@
 
 #include "config.hpp"
 
-#include "boards.changelog.loaders.hpp"
 #include "boards.constants.hpp"
 #include "utils.h"
 #include "char.hpp"
@@ -52,8 +51,6 @@
  * efficency of doing it the other way.
  *
  */
-
-int level_exp(CHAR_DATA * ch, int level);
 
 // GAME PLAY OPTIONS
 
@@ -103,9 +100,6 @@ const char *NOEFFECT = "Ваши потуги оказались напрасными.\r\n";
  * your objects are saved at no cost, as in Merc-type MUDs.)
  */
 int free_rent = NO;
-
-// maximum number of items players are allowed to rent
-//int max_obj_save = 120;
 
 // receptionist's surcharge on top of item costs
 int min_rent_cost(CHAR_DATA * ch)

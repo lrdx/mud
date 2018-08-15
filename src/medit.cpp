@@ -44,12 +44,6 @@
 extern const char *mobprog_types[];
 #endif
 
-int planebit(const char *str, int *plane, int *bit);
-
-int real_zone(int number);
-
-void clear_mob_charm(CHAR_DATA *mob);
-
 //-------------------------------------------------------------------
 
 // * Handy internal macros.
@@ -65,25 +59,6 @@ void clear_mob_charm(CHAR_DATA *mob);
 #endif
 
 //-------------------------------------------------------------------
-
-// * Function prototypes.
-void medit_setup(DESCRIPTOR_DATA * d, int rmob_num);
-
-void medit_mobile_init(CHAR_DATA * mob);
-void medit_mobile_copy(CHAR_DATA * dst, CHAR_DATA * src);
-void medit_mobile_free(CHAR_DATA * mob);
-
-void medit_save_internally(DESCRIPTOR_DATA * d);
-void medit_save_to_disk(int zone_num);
-
-void medit_parse(DESCRIPTOR_DATA * d, char *arg);
-void medit_disp_menu(DESCRIPTOR_DATA * d);
-void medit_disp_positions(DESCRIPTOR_DATA * d);
-void medit_disp_mob_flags(DESCRIPTOR_DATA * d);
-void medit_disp_aff_flags(DESCRIPTOR_DATA * d);
-void medit_disp_attack_types(DESCRIPTOR_DATA * d);
-void medit_disp_resistances(DESCRIPTOR_DATA * d);
-void medit_disp_race(DESCRIPTOR_DATA * d);
 
 #if defined(OASIS_MPROG)
 void medit_disp_mprog(DESCRIPTOR_DATA * d);

@@ -404,6 +404,8 @@ inline bool CHECK_CUSTOM_LABEL(const std::string& arg, const OBJ_DATA* obj, cons
 // видит ли ch метки obj
 bool AUTH_CUSTOM_LABEL(const OBJ_DATA* obj, const CHAR_DATA* ch);
 
+bool char_to_pk_clan(CHAR_DATA *ch);
+
 #endif
 
 // vim: ts=4 sw=4 tw=0 noet syntax=cpp :

@@ -42,29 +42,6 @@
 CHAR_DATA *combat_list = NULL;	// head of l-list of fighting chars
 CHAR_DATA *next_combat_list = NULL;
 
-extern MobRaceListType mobraces_list;
-
-// External procedures
-// void do_assist(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
-void battle_affect_update(CHAR_DATA * ch);
-void go_throw(CHAR_DATA * ch, CHAR_DATA * vict);
-void go_bash(CHAR_DATA * ch, CHAR_DATA * vict);
-void go_kick(CHAR_DATA * ch, CHAR_DATA * vict);
-void go_rescue(CHAR_DATA * ch, CHAR_DATA * vict, CHAR_DATA * tmp_ch);
-void go_parry(CHAR_DATA * ch);
-void go_multyparry(CHAR_DATA * ch);
-void go_block(CHAR_DATA * ch);
-void go_touch(CHAR_DATA * ch, CHAR_DATA * vict);
-void go_protect(CHAR_DATA * ch, CHAR_DATA * vict);
-void go_chopoff(CHAR_DATA * ch, CHAR_DATA * vict);
-void go_disarm(CHAR_DATA * ch, CHAR_DATA * vict);
-void go_cut_shorts(CHAR_DATA * ch, CHAR_DATA * vict);
-int npc_battle_scavenge(CHAR_DATA * ch);
-void npc_wield(CHAR_DATA * ch);
-void npc_armor(CHAR_DATA * ch);
-int perform_mob_switch(CHAR_DATA * ch);
-void do_assist(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
-
 void go_autoassist(CHAR_DATA * ch)
 {
 	struct follow_type *k;
@@ -925,7 +902,6 @@ CHAR_DATA *find_damagee(CHAR_DATA * caster)
 	return victim;
 }
 
-extern bool find_master_charmice(CHAR_DATA *charmise);
 CHAR_DATA *find_target(CHAR_DATA *ch)
 {
 	CHAR_DATA *victim, *caster = NULL, *best = NULL;

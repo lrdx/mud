@@ -39,7 +39,7 @@ void clear_auction(int lot);
 void sell_auction(int lot);
 void trans_auction(int lot);
 void check_auction(CHAR_DATA * ch, OBJ_DATA * obj);
-void tact_auction(void);
+void tact_auction();
 AUCTION_DATA *free_auction(int *lotnum);
 int obj_on_auction(OBJ_DATA * obj);
 

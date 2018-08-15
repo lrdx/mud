@@ -46,28 +46,12 @@
 #include "structs.h"
 #include "sysdep.h"
 #include "conf.h"
-
-extern int siteok_everyone;
-extern struct spell_create_type spell_create[];
-extern double exp_coefficients[];
+#include "house.h"
 
 struct skillvariables_dig dig_vars;
 struct skillvariables_insgem insgem_vars;
 
-// local functions
-int parse_class(char arg);
-long find_class_bitvector(char arg);
-byte saving_throws(int class_num, int type, int level);
-int thaco(int class_num, int level);
-void do_start(CHAR_DATA * ch, int newbie);
-int invalid_anti_class(CHAR_DATA * ch, const OBJ_DATA * obj);
-int invalid_no_class(CHAR_DATA * ch, const OBJ_DATA * obj);
-int level_exp(CHAR_DATA * ch, int level);
-byte extend_saving_throws(int class_num, int type, int level);
-int invalid_unique(CHAR_DATA * ch, const OBJ_DATA * obj);
-extern bool char_to_pk_clan(CHAR_DATA *ch);
 // Names first
-
 const char *class_abbrevs[] = { "Ле",
 								"Ко",
 								"Та",
@@ -276,8 +260,7 @@ int parse_class(char arg)
 	}
 }
 
-int
-parse_class_vik(char arg)
+int parse_class_vik(char arg)
 {
 	arg = LOWER(arg);
 
@@ -317,8 +300,7 @@ parse_class_vik(char arg)
 }
 
 
-int
-parse_class_step(char arg)
+int parse_class_step(char arg)
 {
 	arg = LOWER(arg);
 
@@ -403,8 +385,7 @@ long find_class_bitvector(char arg)
 	}
 }
 
-long
-find_class_bitvector_vik(char arg)
+long find_class_bitvector_vik(char arg)
 {
 	arg = LOWER(arg);
 
@@ -443,10 +424,7 @@ find_class_bitvector_vik(char arg)
 	}
 }
 
-
-
-long
-find_class_bitvector_step(char arg)
+long find_class_bitvector_step(char arg)
 {
 	arg = LOWER(arg);
 
@@ -757,11 +735,6 @@ std_saving_type std_saving[] =
 			sav_02, sav_12, sav_02, sav_16}}
 };
 
-byte saving_throws(int class_num, int type, int level)
-{
-	return extend_saving_throws(class_num, type, level);
-}
-
 byte extend_saving_throws(int class_num, int type, int level)
 {
 	int i;
@@ -776,6 +749,10 @@ byte extend_saving_throws(int class_num, int type, int level)
 	return std_saving[i].saves[type][level];
 }
 
+byte saving_throws(int class_num, int type, int level)
+{
+	return extend_saving_throws(class_num, type, level);
+}
 
 // THAC0 for classes and levels.  (To Hit Armor Class 0)
 int thaco(int class_num, int level)
@@ -2273,7 +2250,6 @@ bool unique_stuff(const CHAR_DATA *ch, const OBJ_DATA *obj)
 	return false;
 }
 
-
 int invalid_anti_class(CHAR_DATA *ch, const OBJ_DATA* obj)
 {
 	if (!IS_CORPSE(obj))
@@ -2291,10 +2267,12 @@ int invalid_anti_class(CHAR_DATA *ch, const OBJ_DATA* obj)
 	{
 		return (TRUE);
 	}
+
 	if ((IS_NPC(ch) || WAITLESS(ch)) && !IS_CHARMICE(ch))
 	{
 		return (FALSE);
 	}
+
 	if ((IS_OBJ_ANTI(obj, EAntiFlag::ITEM_NOT_FOR_NOPK) && char_to_pk_clan(ch)))
 	{		
 		return (TRUE);

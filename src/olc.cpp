@@ -29,27 +29,6 @@
 
 #include <vector>
 
-// * External functions.
-void zedit_setup(DESCRIPTOR_DATA * d, int room_num);
-void zedit_save_to_disk(int zone);
-int zedit_new_zone(CHAR_DATA * ch, int new_zone);
-void medit_setup(DESCRIPTOR_DATA * d, int rmob_num);
-void medit_save_to_disk(int zone);
-void redit_setup(DESCRIPTOR_DATA * d, int rroom_num);
-void redit_save_to_disk(int zone);
-void oedit_setup(DESCRIPTOR_DATA * d, int robj_num);
-void oedit_save_to_disk(int zone);
-void sedit_setup_new(DESCRIPTOR_DATA * d);
-void sedit_setup_existing(DESCRIPTOR_DATA * d, int robj_num);
-void medit_mobile_free(CHAR_DATA * mob);
-void trigedit_setup_new(DESCRIPTOR_DATA * d);
-void trigedit_setup_existing(DESCRIPTOR_DATA * d, int rtrg_num);
-void dg_olc_script_free(DESCRIPTOR_DATA * d);
-
-// Internal function prototypes.
-int real_zone(int number);
-void olc_saveinfo(CHAR_DATA * ch);
-
 // global data
 const char *save_info_msg[5] = { "Rooms", "Objects", "Zone info", "Mobiles", "Shops" };
 const char *nrm, *grn, *cyn, *yel, *iyel, *ired;

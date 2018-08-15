@@ -33,10 +33,6 @@
 #include "dg_scripts.h"
 #include <map>
 
-void set_wait(CHAR_DATA * ch, int waittime, int victim_in_room);
-extern int invalid_no_class(CHAR_DATA * ch, const OBJ_DATA * obj);
-void do_revenge(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
-
 #define FirstPK  1
 #define SecondPK 5
 #define ThirdPK	 10

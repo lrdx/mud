@@ -57,8 +57,6 @@
 </shop_list>
 */
 
-extern int do_social(CHAR_DATA * ch, char *argument);	// implemented in the act.social.cpp
-
 namespace ShopExt
 {
 const char *MSG_NO_STEAL_HERE = "$n, грязн$w воришка, чеши отседова!";

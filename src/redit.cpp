@@ -29,23 +29,6 @@
 
 #include <vector>
 
-extern room_rnum r_frozen_start_room;
-
-//------------------------------------------------------------------------
-int planebit(const char *str, int *plane, int *bit);
-// * Function Prototypes
-void redit_setup(DESCRIPTOR_DATA * d, int real_num);
-
-void redit_save_internally(DESCRIPTOR_DATA * d);
-
-void redit_parse(DESCRIPTOR_DATA * d, char *arg);
-void redit_disp_extradesc_menu(DESCRIPTOR_DATA * d);
-void redit_disp_exit_menu(DESCRIPTOR_DATA * d);
-void redit_disp_exit_flag_menu(DESCRIPTOR_DATA * d);
-void redit_disp_flag_menu(DESCRIPTOR_DATA * d);
-void redit_disp_sector_menu(DESCRIPTOR_DATA * d);
-void redit_disp_menu(DESCRIPTOR_DATA * d);
-
 //***************************************************************************
 #define  W_EXIT(room, num) (world[(room)]->dir_option[(num)])
 //***************************************************************************

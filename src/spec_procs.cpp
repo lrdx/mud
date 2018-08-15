@@ -45,43 +45,7 @@
 
 #include <string>
 
-//   external vars
-extern struct spell_create_type spell_create[];
-extern int guild_info[][3];
-
 typedef int special_f(CHAR_DATA*, void*, int, char*);
-
-// extern functions
-void do_drop(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
-void do_gen_door(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
-void do_say(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
-int go_track(CHAR_DATA * ch, CHAR_DATA * victim, const ESkill skill_no);
-int has_key(CHAR_DATA * ch, obj_vnum key);
-int find_first_step(room_rnum src, room_rnum target, CHAR_DATA * ch);
-void do_doorcmd(CHAR_DATA * ch, OBJ_DATA * obj, int door, int scmd);
-void ASSIGNMASTER(mob_vnum mob, special_f, int learn_info);
-bool ok_pick(CHAR_DATA * ch, obj_vnum keynum, OBJ_DATA* obj, int door, int scmd);
-
-// local functions
-char *how_good(CHAR_DATA * ch, int percent);
-int feat_slot_lvl(int remort, int slot_for_remort, int slot);
-void list_feats(CHAR_DATA * ch, CHAR_DATA * vict, bool all_feats);
-void list_skills(CHAR_DATA * ch, CHAR_DATA * vict, const char* filter = NULL);
-void list_spells(CHAR_DATA * ch, CHAR_DATA * vict, int all_spells);
-int slot_for_char(CHAR_DATA * ch, int i);
-int guild_mono(CHAR_DATA *ch, void *me, int cmd, char* argument);
-int guild_poly(CHAR_DATA *ch, void *me, int cmd, char* argument);
-int guild(CHAR_DATA *ch, void *me, int cmd, char* argument);
-int dump(CHAR_DATA *ch, void *me, int cmd, char* argument);
-int mayor(CHAR_DATA *ch, void *me, int cmd, char* argument);
-int snake(CHAR_DATA *ch, void *me, int cmd, char* argument);
-int thief(CHAR_DATA *ch, void *me, int cmd, char* argument);
-int magic_user(CHAR_DATA *ch, void *me, int cmd, char* argument);
-int guild_guard(CHAR_DATA *ch, void *me, int cmd, char* argument);
-int fido(CHAR_DATA *ch, void *me, int cmd, char* argument);
-int janitor(CHAR_DATA *ch, void *me, int cmd, char* argument);
-int cityguard(CHAR_DATA *ch, void *me, int cmd, char* argument);
-int pet_shops(CHAR_DATA *ch, void *me, int cmd, char* argument);
 
 
 // ********************************************************************
@@ -148,9 +112,6 @@ const char *prac_types[] = { "spell",
 #define MAX_PER_PRAC	1	// max percent gain in skill per practice //
 #define MIN_PER_PRAC	2	// min percent gain in skill per practice //
 #define PRAC_TYPE	3	// should it say 'spell' or 'skill'?     //
-
-// actual prac_params are in class.cpp //
-extern int prac_params[4][NUM_PLAYER_CLASSES];
 
 #define LEARNED(ch) (prac_params[LEARNED_LEVEL][(int)GET_CLASS(ch)])
 #define MINGAIN(ch) (prac_params[MIN_PER_PRAC][(int)GET_CLASS(ch)])

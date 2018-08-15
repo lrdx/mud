@@ -22,8 +22,6 @@
 #include <sstream>
 #include <iomanip>
 
-extern const char *class_name[];
-
 TopListType TopPlayer::TopList(NUM_PLAYER_CLASSES);
 
 // отдельное удаление из списка (для ренеймов, делетов и т.п.)

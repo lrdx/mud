@@ -23,8 +23,6 @@
 #include <iomanip>
 #include <vector>
 
-extern void set_wait(CHAR_DATA * ch, int waittime, int victim_in_room);
-
 namespace NamedStuff
 {
 

@@ -49,15 +49,6 @@ void show_string(DESCRIPTOR_DATA * d, char *input);
 #define PARSE_LIST_NUM    6
 #define PARSE_EDIT        7
 
-extern const char *unused_spellname;	// spell_parser.cpp
-
-// local functions
-void smash_tilde(char *str);
-void do_skillset(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
-char *next_page(char *str, CHAR_DATA * ch);
-int count_pages(char *str, CHAR_DATA * ch);
-void paginate_string(char *str, DESCRIPTOR_DATA * d);
-
 const char *string_fields[] =
 {
 	"name",
@@ -789,15 +780,7 @@ void string_add(DESCRIPTOR_DATA * d, char *str)
 	}
 
 	if (terminator)
-	{	// OLC Edits
-		extern void oedit_disp_menu(DESCRIPTOR_DATA * d);
-		extern void oedit_disp_extradesc_menu(DESCRIPTOR_DATA * d);
-		extern void redit_disp_menu(DESCRIPTOR_DATA * d);
-		extern void redit_disp_extradesc_menu(DESCRIPTOR_DATA * d);
-		extern void redit_disp_exit_menu(DESCRIPTOR_DATA * d);
-		extern void medit_disp_menu(DESCRIPTOR_DATA * d);
-		extern void trigedit_disp_menu(DESCRIPTOR_DATA * d);
-
+	{
 #if defined(OASIS_MPROG)
 		extern void medit_change_mprog(DESCRIPTOR_DATA * d);
 

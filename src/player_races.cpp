@@ -11,9 +11,6 @@
 
 PlayerKinListType PlayerRace::PlayerKinList;
 
-void LoadRace(pugi::xml_node RaceNode, PlayerKinPtr KinPtr);
-void LoadKin(pugi::xml_node KinNode);
-
 PlayerKin::PlayerKin()
 {
 //Create kin

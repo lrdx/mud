@@ -29,8 +29,6 @@
 #include <cmath>
 #include <fstream>
 
-extern int can_take_obj(CHAR_DATA * ch, OBJ_DATA * obj);
-extern void olc_update_object(int robj_num, OBJ_DATA *obj, OBJ_DATA *olc_proto);
 namespace Depot
 {
 

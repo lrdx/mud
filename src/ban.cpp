@@ -30,11 +30,6 @@
 #include <sstream>
 #include <iomanip>
 
-void do_ban(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
-void do_unban(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
-int Valid_Name(char *newname);
-void Read_Invalid_List(void);
-
 void do_ban(CHAR_DATA *ch, char *argument, int/* cmd*/, int/* subcmd*/)
 {
 	if (!*argument)
