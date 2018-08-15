@@ -53,6 +53,7 @@
 #include <iterator>
 #include <set>
 #include <utility>
+#include "alias.hpp"
 
 void do_antigods(CHAR_DATA *ch, char* /*argument*/, int/* cmd*/, int/* subcmd*/)
 {

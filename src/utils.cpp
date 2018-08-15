@@ -281,6 +281,7 @@ int str_cmp(const std::string &arg1, const char *arg2)
 	else
 		return (LOWER(arg1[i]) - LOWER('\0'));
 }
+
 int str_cmp(const char *arg1, const std::string &arg2)
 {
 	int chk;
@@ -304,6 +305,7 @@ int str_cmp(const char *arg1, const std::string &arg2)
 	else
 		return (LOWER('\0') - LOWER(arg2[i]));
 }
+
 int str_cmp(const std::string &arg1, const std::string &arg2)
 {
 	int chk;
@@ -321,7 +323,6 @@ int str_cmp(const std::string &arg1, const std::string &arg2)
 	else
 		return (LOWER(arg1[i]) - LOWER('\0'));
 }
-
 
 /*
  * strn_cmp: a case-insensitive version of strncmp().
@@ -875,7 +876,6 @@ int get_line(FILE * fl, char *buf)
 	strcpy(buf, temp);
 	return (lines);
 }
-
 
 int get_filename(const char *orig_name, char *filename, int mode)
 {

@@ -68,6 +68,7 @@
 #include "conf.h"
 #include "bonus.h"
 #include "debug.utils.hpp"
+#include "alias.hpp"
 
 #include <boost/lexical_cast.hpp>
 #include <boost/format.hpp>
@@ -1035,32 +1036,6 @@ void command_interpreter(CHAR_DATA * ch, char *argument)
 	}
 }
 
-// ************************************************************************
-// * Routines to handle aliasing                                          *
-// ************************************************************************
-struct alias_data *find_alias(struct alias_data *alias_list, char *str)
-{
-	while (alias_list != NULL)
-	{
-		if (*str == *alias_list->alias)	// hey, every little bit counts :-)
-			if (!strcmp(str, alias_list->alias))
-				return (alias_list);
-
-		alias_list = alias_list->next;
-	}
-
-	return (NULL);
-}
-
-void free_alias(struct alias_data *a)
-{
-	if (a->alias)
-		free(a->alias);
-	if (a->replacement)
-		free(a->replacement);
-	free(a);
-}
-
 // The interface to the outside world: do_alias
 void do_alias(CHAR_DATA *ch, char *argument, int/* cmd*/, int/* subcmd*/)
 {
@@ -1125,23 +1100,15 @@ void do_alias(CHAR_DATA *ch, char *argument, int/* cmd*/, int/* subcmd*/)
 	}
 }
 
-/*
- * Valid numeric replacements are only $1 .. $9 (makes parsing a little
- * easier, and it's not that much of a limitation anyway.)  Also valid
- * is "$*", which stands for the entire original line after the alias.
- * ";" is used to delimit commands.
- */
-#define NUM_TOKENS       9
-
 void perform_complex_alias(struct txt_q *input_q, char *orig, struct alias_data *a)
 {
 	struct txt_q temp_queue;
-	char *tokens[NUM_TOKENS], *temp, *write_point;
+	char *tokens[ALIAS_NUM_TOKENS], *temp, *write_point;
 	int num_of_tokens = 0, num;
 
 	// First, parse the original string
 	temp = strtok(strcpy(buf2, orig), " ");
-	while (temp != NULL && num_of_tokens < NUM_TOKENS)
+	while (temp != NULL && num_of_tokens < ALIAS_NUM_TOKENS)
 	{
 		tokens[num_of_tokens++] = temp;
 		temp = strtok(NULL, " ");
@@ -1197,13 +1164,13 @@ void perform_complex_alias(struct txt_q *input_q, char *orig, struct alias_data 
 
 
 /*
- * Given a character and a string, perform alias replacement on it.
- *
- * Return values:
- *   0: String was modified in place; call command_interpreter immediately.
- *   1: String was _not_ modified in place; rather, the expanded aliases
- *      have been placed at the front of the character's input queue.
- */
+* Given a character and a string, perform alias replacement on it.
+*
+* Return values:
+*   0: String was modified in place; call command_interpreter immediately.
+*   1: String was _not_ modified in place; rather, the expanded aliases
+*      have been placed at the front of the character's input queue.
+*/
 int perform_alias(DESCRIPTOR_DATA * d, char *orig)
 {
 	char first_arg[MAX_INPUT_LENGTH], *ptr;
@@ -1239,8 +1206,6 @@ int perform_alias(DESCRIPTOR_DATA * d, char *orig)
 		return (1);
 	}
 }
-
-
 
 // ***************************************************************************
 // * Various other parsing utilities                                         *

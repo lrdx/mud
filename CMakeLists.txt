@@ -183,6 +183,7 @@ set(HEADERS
 	src/object.prototypes.hpp
 	src/world.objects.hpp
 	src/utils.string.hpp
+	src/alias.hpp
 	src/act.other.hpp
 	src/AffectHandler.hpp
 	src/auction.h

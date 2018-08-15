@@ -92,6 +92,17 @@ extern int class_stats_limit[NUM_PLAYER_CLASSES][6];
 
 // public functions in utils.cpp
 int str_bonus(int str, int type);
+int get_filename(const char *orig_name, char *filename, int mode);
+char *str_dup(const char *source);
+int str_cmp(const char *arg1, const char *arg2);
+int str_cmp(const std::string &arg1, const char *arg2);
+int str_cmp(const char *arg1, const std::string &arg2);
+int str_cmp(const std::string &arg1, const std::string &arg2);
+int strn_cmp(const char *arg1, const char *arg2, size_t n);
+int strn_cmp(const std::string &arg1, const char *arg2, size_t n);
+int strn_cmp(const char *arg1, const std::string &arg2, size_t n);
+int strn_cmp(const std::string &arg1, const std::string &arg2, size_t n);
+
 
 #ifdef HAVE_ICONV
 void koi_to_utf8(char *str_i, char *str_o);
@@ -152,7 +163,6 @@ int MIN(int a, int b);
 
 // various constants ****************************************************
 
-// get_filename() //
 #define ALIAS_FILE        1
 #define SCRIPT_VARS_FILE  2
 #define PLAYERS_FILE      3

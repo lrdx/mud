@@ -81,25 +81,12 @@ struct command_info
 };
 
 /*
- * Necessary for CMD_IS macro.  Borland needs the structure defined first
- * so it has been moved down here.
- */
-#ifndef __INTERPRETER_C__
-extern const struct command_info cmd_info[];
-#endif
-
-/*
- * Alert! Changed from 'struct alias' to 'struct alias_data' in bpl15
- * because a Windows 95 compiler gives a warning about it having similiar
- * named member.
- */
-struct alias_data
-{
-	char *alias;
-	char *replacement;
-	int type;
-	struct alias_data *next;
-};
+* Valid numeric replacements are only $1 .. $9 (makes parsing a little
+* easier, and it's not that much of a limitation anyway.)  Also valid
+* is "$*", which stands for the entire original line after the alias.
+* ";" is used to delimit commands.
+*/
+#define ALIAS_NUM_TOKENS 9
 
 #define ALIAS_SIMPLE 0
 #define ALIAS_COMPLEX   1

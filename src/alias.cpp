@@ -13,19 +13,15 @@
 *  $Revision$                                                      *
 *********************************************************************** */
 
-// комментарий на русском в надежде починить кодировки bitbucket
+#include "alias.hpp"
 
 #include "logger.hpp"
 #include "char.hpp"
-#include "utils.h"
-#include "interpreter.h"
 
 void write_aliases(CHAR_DATA * ch)
-
 {
 	FILE *file;
 	char fn[MAX_STRING_LENGTH];
-	struct alias_data *temp;
 
 	log("Write alias %s", GET_NAME(ch));
 	get_filename(GET_NAME(ch), fn, ALIAS_FILE);
@@ -41,7 +37,7 @@ void write_aliases(CHAR_DATA * ch)
 		return;
 	}
 
-	for (temp = GET_ALIASES(ch); temp; temp = temp->next)
+	for (alias_data* temp = GET_ALIASES(ch); temp; temp = temp->next)
 	{
 		const size_t aliaslen = strlen(temp->alias);
 		const size_t repllen = strlen(temp->replacement) - 1;
@@ -59,11 +55,10 @@ void write_aliases(CHAR_DATA * ch)
 	fclose(file);
 }
 
-void read_aliases(CHAR_DATA * ch)
+void read_aliases(CHAR_DATA* ch)
 {
 	FILE *file;
 	char xbuf[MAX_STRING_LENGTH];
-	struct alias_data *t2;
 	int length;
 
 	log("Read alias %s", GET_NAME(ch));
@@ -80,24 +75,22 @@ void read_aliases(CHAR_DATA * ch)
 	}
 
 	CREATE(GET_ALIASES(ch), 1);
-	t2 = GET_ALIASES(ch);
+	alias_data *t2 = GET_ALIASES(ch);
 
-	const char* dummyc;
-	int dummyi;
 	for (;;)  		// Read the aliased command.
 	{
-		dummyi = fscanf(file, "%d\n", &length);
-		dummyc = fgets(xbuf, length + 1, file);
+		fscanf(file, "%d\n", &length);
+		fgets(xbuf, length + 1, file);
 		t2->alias = str_dup(xbuf);
 
 		// Build the replacement.
-		dummyi = fscanf(file, "%d\n", &length);
+		fscanf(file, "%d\n", &length);
 		*xbuf = ' ';	// Doesn't need terminated, fgets() will.
-		dummyc = fgets(xbuf + 1, length + 1, file);
+		fgets(xbuf + 1, length + 1, file);
 		t2->replacement = str_dup(xbuf);
 
 		// Figure out the alias type.
-		dummyi = fscanf(file, "%d\n", &length);
+		fscanf(file, "%d\n", &length);
 		t2->type = length;
 
 		if (feof(file))
@@ -106,10 +99,34 @@ void read_aliases(CHAR_DATA * ch)
 		CREATE(t2->next, 1);
 		t2 = t2->next;
 	};
-	UNUSED_ARG(dummyc);
-	UNUSED_ARG(dummyi);
 
 	fclose(file);
+}
+
+// ************************************************************************
+// * Routines to handle aliasing                                          *
+// ************************************************************************
+alias_data* find_alias(alias_data* alias_list, const char* str)
+{
+	while (alias_list != NULL)
+	{
+		if (*str == *alias_list->alias)	// hey, every little bit counts :-)
+			if (!strcmp(str, alias_list->alias))
+				return (alias_list);
+
+		alias_list = alias_list->next;
+	}
+
+	return (NULL);
+}
+
+void free_alias(alias_data *a)
+{
+	if (a->alias)
+		free(a->alias);
+	if (a->replacement)
+		free(a->replacement);
+	free(a);
 }
 
 // vim: ts=4 sw=4 tw=0 noet syntax=cpp :

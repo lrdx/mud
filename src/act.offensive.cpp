@@ -3203,7 +3203,7 @@ void go_strangle(CHAR_DATA * ch, CHAR_DATA * vict)
 
 		//Урон распределяется нормально. Матожидание линейно привязано к прокачке скилла. Сигма подобрана экспериментально.
 		//урон считается в процентах от максимального числа хитов жертвы.
-		dam = (GET_MAX_HIT(vict)*GaussIntNumber((300 + 5 * ch->get_skill(SKILL_STRANGLE)) / 70, 7.0, 1, 30)) / 100;
+		dam = (GET_MAX_HIT(vict)*gauss_int_number((300 + 5 * ch->get_skill(SKILL_STRANGLE)) / 70, 7.0, 1, 30)) / 100;
 		//Ограничение урона сверху: по чарам максхиты наема*2, по мобам *6
 		dam = (IS_NPC(vict) ? MIN(dam, 6*GET_MAX_HIT(ch)) : MIN(dam, 2*GET_MAX_HIT(ch)));
 		Damage dmg(SkillDmg(SKILL_STRANGLE), dam, FightSystem::PHYS_DMG);

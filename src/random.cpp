@@ -83,7 +83,7 @@ int number(int from, int to)
 {
 	if (from > to)
 	{
-		int tmp = from;
+		const int tmp = from;
 		from = to;
 		to = tmp;
 	}
@@ -118,7 +118,7 @@ bool bernoulli_trial(double p)
   и meam, близком к краю отрезка, в область высоких значений наротив попадет и сам край.
   Защиты от дурака в функции нет, так что пользоваться осторожно.
 */
-int GaussIntNumber(double mean, double sigma, int min_val, int max_val)
+int gauss_int_number(double mean, double sigma, int min_val, int max_val)
 {
 	double dresult = 0.0;
 	int iresult = 0;
