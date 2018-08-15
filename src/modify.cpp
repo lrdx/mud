@@ -622,9 +622,6 @@ void parse_action(int command, char *string, DESCRIPTOR_DATA * d)
 	//log("[PA] Stop");
 }
 
-
-
-
 // Add user input to the 'current' string (as defined by d->str) //
 void string_add(DESCRIPTOR_DATA * d, char *str)
 {

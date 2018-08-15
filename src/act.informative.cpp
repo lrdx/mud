@@ -162,18 +162,6 @@ char *diag_obj_to_char(CHAR_DATA* i, OBJ_DATA* obj, int mode)
 	return out_str;
 }
 
-
-const char *weapon_class[] = { "луки",
-							   "короткие лезвия",
-							   "длинные лезвия",
-							   "секиры",
-							   "палицы и дубины",
-							   "иное оружие",
-							   "двуручники",
-							   "проникающее оружие",
-							   "копья и рогатины"
-							 };
-
 char *diag_weapon_to_char(const CObjectPrototype* obj, int show_wear)
 {
 	static char out_str[MAX_STRING_LENGTH];

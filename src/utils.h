@@ -81,17 +81,17 @@ inline const char* not_empty(const std::string& s, const char* subst)
 }
 
 extern struct weather_data weather_info;
-extern char AltToKoi[];
-extern char KoiToAlt[];
-extern char WinToKoi[];
-extern char KoiToWin[];
-extern char KoiToWin2[];
-extern char AltToLat[];
-
+extern const char AltToKoi[];
+extern const char KoiToAlt[];
+extern const char WinToKoi[];
+extern const char KoiToWin[];
+extern const char KoiToWin2[];
+extern const char AltToLat[];
+extern const char* weapon_class[];
 extern int class_stats_limit[NUM_PLAYER_CLASSES][6];
 
 // public functions in utils.cpp
-
+int str_bonus(int str, int type);
 
 #ifdef HAVE_ICONV
 void koi_to_utf8(char *str_i, char *str_o);
@@ -1472,7 +1472,7 @@ char buf2[MAX_STRING_LENGTH];
 char arg[MAX_STRING_LENGTH];
 
 #define plant_magic(x)	do { (x)[sizeof(x) - 1] = MAGIC_NUMBER; } while (0)
-#define test_magic(x)	((x)[sizeof(x) - 1]).
+#define test_magic(x)	((x)[sizeof(x) - 1])
 
 inline void graceful_exit(int retcode)
 {

@@ -1,8 +1,9 @@
 #include "utils.string.hpp"
 
-#include "utils.h"
+#include "sysdep.h"
 
 #include <string.h>
+#include <algorithm>
 
 namespace utils
 {

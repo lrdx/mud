@@ -27,43 +27,53 @@
 #include "object.prototypes.hpp"
 #include "house.h"
 #include "exchange.h"
+#include "modify.h"
 
 #include <boost/algorithm/string/trim.hpp>
 
 #include <iomanip>
 #include <fstream>
-#include "modify.h"
 
 #ifdef HAVE_ICONV
 #include <iconv.h>
 #endif
 
-char AltToKoi[] =
+const char AltToKoi[] =
 {
 	"АБВГДЕЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯабвгдежзийклмноп░▒▓│┤╡+++╣║╗╝+╛┐└┴┬├─┼╞╟╚╔╩╦╠═╬╧╨++╙╘╒++╪┘┌█▄▌▐▀рстуфхцчшщъыьэюяЁё╫╜╢╓╤╕╥╖·√??■ "
 };
-char KoiToAlt[] =
+const char KoiToAlt[] =
 {
 	"дЁз©юыц╢баеъэшщч╟╠╡+Ч+Ш+++Ъ+++З+м╨уЯУиВЫ╩тсх╬С╪фгл╣ПТ╧ЖЬкопйьРн+Н═║Ф╓╔ДёЕ╗╘╙╚╛╜╝╞ОЮАБЦ╕╒ЛК╖ХМИГЙ·─│√└┘■┐∙┬┴┼▀▄█▌▐÷░▒▓⌠├┌°⌡┤≤²≥≈ "
 };
-char WinToKoi[] =
+const char WinToKoi[] =
 {
 	"++++++++++++++++++++++++++++++++ ++++╫++Ё©╢++++╥°+╤╕╜++·ё+╓++++╖АБВГДЕЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯабвгдежзийклмнопрстуфхцчшщъыьэюя"
 };
-char KoiToWin[] =
+const char KoiToWin[] =
 {
 	"++++++++++++++++++++++++++═+╟+╥++++╦╨+Ё©+++++╢+++++╗╙+╡╞+++++╔+╘ЧЮАЖДЕТЦУХИЙКЛМНОЪПЯРСФБЭШГЬЩЫВЗчюаждетцухийклмноъпярсфбэшгьщывз"
 };
-char KoiToWin2[] =
+const char KoiToWin2[] =
 {
 	"++++++++++++++++++++++++++═+╟+╥++++╦╨+Ё©+++++╢+++++╗╙+╡╞+++++╔+╘ЧЮАЖДЕТЦУХИЙКЛМНОzПЯРСФБЭШГЬЩЫВЗчюаждетцухийклмноъпярсфбэшгьщывз"
 };
-char AltToLat[] =
+const char AltToLat[] =
 {
 	"─│┌┐└┘├┤┬┴┼▀▄█▌▐░▒▓⌠■∙√≈≤≥ ⌡°²·÷═║╒ё╓╔╕╖╗╘╙╚╛╜╝╞╟╠╡Ё╢╣╤╥╦╧╨╩╪╫╬©0abcdefghijklmnopqrstY1v23z456780ABCDEFGHIJKLMNOPQRSTY1V23Z45678"
 };
 
 const char *ACTNULL = "<NULL>";
+
+const char* weapon_class[] = { "луки",
+"короткие лезвия",
+"длинные лезвия",
+"секиры",
+"палицы и дубины",
+"иное оружие",
+"двуручники",
+"проникающее оружие",
+"копья и рогатины" };
 
 // return char with UID n
 CHAR_DATA *find_char(long n)
@@ -667,6 +677,7 @@ void check_horse(CHAR_DATA * ch)
 	}
 }
 
+void perform_drop_gold(CHAR_DATA * ch, int amount, byte mode, room_rnum RDR);	// TODO: Remove this
 // Called when stop following persons, or stopping charm //
 // This will NOT do if a character quits/dies!!          //
 // При возврате 1 использовать ch нельзя, т.к. прошли через extract_char
@@ -674,7 +685,6 @@ void check_horse(CHAR_DATA * ch)
 // при персонаже на входе - пуржить не должно полюбому, если начнет, как минимум в change_leader будут глюки
 bool stop_follower(CHAR_DATA * ch, int mode)
 {
-	CHAR_DATA *master;
 	struct follow_type *j, *k;
 	int i;
 
@@ -735,7 +745,7 @@ bool stop_follower(CHAR_DATA * ch, int mode)
 			free(j);
 		}
 	}
-	master = ch->get_master();
+	CHAR_DATA *master = ch->get_master();
 	ch->set_master(nullptr);
 
 	AFF_FLAGS(ch).unset(EAffectFlag::AFF_GROUP);
@@ -2594,7 +2604,7 @@ bool GetAffectNumByName(const std::string& affName, EAffectFlag& result)
 
 /// считает кол-во цветов &R и т.п. в строке
 /// size_t len = 0 - по дефолту считает strlen(str)
-size_t count_colors(const char * str, size_t len)
+size_t count_colors(const char * str, size_t len = 0)
 {
 	unsigned int c, cc = 0;
 	len = len ? len : strlen(str);
