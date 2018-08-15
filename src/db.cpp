@@ -925,6 +925,7 @@ void load_cases()
 	}
 }
 
+std::vector<City> cities;
 std::string default_str_cities;
 /* Загрузка городов из xml файлов */
 void load_cities()

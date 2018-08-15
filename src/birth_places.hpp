@@ -14,10 +14,9 @@
 #define BIRTH_PLACE_MAIN_TAG "birthplaces"
 #define BIRTH_PLACE_ERROR_STR "...birth places reading fail"
 
-#include "structs.h"
-
 #include <pugixml.hpp>
 
+#include <memory>
 #include <vector>
 
 class BirthPlace;

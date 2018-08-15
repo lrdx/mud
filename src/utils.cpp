@@ -15,45 +15,28 @@
 #include "utils.h"
 
 #include "world.characters.hpp"
-#include "object.prototypes.hpp"
-#include "logger.hpp"
-#include "obj.hpp"
-#include "db.h"
-#include "comm.h"
-#include "screen.h"
-#include "spells.h"
-#include "handler.h"
-#include "interpreter.h"
-#include "constants.h"
-#include "dg_scripts.h"
-#include "features.hpp"
-#include "privilege.hpp"
-#include "char.hpp"
-#include "room.hpp"
-#include "modify.h"
-#include "house.h"
-#include "fight.h"
-#include "skills.h"
-#include "exchange.h"
 #include "sets_drop.hpp"
-#include "structs.h"
-#include "sysdep.h"
-#include "conf.h"
+#include "logger.hpp"
+#include "random.hpp"
+#include "handler.h"
+#include "fight.h"
+#include "interpreter.h"
+#include "features.hpp"
+#include "screen.h"
 #include "utils.string.hpp"
+#include "object.prototypes.hpp"
+#include "house.h"
+#include "exchange.h"
+
+#include <boost/algorithm/string/trim.hpp>
+
+#include <iomanip>
+#include <fstream>
+#include "modify.h"
 
 #ifdef HAVE_ICONV
 #include <iconv.h>
 #endif
-
-#include <boost/algorithm/string/trim.hpp>
-
-#include <vector>
-#include <string>
-#include <fstream>
-#include <cmath>
-#include <iomanip>
-#include <algorithm>
-#include <sstream>
 
 char AltToKoi[] =
 {
@@ -613,12 +596,6 @@ void make_horse(CHAR_DATA * horse, CHAR_DATA * ch)
 	AFF_FLAGS(horse).unset(EAffectFlag::AFF_TETHERED);
 }
 
-int on_horse(const CHAR_DATA * ch)
-{
-	return AFF_FLAGGED(ch, EAffectFlag::AFF_HORSE)
-		&& has_horse(ch, TRUE);
-}
-
 int has_horse(const CHAR_DATA * ch, int same_room)
 {
 	struct follow_type *f;
@@ -640,6 +617,12 @@ int has_horse(const CHAR_DATA * ch, int same_room)
 	}
 
 	return (FALSE);
+}
+
+int on_horse(const CHAR_DATA * ch)
+{
+	return AFF_FLAGGED(ch, EAffectFlag::AFF_HORSE)
+		&& has_horse(ch, TRUE);
 }
 
 CHAR_DATA *get_horse(CHAR_DATA * ch)
@@ -1731,6 +1714,24 @@ int roundup(float fl)
 		return (int)fl;
 }
 
+int CAN_CARRY_N(const CHAR_DATA* ch)
+{
+	int n = 5 + GET_REAL_DEX(ch) / 2 + GET_LEVEL(ch) / 2;
+	if (HAVE_FEAT(ch, JUGGLER_FEAT))
+	{
+		n += GET_LEVEL(ch) / 2;
+		if (GET_CLASS(ch) == CLASS_DRUID)
+		{
+			n += 5;
+		}
+	}
+	if (GET_CLASS(ch) == CLASS_DRUID)
+	{
+		n += 5;
+	}
+	return std::max(n, 1);
+}
+
 // Функция проверяет может ли ch нести предмет obj и загружает предмет
 // в инвентарь игрока или в комнату, где игрок находится
 void can_carry_obj(CHAR_DATA * ch, OBJ_DATA * obj)
@@ -2644,24 +2645,6 @@ void tell_to_char(CHAR_DATA *keeper, CHAR_DATA *ch, const char *arg)
 		"%s сказал%s вам : '%s'", GET_NAME(keeper), GET_CH_SUF_1(keeper), arg);
 	send_to_char(ch, "%s%s%s\r\n",
 		CCICYN(ch, C_NRM), CAP(local_buf), CCNRM(ch, C_NRM));
-}
-
-int CAN_CARRY_N(const CHAR_DATA* ch)
-{
-	int n = 5 + GET_REAL_DEX(ch) / 2 + GET_LEVEL(ch) / 2;
-	if (HAVE_FEAT(ch, JUGGLER_FEAT))
-	{
-		n += GET_LEVEL(ch) / 2;
-		if (GET_CLASS(ch) == CLASS_DRUID)
-		{
-			n += 5;
-		}
-	}
-	if (GET_CLASS(ch) == CLASS_DRUID)
-	{
-		n += 5;
-	}
-	return std::max(n, 1);
 }
 
 bool ParseFilter::init_type(const char *str)

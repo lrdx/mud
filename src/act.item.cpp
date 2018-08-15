@@ -1249,7 +1249,6 @@ void do_get(CHAR_DATA *ch, char *argument, int/* cmd*/, int/* subcmd*/)
 	}
 }
 
-
 void perform_drop_gold(CHAR_DATA * ch, int amount, byte mode, room_rnum RDR)
 {
 	if (amount <= 0)

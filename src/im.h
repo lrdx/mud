@@ -109,6 +109,8 @@ struct im_rskill
 };
 
 extern im_recipe *imrecipes;
+extern im_type *imtypes;
+extern int top_imtypes;
 
 void im_parse(int **ing_list, char *line);
 //MZ.load

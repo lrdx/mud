@@ -2,10 +2,7 @@
 #define __CONFIG_HPP__
 
 #include "birth_places.hpp"
-#include "structs.h"
 
-#include <cstdio>
-#include <array>
 #include <functional>
 
 /*

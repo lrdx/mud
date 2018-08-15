@@ -18,6 +18,9 @@ private:
 	penalties_t m_grouping;
 };
 
+int thaco(int class_num, int level);
+int level_exp(CHAR_DATA * ch, int level);
+
 extern GroupPenalties grouping;
 
 #endif // __CLASS_HPP__

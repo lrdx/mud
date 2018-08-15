@@ -15,17 +15,12 @@
 #ifndef _STRUCTS_H_
 #define _STRUCTS_H_
 
-#include "boards.types.hpp"
 #include "sysdep.h"
+#include "boards.types.hpp"
 
-#include <vector>
-#include <list>
-#include <string>
-#include <iterator>
-#include <cstdint>
-#include <unordered_set>
 #include <unordered_map>
 #include <array>
+#include <unordered_set>
 
 namespace ExtMoney
 {
@@ -64,7 +59,7 @@ typedef struct index_data INDEX_DATA;
 typedef struct time_info_data TIME_INFO_DATA;
 
 class CHAR_DATA;	// forward declaration to avoid inclusion of char.hpp and any dependencies of that header.
-class OBJ_DATA;	// forward declaration to avoid inclusion of obj.hpp and any dependencies of that header.
+class OBJ_DATA;		// forward declaration to avoid inclusion of obj.hpp and any dependencies of that header.
 class TRIG_DATA;
 
 // preamble ************************************************************
@@ -899,8 +894,6 @@ enum class EExtraFlag: uint32_t
 	ITEM_TRANSFORMED = INT_ONE | (1 << 15),		// Наложено заклинание заколдовать оружие
 	ITEM_NOT_DEPEND_RPOTO = INT_ONE | (1 << 16),	// Не зависит от прототипа
 	ITEM_NOT_UNLIMIT_TIMER = INT_ONE | (1 << 17) // Не может быть нерушимой
-
-
 };
 
 template <> const std::string& NAME_BY_ITEM<EExtraFlag>(const EExtraFlag item);

@@ -3,11 +3,6 @@
 
 #include "boards.message.hpp"
 
-#include <string>
-#include <memory>
-#include <deque>
-#include <bitset>
-
 namespace Boards
 {
 	// возможные типы доступа к доскам

@@ -14,16 +14,8 @@
 #ifndef _UTILS_H_
 #define _UTILS_H_
 
-#include "config.hpp"
 #include "structs.h"
-#include "conf.h"
 
-#include <boost/dynamic_bitset.hpp>
-
-#include <string>
-#include <list>
-#include <new>
-#include <vector>
 #include <sstream>
 
 struct ROOM_DATA;	// forward declaration to avoid inclusion of room.hpp and any dependencies of that header.
@@ -99,57 +91,15 @@ extern char AltToLat[];
 extern int class_stats_limit[NUM_PLAYER_CLASSES][6];
 
 // public functions in utils.cpp
-CHAR_DATA *find_char(long n);
-char *rustime(const struct tm *timeptr);
-char *str_dup(const char *source);
-char *str_add(char *dst, const char *src);
-int str_cmp(const char *arg1, const char *arg2);
-int str_cmp(const std::string &arg1, const char *arg2);
-int str_cmp(const char *arg1, const std::string &arg2);
-int str_cmp(const std::string &arg1, const std::string &arg2);
-int strn_cmp(const char *arg1, const char *arg2, size_t n);
-int strn_cmp(const std::string &arg1, const char *arg2, size_t n);
-int strn_cmp(const char *arg1, const std::string &arg2, size_t n);
-int strn_cmp(const std::string &arg1, const std::string &arg2, size_t n);
-int touch(const char *path);
-void pers_log(CHAR_DATA *ch, const char *format, ...);
-int number(int from, int to);
-int dice(int number, int size);
-void sprinttype(int type, const char *names[], char *result);
-int get_line(FILE * fl, char *buf);
-int get_filename(const char *orig_name, char *filename, int mode);
-TIME_INFO_DATA *age(const CHAR_DATA * ch);
-int num_pc_in_room(ROOM_DATA * room);
-void core_dump_real(const char *, int);
-int replace_str(const AbstractStringWriter::shared_ptr& writer, const char *pattern, const char *replacement, int rep_all, int max_size);
-void format_text(const AbstractStringWriter::shared_ptr& writer, int mode, DESCRIPTOR_DATA * d, size_t maxlen);
-int check_moves(CHAR_DATA * ch, int how_moves);
-void to_koi(char *str, int from);
-void from_koi(char *str, int to);
-void koi_to_alt(char *str, int len);
-std::string koi_to_alt(const std::string& input);
-void koi_to_win(char *str, int len);
-void koi_to_winz(char *str, int len);
+
+
 #ifdef HAVE_ICONV
 void koi_to_utf8(char *str_i, char *str_o);
 void utf8_to_koi(char *str_i, char *str_o);
 #endif
-int real_sector(int room);
-char *format_act(const char *orig, CHAR_DATA * ch, OBJ_DATA * obj, const void *vict_obj);
-int roundup(float fl);
-int valid_email(const char *address);
-void skip_dots(char **string);
-const char * str_str(const char *cs, const char *ct);
-void kill_ems(char *str);
-bool die_follower(CHAR_DATA * ch);
-void cut_one_word(std::string &str, std::string &word);
-size_t strl_cpy(char *dst, const char *src, size_t siz);
-int get_real_dr(CHAR_DATA *ch);
-extern bool GetAffectNumByName(const std::string& affName, EAffectFlag& result);
-void tell_to_char(CHAR_DATA *keeper, CHAR_DATA *ch, const char *arg);
-bool is_head(const std::string& name);
+
 extern std::list<FILE *> opened_files;
-extern bool is_dark(room_rnum room);
+
 #define core_dump()     core_dump_real(__FILE__, __LINE__)
 extern const char *ACTNULL;
 
@@ -193,10 +143,6 @@ int MIN(int a, int b);
 #define MMIN(a,b) ((a<b)?a:b)
 #define MMAX(a,b) ((a<b)?b:a)
 
-char *colorLOW(char *txt);
-char * colorCAP(char *txt);
-char * CAP(char *txt);
-
 #define KtoW(c) ((ubyte)(c) < 128 ? (c) : KoiToWin[(ubyte)(c)-128])
 #define KtoW2(c) ((ubyte)(c) < 128 ? (c) : KoiToWin2[(ubyte)(c)-128])
 #define KtoA(c) ((ubyte)(c) < 128 ? (c) : KoiToAlt[(ubyte)(c)-128])
@@ -204,36 +150,7 @@ char * CAP(char *txt);
 #define AtoK(c) ((ubyte)(c) < 128 ? (c) : AltToKoi[(ubyte)(c)-128])
 #define AtoL(c) ((ubyte)(c) < 128 ? (c) : AltToLat[(ubyte)(c)-128])
 
-// in magic.cpp //
-bool circle_follow(CHAR_DATA * ch, CHAR_DATA * victim);
-
-// in act.informative.cpp //
-void look_at_room(CHAR_DATA * ch, int mode);
-
-// in act.movmement.cpp //
-int do_simple_move(CHAR_DATA * ch, int dir, int following, CHAR_DATA * leader, bool is_flee);
-int perform_move(CHAR_DATA * ch, int dir, int following, int checkmob, CHAR_DATA * leader);
-
-// in limits.cpp //
-int mana_gain(const CHAR_DATA * ch);
-int hit_gain(CHAR_DATA * ch);
-int move_gain(CHAR_DATA * ch);
-void advance_level(CHAR_DATA * ch);
-void gain_exp(CHAR_DATA * ch, int gain);
-void gain_exp_regardless(CHAR_DATA * ch, int gain);
-void gain_condition(CHAR_DATA * ch, unsigned condition, int value);
-void check_idling(CHAR_DATA * ch);
-void point_update(void);
-void room_point_update();
-void exchange_point_update();
-void obj_point_update();
-void update_pos(CHAR_DATA * victim);
-
 // various constants ****************************************************
-
-// проверяет, висит ли заданный спелл на чаре
-bool check_spell_on_player(CHAR_DATA *ch, int spell_num);
-
 
 // get_filename() //
 #define ALIAS_FILE        1
@@ -471,7 +388,6 @@ inline void TOGGLE_BIT(T& var, const uint32_t bit)
 #define DESC_FLAGS(d)   ((d)->options)
 #define SPELL_ROUTINES(spl) (spell_info[spl].routines)
 
-// See http://www.circlemud.org/~greerga/todo.009 to eliminate MOB_ISNPC.
 #define IS_NPC(ch)           ((ch)->is_npc())
 #define IS_MOB(ch)          (IS_NPC(ch) && ch->get_rnum() >= 0)
 
@@ -504,14 +420,6 @@ inline void TOGGLE_BIT(T& var, const uint32_t bit)
                              weather_info.moon_day <= FULLMOONSTOP))
 
 #define IS_TIMEDARK(room) is_dark(room)
-
-/*((world[room]->gdark > world[room]->glight) || \
-                            (!(world[room]->light+world[room]->fires+world[room]->glight) && \
-                              (ROOM_FLAGGED(room, ROOM_DARK) || \
-                              (SECT(room) != SECT_INSIDE && \
-                               SECT(room) != SECT_CITY   && \
-                               ( weather_info.sunlight == SUN_SET || \
-                                 weather_info.sunlight == SUN_DARK )) ) ) )*/
 
 #define IS_DEFAULTDARK(room) (ROOM_FLAGGED(room, ROOM_DARK) || \
                               (SECT(room) != SECT_INSIDE && \
@@ -643,9 +551,6 @@ inline T VPOSI(const T val, const T min, const T max)
 {
 	return ((val < max) ? ((val > min) ? val : min) : max);
 }
-
-// С ВЮПНБ ПЕФЕР ДН 50, С ЛНАНБ ДН ЯРЮ
-//#define VPOSI_MOB(ch, stat_id, val)	IS_NPC(ch) ? val : VPOSI(val, 1, class_stats_limit[(int)GET_CLASS(ch)][stat_id])
 
 #define GET_CLASS(ch)   ((ch)->get_class())
 #define GET_KIN(ch)     ((ch)->player_data.Kin)
@@ -849,11 +754,7 @@ inline T VPOSI(const T val, const T min, const T max)
 #define IS_GOOD(ch)          (GET_ALIGNMENT(ch) >= ALIG_GOOD_MORE)
 #define IS_EVIL(ch)          (GET_ALIGNMENT(ch) <= ALIG_EVIL_LESS)
 #define IS_NEUTRAL(ch)        (!IS_GOOD(ch) && !IS_EVIL(ch))
-/*
-#define SAME_ALIGN(ch,vict)  ((IS_GOOD(ch) && IS_GOOD(vict)) ||\
-                              (IS_EVIL(ch) && IS_EVIL(vict)) ||\
-               (IS_NEUTRAL(ch) && IS_NEUTRAL(vict)))
-*/
+
 #define ALIGN_DELTA  10
 #define SAME_ALIGN(ch,vict)  (GET_ALIGNMENT(ch)>GET_ALIGNMENT(vict)?\
                               (GET_ALIGNMENT(ch)-GET_ALIGNMENT(vict))<=ALIGN_DELTA:\
@@ -1177,34 +1078,7 @@ inline T VPOSI(const T val, const T min, const T max)
 
 #define OUTSIDE(ch) (!ROOM_FLAGGED((ch)->in_room, ROOM_INDOORS))
 
-int on_horse(const CHAR_DATA* ch);
-int has_horse(const CHAR_DATA * ch, int same_room);
-CHAR_DATA *get_horse(CHAR_DATA * ch);
-void horse_drop(CHAR_DATA * ch);
-void make_horse(CHAR_DATA * horse, CHAR_DATA * ch);
-void check_horse(CHAR_DATA * ch);
-
-bool same_group(CHAR_DATA * ch, CHAR_DATA * tch);
-
-int is_post(room_rnum room);
-bool is_rent(room_rnum room);
-
-int pc_duration(CHAR_DATA * ch, int cnst, int level, int level_divisor, int min, int max);
-
-// Modifier functions
-int day_spell_modifier(CHAR_DATA * ch, int spellnum, int type, int value);
-int weather_spell_modifier(CHAR_DATA * ch, int spellnum, int type, int value);
-int complex_spell_modifier(CHAR_DATA * ch, int spellnum, int type, int value);
-
-int day_skill_modifier(CHAR_DATA * ch, int skillnum, int type, int value);
-int weather_skill_modifier(CHAR_DATA * ch, int skillnum, int type, int value);
-int complex_skill_modifier(CHAR_DATA * ch, int skillnum, int type, int value);
-void can_carry_obj(CHAR_DATA * ch, OBJ_DATA * obj);
-bool CAN_CARRY_OBJ(const CHAR_DATA *ch, const OBJ_DATA *obj);
-bool ignores(CHAR_DATA *, CHAR_DATA *, unsigned int);
-
 // PADS for something ***************************************************
-const char * desc_count(long how_many, int of_what);
 #define WHAT_DAY	0
 #define WHAT_HOUR	1
 #define WHAT_YEAR	2
@@ -1257,20 +1131,7 @@ const char * desc_count(long how_many, int of_what);
 #define ACHECK_GLOWING (1 << 3)
 #define ACHECK_WEIGHT  (1 << 4)
 
-int check_awake(CHAR_DATA * ch, int what);
-int awake_hide(CHAR_DATA * ch);
-int awake_invis(CHAR_DATA * ch);
-int awake_camouflage(CHAR_DATA * ch);
-int awake_sneak(CHAR_DATA * ch);
-int awaking(CHAR_DATA * ch, int mode);
-std::string time_format(int timer, int flag = 0);
-
-size_t count_colors(const char * str, size_t len = 0);
-char* colored_name(const char * str, size_t len, const bool left_align = false);
-size_t strlen_no_colors(const char *str);
-
 // OS compatibility *****************************************************
-
 
 // there could be some strange OS which doesn't have NULL...
 #ifndef NULL
@@ -1295,8 +1156,6 @@ size_t strlen_no_colors(const char *str);
 #define SENDOK(ch)   (((ch)->desc || SCRIPT_CHECK((ch), MTRIG_ACT)) && \
                (to_sleeping || AWAKE(ch)) && \
                      !PLR_FLAGGED((ch), PLR_WRITING))
-
-
 
 inline bool a_isspace(unsigned char c)
 {
@@ -1465,18 +1324,8 @@ void print_log();
 
 } // ZoneExpStat
 
-std::string thousands_sep(long long n);
-
 enum { STR_TO_HIT, STR_TO_DAM, STR_CARRY_W, STR_WIELD_W, STR_HOLD_W, STR_BOTH_W, STR_SHIELD_W };
 enum { WIS_MAX_LEARN_L20, WIS_SPELL_SUCCESS, WIS_MAX_SKILLS, WIS_FAILS };
-
-int str_bonus(int str, int type);
-int dex_bonus(int dex);
-int dex_ac_bonus(int dex);
-int calc_str_req(int weight, int type);
-void message_str_need(CHAR_DATA *ch, OBJ_DATA *obj, int type);
-int wis_bonus(int stat, int type);
-int CAN_CARRY_N(const CHAR_DATA* ch);
 
 #define CAN_CARRY_W(ch) ((str_bonus(GET_REAL_STR(ch), STR_CARRY_W) * (HAVE_FEAT(ch, PORTER_FEAT) ? 110 : 100))/100)
 
@@ -1536,10 +1385,6 @@ void print_bitset(const N& bits, const T& names,
 		}
 	}
 }
-
-const char *print_obj_state(int tm_pct);
-
-bool no_bad_affects(OBJ_DATA *obj);
 
 struct exchange_item_data;
 // для парса строки с фильтрами в клан-хранах и базаре
@@ -1603,11 +1448,6 @@ private:
 	bool check_realtime(exchange_item_data *exch_obj) const;
 };
 
-int get_virtual_race(CHAR_DATA *mob);
-
-#define _QUOTE(x) # x
-#define QUOTE(x) _QUOTE(x)
-
 #ifdef WIN32
 class CCheckTable
 {
@@ -1626,31 +1466,13 @@ private:
 #endif
 
 // global buffering system
-#ifdef __DB_C__
 char buf[MAX_STRING_LENGTH];
 char buf1[MAX_STRING_LENGTH];
 char buf2[MAX_STRING_LENGTH];
 char arg[MAX_STRING_LENGTH];
-#else
-extern char buf[MAX_STRING_LENGTH];
-extern char buf1[MAX_STRING_LENGTH];
-extern char buf2[MAX_STRING_LENGTH];
-extern char arg[MAX_STRING_LENGTH];
-#endif
 
 #define plant_magic(x)	do { (x)[sizeof(x) - 1] = MAGIC_NUMBER; } while (0)
-#define test_magic(x)	((x)[sizeof(x) - 1])
-
-/*
-* This function is called every 30 seconds from heartbeat().  It checks
-* the four global buffers in CircleMUD to ensure that no one has written
-* past their bounds.  If our check digit is not there (and the position
-* doesn't have a NUL which may result from snprintf) then we gripe that
-* someone has overwritten our buffer.  This could cause a false positive
-* if someone uses the buffer as a non-terminated character array but that
-* is not likely. -gg
-*/
-void sanity_check(void);
+#define test_magic(x)	((x)[sizeof(x) - 1]).
 
 inline void graceful_exit(int retcode)
 {
@@ -1661,13 +1483,6 @@ bool isname(const char *str, const char *namelist);
 inline bool isname(const std::string &str, const char *namelist) { return isname(str.c_str(), namelist); }
 inline bool isname(const char* str, const std::string& namelist) { return isname(str, namelist.c_str()); }
 inline bool isname(const std::string &str, const std::string& namelist) { return isname(str.c_str(), namelist.c_str()); }
-
-const char* one_word(const char* argument, char *first_arg);
-
-void ReadEndString(std::ifstream &file);
-// замена символа (в данном случае конца строки) на свою строку, для остального функций хватает
-void StringReplace(std::string& buffer, char s, const std::string& d);
-std::string& format_news_message(std::string &text);
 
 template <typename T>
 class JoinRange

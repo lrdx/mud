@@ -3,7 +3,6 @@
 // Part of Bylins http://www.mud.ru
 
 #include "random.hpp"
-#include "utils.h"
 
 #include <boost/version.hpp>
 #if BOOST_VERSION >= 104700
@@ -16,6 +15,9 @@
 #include <boost/random.hpp>
 #pragma message("HINT: You are using old version of boost")
 #endif
+
+#include <ctime>
+#include <algorithm>
 
 namespace Random
 {
@@ -127,8 +129,7 @@ int GaussIntNumber(double mean, double sigma, int min_val, int max_val)
 	//округляем
 	iresult = ((dresult < mean) ? ceil(dresult) : floor(dresult));
 	//возвращаем с обрезанием по диапазону
-	return MAX(MIN(iresult, max_val), min_val);
+	return std::max(std::min(iresult, max_val), min_val);
 }
-
 
 // vim: ts=4 sw=4 tw=0 noet syntax=cpp :

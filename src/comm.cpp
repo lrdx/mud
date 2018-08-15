@@ -541,17 +541,6 @@ void gifts()
 	log("Загружен подарок в комнату: %d, объект: %d", rand_vnum_r, rand_vnum);
 }
 
-// functions in this file
-RETSIGTYPE unrestrict_game(int sig);
-RETSIGTYPE reap(int sig);
-RETSIGTYPE checkpointing(int sig);
-RETSIGTYPE hupsig(int sig);
-ssize_t perform_socket_read(socket_t desc, char *read_point, size_t space_left);
-ssize_t perform_socket_write(socket_t desc, const char *txt, size_t length);
-void circle_sleep(struct timeval *timeout);
-int get_from_q(struct txt_q *queue, char *dest, int *aliased);
-void init_game(ush_int port);
-void signal_setup(void);
 #ifdef HAS_EPOLL
 void game_loop(int epoll, socket_t mother_desc);
 int new_descriptor(int epoll, socket_t s);
@@ -560,20 +549,6 @@ void game_loop(socket_t mother_desc);
 int new_descriptor(socket_t s);
 #endif
 
-socket_t init_socket(ush_int port);
-
-int get_max_players(void);
-int process_output(DESCRIPTOR_DATA * t);
-int process_input(DESCRIPTOR_DATA * t);
-void timeadd(struct timeval *sum, struct timeval *a, struct timeval *b);
-void flush_queues(DESCRIPTOR_DATA * d);
-void nonblock(socket_t s);
-int perform_subst(DESCRIPTOR_DATA * t, char *orig, char *subst);
-int perform_alias(DESCRIPTOR_DATA * d, char *orig);
-struct in_addr *get_bind_addr(void);
-int parse_ip(const char *addr, struct in_addr *inaddr);
-int set_sendbuf(socket_t s);
-
 #if defined(POSIX)
 sigfunc *my_signal(int signo, sigfunc * func);
 #endif
@@ -581,18 +556,6 @@ sigfunc *my_signal(int signo, sigfunc * func);
 void *zlib_alloc(void *opaque, unsigned int items, unsigned int size);
 void zlib_free(void *opaque, void *address);
 #endif
-
-
-void show_string(DESCRIPTOR_DATA * d, char *input);
-void redit_save_to_disk(int zone_num);
-void oedit_save_to_disk(int zone_num);
-void medit_save_to_disk(int zone_num);
-void zedit_save_to_disk(int zone_num);
-int real_zone(int number);
-void Crash_ldsave(CHAR_DATA * ch);
-void Crash_save_all_rent();
-int level_exp(CHAR_DATA * ch, int level);
-unsigned long TxtToIp(const char * text);
 
 #ifdef __CXREF__
 #undef FD_ZERO

@@ -426,7 +426,8 @@ std::string space_before_string(const char* text)
 		boost::trim_right_if(tmp, boost::is_any_of(std::string(" ")));
 		return tmp;
 	}
-	return "";
+
+	return std::string();
 }
 
 std::string space_before_string(const std::string& text)
@@ -439,7 +440,8 @@ std::string space_before_string(const std::string& text)
 		boost::trim_right_if(tmp, boost::is_any_of(std::string(" ")));
 		return tmp;
 	}
-	return "";
+
+	return std::string();
 }
 
 namespace
@@ -515,7 +517,7 @@ const char *show_obj_to_char(OBJ_DATA * object, CHAR_DATA * ch, int mode, int sh
 			if (!object->get_action_description().empty())
 			{
 				strcpy(buf, "Вы прочитали следующее :\r\n\r\n");
-				strcat(buf, space_before_string(object->get_action_description().c_str()).c_str());
+				strcat(buf, space_before_string(object->get_action_description()).c_str());
 				page_string(ch->desc, buf, 1);
 			}
 			else
@@ -864,9 +866,7 @@ void diag_char_to_char(CHAR_DATA * i, CHAR_DATA * ch)
 
 	strcat(buf, "\r\n");
 	send_to_char(buf, ch);
-
 }
-
 
 void look_at_char(CHAR_DATA * i, CHAR_DATA * ch)
 {
@@ -887,7 +887,7 @@ void look_at_char(CHAR_DATA * i, CHAR_DATA * ch)
 	{
 		strcpy(buf, "\r\nЭто");
 		if (i->is_morphed())
-			strcat(buf, string(" " + i->get_morph_desc() + ".\r\n").c_str());
+			strcat(buf, std::string(" " + i->get_morph_desc() + ".\r\n").c_str());
 		else
 			if (IS_FEMALE(i))
 			{
@@ -2416,9 +2416,8 @@ void look_in_direction(CHAR_DATA * ch, int dir, int info_is)
 void hear_in_direction(CHAR_DATA * ch, int dir, int info_is)
 {
 	int count = 0, percent = 0, probe = 0;
-	ROOM_DATA::exit_data_ptr rdata;
 	int fight_count = 0;
-	string tmpstr;
+	std::string tmpstr;
 
 	if (AFF_FLAGGED(ch, EAffectFlag::AFF_DEAFNESS))
 	{
@@ -2429,7 +2428,7 @@ void hear_in_direction(CHAR_DATA * ch, int dir, int info_is)
 		|| (EXIT(ch, dir)
 		&& EXIT(ch, dir)->to_room != NOWHERE))
 	{
-		rdata = EXIT(ch, dir);
+		ROOM_DATA::exit_data_ptr rdata = EXIT(ch, dir);
 		count += sprintf(buf, "%s%s:%s ", CCYEL(ch, C_NRM), Dirs[dir], CCNRM(ch, C_NRM));
 		count += sprintf(buf + count, "\r\n%s", CCGRN(ch, C_NRM));
 		send_to_char(buf, ch);
@@ -3293,8 +3292,8 @@ void print_do_score_all(CHAR_DATA *ch)
 	int ac, max_dam = 0, hr = 0, resist, modi = 0, timer_room_label;
 	ESkill skill = SKILL_BOTHHANDS;
 
-	std::string sum = string("Вы ") + string(ch->get_name()) + string(", ")
-		+ string(class_name[(int)GET_CLASS(ch) + 14 * GET_KIN(ch)]) + string(".");
+	std::string sum = std::string("Вы ") + std::string(ch->get_name()) + std::string(", ")
+		+ std::string(class_name[(int)GET_CLASS(ch) + 14 * GET_KIN(ch)]) + std::string(".");
 
 	sprintf(buf,
 		" %s-------------------------------------------------------------------------------------\r\n"
@@ -3309,7 +3308,7 @@ void print_do_score_all(CHAR_DATA *ch)
 		" %sБроня:       %4d %s|"
 		" %sСопротивление: %s||\r\n",
 		CCNRM(ch, C_NRM),
-		string(PlayerRace::GetKinNameByNum(GET_KIN(ch), GET_SEX(ch))).substr(0, 14).c_str(),
+		std::string(PlayerRace::GetKinNameByNum(GET_KIN(ch), GET_SEX(ch))).substr(0, 14).c_str(),
 		CCCYN(ch, C_NRM),
 		CCICYN(ch, C_NRM), GET_HEIGHT(ch), GET_REAL_HEIGHT(ch), CCCYN(ch, C_NRM),
 		CCIGRN(ch, C_NRM), GET_ARMOUR(ch), CCCYN(ch, C_NRM),
@@ -3327,7 +3326,7 @@ void print_do_score_all(CHAR_DATA *ch)
 		" %sЗащита:       %3d %s|"
 		" %sОгню:      %3d %s||\r\n",
 		CCNRM(ch, C_NRM),
-		string(PlayerRace::GetRaceNameByNum(GET_KIN(ch), GET_RACE(ch), GET_SEX(ch))).substr(0, 14).c_str(),
+		std::string(PlayerRace::GetRaceNameByNum(GET_KIN(ch), GET_RACE(ch), GET_SEX(ch))).substr(0, 14).c_str(),
 		CCCYN(ch, C_NRM),
 		CCICYN(ch, C_NRM), GET_WEIGHT(ch), GET_REAL_WEIGHT(ch), CCCYN(ch, C_NRM),
 		CCIGRN(ch, C_NRM), ac, CCCYN(ch, C_NRM),
@@ -3340,7 +3339,7 @@ void print_do_score_all(CHAR_DATA *ch)
 		" %sПоглощение:   %3d %s|"
 		" %sВоздуху:   %3d %s||\r\n",
 		CCNRM(ch, C_NRM),
-		string(religion_name[GET_RELIGION(ch)][(int)GET_SEX(ch)]).substr(0, 13).c_str(),
+		std::string(religion_name[GET_RELIGION(ch)][(int)GET_SEX(ch)]).substr(0, 13).c_str(),
 		CCCYN(ch, C_NRM),
 		CCICYN(ch, C_NRM), GET_SIZE(ch), GET_REAL_SIZE(ch), CCCYN(ch, C_NRM),
 		CCIGRN(ch, C_NRM), GET_ABSORBE(ch), CCCYN(ch, C_NRM),
@@ -3549,52 +3548,52 @@ void print_do_score_all(CHAR_DATA *ch)
 		{
 		case POS_DEAD:
 			sprintf(buf + strlen(buf), " || %s%-19s%s|",
-				CCIRED(ch, C_NRM), string("Вы МЕРТВЫ!").substr(0, 19).c_str(), CCCYN(ch, C_NRM));
+				CCIRED(ch, C_NRM), std::string("Вы МЕРТВЫ!").substr(0, 19).c_str(), CCCYN(ch, C_NRM));
 			break;
 		case POS_MORTALLYW:
 			sprintf(buf + strlen(buf), " || %s%-19s%s|",
-				CCIRED(ch, C_NRM), string("Вы умираете!").substr(0, 19).c_str(), CCCYN(ch, C_NRM));
+				CCIRED(ch, C_NRM), std::string("Вы умираете!").substr(0, 19).c_str(), CCCYN(ch, C_NRM));
 			break;
 		case POS_INCAP:
 			sprintf(buf + strlen(buf), " || %s%-19s%s|",
-				CCRED(ch, C_NRM), string("Вы без сознания.").substr(0, 19).c_str(), CCCYN(ch, C_NRM));
+				CCRED(ch, C_NRM), std::string("Вы без сознания.").substr(0, 19).c_str(), CCCYN(ch, C_NRM));
 			break;
 		case POS_STUNNED:
 			sprintf(buf + strlen(buf), " || %s%-19s%s|",
-				CCIYEL(ch, C_NRM), string("Вы в обмороке!").substr(0, 19).c_str(), CCCYN(ch, C_NRM));
+				CCIYEL(ch, C_NRM), std::string("Вы в обмороке!").substr(0, 19).c_str(), CCCYN(ch, C_NRM));
 			break;
 		case POS_SLEEPING:
 			sprintf(buf + strlen(buf), " || %s%-19s%s|",
-				CCIGRN(ch, C_NRM), string("Вы спите.").substr(0, 19).c_str(), CCCYN(ch, C_NRM));
+				CCIGRN(ch, C_NRM), std::string("Вы спите.").substr(0, 19).c_str(), CCCYN(ch, C_NRM));
 			break;
 		case POS_RESTING:
 			sprintf(buf + strlen(buf), " || %s%-19s%s|",
-				CCGRN(ch, C_NRM), string("Вы отдыхаете.").substr(0, 19).c_str(), CCCYN(ch, C_NRM));
+				CCGRN(ch, C_NRM), std::string("Вы отдыхаете.").substr(0, 19).c_str(), CCCYN(ch, C_NRM));
 			break;
 		case POS_SITTING:
 			sprintf(buf + strlen(buf), " || %s%-19s%s|",
-				CCIGRN(ch, C_NRM), string("Вы сидите.").substr(0, 19).c_str(), CCCYN(ch, C_NRM));
+				CCIGRN(ch, C_NRM), std::string("Вы сидите.").substr(0, 19).c_str(), CCCYN(ch, C_NRM));
 			break;
 		case POS_FIGHTING:
 			if (ch->get_fighting())
 				sprintf(buf + strlen(buf), " || %s%-19s%s|",
-					CCIRED(ch, C_NRM), string("Вы сражаетесь!").substr(0, 19).c_str(), CCCYN(ch, C_NRM));
+					CCIRED(ch, C_NRM), std::string("Вы сражаетесь!").substr(0, 19).c_str(), CCCYN(ch, C_NRM));
 			else
 				sprintf(buf + strlen(buf), " || %s%-19s%s|",
-					CCRED(ch, C_NRM), string("Вы машете кулаками.").substr(0, 19).c_str(), CCCYN(ch, C_NRM));
+					CCRED(ch, C_NRM), std::string("Вы машете кулаками.").substr(0, 19).c_str(), CCCYN(ch, C_NRM));
 			break;
 		case POS_STANDING:
 			sprintf(buf + strlen(buf), " || %s%-19s%s|",
-				CCNRM(ch, C_NRM), string("Вы стоите.").substr(0, 19).c_str(), CCCYN(ch, C_NRM));
+				CCNRM(ch, C_NRM), std::string("Вы стоите.").substr(0, 19).c_str(), CCCYN(ch, C_NRM));
 			break;
 		default:
 			sprintf(buf + strlen(buf), " || %s%-19s%s|",
-				CCNRM(ch, C_NRM), string("You are floating..").substr(0, 19).c_str(), CCCYN(ch, C_NRM));
+				CCNRM(ch, C_NRM), std::string("You are floating..").substr(0, 19).c_str(), CCCYN(ch, C_NRM));
 			break;
 		}
 	else
 		sprintf(buf + strlen(buf), " || %s%-19s%s|",
-			CCNRM(ch, C_NRM), string("Вы сидите верхом.").substr(0, 19).c_str(), CCCYN(ch, C_NRM));
+			CCNRM(ch, C_NRM), std::string("Вы сидите верхом.").substr(0, 19).c_str(), CCCYN(ch, C_NRM));
 
 	sprintf(buf + strlen(buf),
 		" %sВыносл.:     %3d(%3d) %s|"
@@ -3689,13 +3688,13 @@ void print_do_score_all(CHAR_DATA *ch)
 				" %s|| %sВы верхом на %-67s%s||\r\n"
 				" -------------------------------------------------------------------------------------\r\n",
 				CCCYN(ch, C_NRM), CCIGRN(ch, C_NRM),
-				(string(GET_PAD(get_horse(ch), 5)) + string(".")).substr(0, 67).c_str(), CCCYN(ch, C_NRM));
+				(std::string(GET_PAD(get_horse(ch), 5)) + std::string(".")).substr(0, 67).c_str(), CCCYN(ch, C_NRM));
 		else
 			sprintf(buf + strlen(buf),
 				" %s|| %sУ вас есть %-69s%s||\r\n"
 				" -------------------------------------------------------------------------------------\r\n",
 				CCCYN(ch, C_NRM), CCIGRN(ch, C_NRM),
-				(string(GET_NAME(get_horse(ch))) + string(".")).substr(0, 69).c_str(), CCCYN(ch, C_NRM));
+				(std::string(GET_NAME(get_horse(ch))) + std::string(".")).substr(0, 69).c_str(), CCCYN(ch, C_NRM));
 	}
 
 	//Напоминаем о метке, если она есть.
@@ -3706,7 +3705,7 @@ void print_do_score_all(CHAR_DATA *ch)
 		sprintf(buf + strlen(buf),
 			" %s|| &G&qВы поставили рунную метку в комнате %s%s||\r\n",
 			CCCYN(ch, C_NRM),
-			colored_name(string(string("'") + label_room->name + string("&n&Q'.")).c_str(), 44),
+			colored_name(std::string(std::string("'") + label_room->name + std::string("&n&Q'.")).c_str(), 44),
 			CCCYN(ch, C_NRM));
 		if (timer_room_label > 0)
 		{
@@ -3723,14 +3722,14 @@ void print_do_score_all(CHAR_DATA *ch)
 		sprintf(buf + strlen(buf),
 			" %s|| %sВы заслужили %5d %-61s%s||\r\n",
 			CCCYN(ch, C_NRM), CCWHT(ch, C_NRM), glory,
-			(string(desc_count(glory, WHAT_POINT)) + string(" славы для временного улучшения характеристик.")).substr(0, 61).c_str(),
+			(std::string(desc_count(glory, WHAT_POINT)) + std::string(" славы для временного улучшения характеристик.")).substr(0, 61).c_str(),
 			CCCYN(ch, C_NRM));
 	glory = GloryConst::get_glory(GET_UNIQUE(ch));
 	if (glory)
 		sprintf(buf + strlen(buf),
 			" %s|| %sВы заслужили %5d %-61s%s||\r\n",
 			CCCYN(ch, C_NRM), CCWHT(ch, C_NRM), glory,
-			(string(desc_count(glory, WHAT_POINT)) + string(" постоянной славы.")).substr(0, 61).c_str(),
+			(std::string(desc_count(glory, WHAT_POINT)) + std::string(" постоянной славы.")).substr(0, 61).c_str(),
 			CCCYN(ch, C_NRM));
 
 	if (GET_GOD_FLAG(ch, GF_REMORT) && CLAN(ch))
@@ -3771,8 +3770,8 @@ void print_do_score_all(CHAR_DATA *ch)
 			" || %sв %2d %-75s%s||\r\n",
 			CCNRM(ch, C_NRM), CCCYN(ch, C_NRM), CCNRM(ch, C_NRM),
 			grouping[(int)GET_CLASS(ch)][(int)GET_REMORT(ch)],
-			(string(desc_count(grouping[(int)GET_CLASS(ch)][(int)GET_REMORT(ch)], WHAT_LEVEL))
-				+ string(" без потерь для опыта.")).substr(0, 76).c_str(), CCCYN(ch, C_NRM));
+			(std::string(desc_count(grouping[(int)GET_CLASS(ch)][(int)GET_REMORT(ch)], WHAT_LEVEL))
+				+ std::string(" без потерь для опыта.")).substr(0, 76).c_str(), CCCYN(ch, C_NRM));
 
 	if (RENTABLE(ch))
 	{
@@ -3781,8 +3780,8 @@ void print_do_score_all(CHAR_DATA *ch)
 		sprintf(buf + strlen(buf),
 			" || %sВ связи с боевыми действиями вы не можете уйти на постой еще %-18s%s ||\r\n",
 			CCIRED(ch, C_NRM),
-			minutes ? (std::to_string(minutes) + string(" ") + string(desc_count(minutes, WHAT_MINu)) + string(".")).substr(0, 18).c_str()
-			: (std::to_string(rent_time) + string(" ") + string(desc_count(rent_time, WHAT_SEC)) + string(".")).substr(0, 18).c_str(),
+			minutes ? (std::to_string(minutes) + std::string(" ") + std::string(desc_count(minutes, WHAT_MINu)) + std::string(".")).substr(0, 18).c_str()
+			: (std::to_string(rent_time) + std::string(" ") + std::string(desc_count(rent_time, WHAT_SEC)) + std::string(".")).substr(0, 18).c_str(),
 			CCCYN(ch, C_NRM));
 	}
 	else if ((ch->in_room != NOWHERE) && ROOM_FLAGGED(ch->in_room, ROOM_PEACEFUL) && !PLR_FLAGGED(ch, PLR_KILLER))
@@ -3808,7 +3807,7 @@ void print_do_score_all(CHAR_DATA *ch)
 	if (ch->get_protecting())
 		sprintf(buf + strlen(buf),
 			" || %sВы прикрываете %-65s%s||\r\n",
-			CCIGRN(ch, C_NRM), string(GET_PAD(ch->get_protecting(), 3) + string(" от нападения.")).substr(0, 65).c_str(),
+			CCIGRN(ch, C_NRM), std::string(GET_PAD(ch->get_protecting(), 3) + std::string(" от нападения.")).substr(0, 65).c_str(),
 			CCCYN(ch, C_NRM));
 
 	if (GET_GOD_FLAG(ch, GF_GODSCURSE) && GCURSE_DURATION(ch))
@@ -3817,8 +3816,8 @@ void print_do_score_all(CHAR_DATA *ch)
 		int mins = ((GCURSE_DURATION(ch) - time(NULL)) % 3600 + 59) / 60;
 		sprintf(buf + strlen(buf),
 			" || %sВы прокляты Богами на %3d %-5s %2d %-45s%s||\r\n",
-			CCRED(ch, C_NRM), hrs, string(desc_count(hrs, WHAT_HOUR)).substr(0, 5).c_str(),
-			mins, (string(desc_count(mins, WHAT_MINu)) + string(".")).substr(0, 45).c_str(), CCCYN(ch, C_NRM));
+			CCRED(ch, C_NRM), hrs, std::string(desc_count(hrs, WHAT_HOUR)).substr(0, 5).c_str(),
+			mins, (std::string(desc_count(mins, WHAT_MINu)) + std::string(".")).substr(0, 45).c_str(), CCCYN(ch, C_NRM));
 	}
 
 	if (PLR_FLAGGED(ch, PLR_HELLED) && HELL_DURATION(ch) && HELL_DURATION(ch) > time(NULL))
@@ -3828,10 +3827,10 @@ void print_do_score_all(CHAR_DATA *ch)
 		sprintf(buf + strlen(buf),
 			" || %sВам предстоит провести в темнице еще %6d %-5s %2d %-27s%s||\r\n"
 			" || %s[%-79s%s||\r\n",
-			CCRED(ch, C_NRM), hrs, string(desc_count(hrs, WHAT_HOUR)).substr(0, 5).c_str(),
-			mins, (string(desc_count(mins, WHAT_MINu)) + string(".")).substr(0, 27).c_str(),
+			CCRED(ch, C_NRM), hrs, std::string(desc_count(hrs, WHAT_HOUR)).substr(0, 5).c_str(),
+			mins, (std::string(desc_count(mins, WHAT_MINu)) + std::string(".")).substr(0, 27).c_str(),
 			CCCYN(ch, C_NRM), CCRED(ch, C_NRM),
-			(string(HELL_REASON(ch) ? HELL_REASON(ch) : "-") + string("].")).substr(0, 79).c_str(),
+			(std::string(HELL_REASON(ch) ? HELL_REASON(ch) : "-") + std::string("].")).substr(0, 79).c_str(),
 			CCCYN(ch, C_NRM));
 	}
 
@@ -3842,10 +3841,10 @@ void print_do_score_all(CHAR_DATA *ch)
 		sprintf(buf + strlen(buf),
 			" || %sВы не сможете кричать еще %6d %-5s %2d %-38s%s||\r\n"
 			" || %s[%-79s%s||\r\n",
-			CCRED(ch, C_NRM), hrs, string(desc_count(hrs, WHAT_HOUR)).substr(0, 5).c_str(),
-			mins, (string(desc_count(mins, WHAT_MINu)) + string(".")).substr(0, 38).c_str(),
+			CCRED(ch, C_NRM), hrs, std::string(desc_count(hrs, WHAT_HOUR)).substr(0, 5).c_str(),
+			mins, (std::string(desc_count(mins, WHAT_MINu)) + std::string(".")).substr(0, 38).c_str(),
 			CCCYN(ch, C_NRM), CCRED(ch, C_NRM),
-			(string(MUTE_REASON(ch) ? MUTE_REASON(ch) : "-") + string("].")).substr(0, 79).c_str(),
+			(std::string(MUTE_REASON(ch) ? MUTE_REASON(ch) : "-") + std::string("].")).substr(0, 79).c_str(),
 			CCCYN(ch, C_NRM));
 	}
 
@@ -3856,10 +3855,10 @@ void print_do_score_all(CHAR_DATA *ch)
 		sprintf(buf + strlen(buf),
 			" || %sВы не сможете входить с одного IP еще %6d %-5s %2d %-26s%s||\r\n"
 			" || %s[%-79s%s||\r\n",
-			CCRED(ch, C_NRM), hrs, string(desc_count(hrs, WHAT_HOUR)).substr(0, 5).c_str(),
-			mins, (string(desc_count(mins, WHAT_MINu)) + string(".")).substr(0, 38).c_str(),
+			CCRED(ch, C_NRM), hrs, std::string(desc_count(hrs, WHAT_HOUR)).substr(0, 5).c_str(),
+			mins, (std::string(desc_count(mins, WHAT_MINu)) + std::string(".")).substr(0, 38).c_str(),
 			CCCYN(ch, C_NRM), CCRED(ch, C_NRM),
-			(string(UNREG_REASON(ch) ? UNREG_REASON(ch) : "-") + string("].")).substr(0, 79).c_str(),
+			(std::string(UNREG_REASON(ch) ? UNREG_REASON(ch) : "-") + std::string("].")).substr(0, 79).c_str(),
 			CCCYN(ch, C_NRM));
 	}
 
@@ -3870,10 +3869,10 @@ void print_do_score_all(CHAR_DATA *ch)
 		sprintf(buf + strlen(buf),
 			" || %sВы будете молчать еще %6d %-5s %2d %-42s%s||\r\n"
 			" || %s[%-79s%s||\r\n",
-			CCRED(ch, C_NRM), hrs, string(desc_count(hrs, WHAT_HOUR)).substr(0, 5).c_str(),
-			mins, (string(desc_count(mins, WHAT_MINu)) + string(".")).substr(0, 42).c_str(),
+			CCRED(ch, C_NRM), hrs, std::string(desc_count(hrs, WHAT_HOUR)).substr(0, 5).c_str(),
+			mins, (std::string(desc_count(mins, WHAT_MINu)) + std::string(".")).substr(0, 42).c_str(),
 			CCCYN(ch, C_NRM), CCRED(ch, C_NRM),
-			(string(DUMB_REASON(ch) ? DUMB_REASON(ch) : "-") + string("].")).substr(0, 79).c_str(),
+			(std::string(DUMB_REASON(ch) ? DUMB_REASON(ch) : "-") + std::string("].")).substr(0, 79).c_str(),
 			CCCYN(ch, C_NRM));
 	}
 
@@ -3884,10 +3883,10 @@ void print_do_score_all(CHAR_DATA *ch)
 		sprintf(buf + strlen(buf),
 			" || %sВы будете заморожены еще %6d %-5s %2d %-39s%s||\r\n"
 			" || %s[%-79s%s||\r\n",
-			CCRED(ch, C_NRM), hrs, string(desc_count(hrs, WHAT_HOUR)).substr(0, 5).c_str(),
-			mins, (string(desc_count(mins, WHAT_MINu)) + string(".")).substr(0, 42).c_str(),
+			CCRED(ch, C_NRM), hrs, std::string(desc_count(hrs, WHAT_HOUR)).substr(0, 5).c_str(),
+			mins, (std::string(desc_count(mins, WHAT_MINu)) + std::string(".")).substr(0, 42).c_str(),
 			CCCYN(ch, C_NRM), CCRED(ch, C_NRM),
-			(string(FREEZE_REASON(ch) ? FREEZE_REASON(ch) : "-") + string("].")).substr(0, 79).c_str(),
+			(std::string(FREEZE_REASON(ch) ? FREEZE_REASON(ch) : "-") + std::string("].")).substr(0, 79).c_str(),
 			CCCYN(ch, C_NRM));
 	}
 
@@ -3908,7 +3907,6 @@ void print_do_score_all(CHAR_DATA *ch)
 
 void do_score(CHAR_DATA *ch, char *argument, int/* cmd*/, int/* subcmd*/)
 {
-	TIME_INFO_DATA playing_time;
 	int ac, ac_t;
 
 	skip_spaces(&argument);
@@ -3925,8 +3923,8 @@ void do_score(CHAR_DATA *ch, char *argument, int/* cmd*/, int/* subcmd*/)
 
 	sprintf(buf, "Вы %s (%s, %s, %s, %s %d уровня).\r\n",
 		ch->only_title().c_str(),
-		string(PlayerRace::GetKinNameByNum(GET_KIN(ch), GET_SEX(ch))).c_str(),
-		string(PlayerRace::GetRaceNameByNum(GET_KIN(ch), GET_RACE(ch), GET_SEX(ch))).c_str(),
+		std::string(PlayerRace::GetKinNameByNum(GET_KIN(ch), GET_SEX(ch))).c_str(),
+		std::string(PlayerRace::GetRaceNameByNum(GET_KIN(ch), GET_RACE(ch), GET_SEX(ch))).c_str(),
 		religion_name[GET_RELIGION(ch)][(int)GET_SEX(ch)],
 		class_name[(int)GET_CLASS(ch) + 14 * GET_KIN(ch)], GET_LEVEL(ch));
 
@@ -4035,7 +4033,7 @@ void do_score(CHAR_DATA *ch, char *argument, int/* cmd*/, int/* subcmd*/)
 	{
 		sprintf(buf + strlen(buf),
 			"&G&qВы поставили рунную метку в комнате '%s'.&Q&n\r\n",
-			string(label_room->name).c_str());
+			std::string(label_room->name).c_str());
 	}
 
 	int glory = Glory::get_glory(GET_UNIQUE(ch));
@@ -4051,7 +4049,7 @@ void do_score(CHAR_DATA *ch, char *argument, int/* cmd*/, int/* subcmd*/)
 			glory, desc_count(glory, WHAT_POINT));
 	}
 
-	playing_time = *real_time_passed((time(0) - ch->player_data.time.logon) + ch->player_data.time.played, 0);
+	TIME_INFO_DATA playing_time = *real_time_passed((time(0) - ch->player_data.time.logon) + ch->player_data.time.played, 0);
 	sprintf(buf + strlen(buf), "Вы играете %d %s %d %s реального времени.\r\n",
 		playing_time.day, desc_count(playing_time.day, WHAT_DAY),
 		playing_time.hours, desc_count(playing_time.hours, WHAT_HOUR));
@@ -6247,7 +6245,7 @@ void do_affects(CHAR_DATA *ch, char* /*argument*/, int/* cmd*/, int/* subcmd*/)
 		for (auto it = affs.begin(); it != affs.end();)
 		{
 			sprintbit(to_underlying(*it), affected_bits, buf2);
-			send_to_char(string(CCIYEL(ch, C_NRM))+ string(buf2)+ string(CCNRM(ch, C_NRM)), ch);
+			send_to_char(std::string(CCIYEL(ch, C_NRM))+ std::string(buf2)+ std::string(CCNRM(ch, C_NRM)), ch);
 			if (++it != affs.end())
 			{
 				send_to_char(", ", ch);

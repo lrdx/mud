@@ -34,7 +34,7 @@
 
 #include <vector>
 
-#define		VAR_CHAR	'@'
+#define	VAR_CHAR '@'
 
 #define imlog(lvl,str)	mudlog(str, lvl, LVL_BUILDER, IMLOG, TRUE)
 
