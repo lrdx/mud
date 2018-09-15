@@ -935,10 +935,11 @@ bool CAN_SEE(const CHAR_DATA* sub, const CHAR_DATA* obj)
 			&& IMM_CAN_SEE(sub, obj));
 }
 
+extern CHAR_DATA* next_combat_list;
 // * Внутри цикла чар нигде не пуржится и сам список соответственно не меняется.
 void change_fighting(CHAR_DATA* ch, int need_stop)
 {
-	for (const auto& k : character_list)
+	for(auto k = combat_list; k; k = next_combat_list)
 	{
 		if (k->get_protecting() == ch)
 		{
@@ -969,10 +970,10 @@ void change_fighting(CHAR_DATA* ch, int need_stop)
 			bool found = false;
 			for (const auto j : world[ch->in_room]->people)
 			{
-				if (j->get_fighting() == k.get())
+				if (j->get_fighting() == k)
 				{
-					act("Вы переключили внимание на $N3.", FALSE, k.get(), 0, j, TO_CHAR);
-					act("$n переключил$u на вас!", FALSE, k.get(), 0, j, TO_VICT);
+					act("Вы переключили внимание на $N3.", FALSE, k, 0, j, TO_CHAR);
+					act("$n переключил$u на вас!", FALSE, k, 0, j, TO_VICT);
 					k->set_fighting(j);
 					found = true;
 
@@ -983,7 +984,7 @@ void change_fighting(CHAR_DATA* ch, int need_stop)
 			if (!found
 				&& need_stop)
 			{
-				stop_fighting(k.get(), FALSE);
+				stop_fighting(k, FALSE);
 			}
 		}
 	}
